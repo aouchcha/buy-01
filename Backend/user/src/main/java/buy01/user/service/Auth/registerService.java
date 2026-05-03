@@ -1,6 +1,5 @@
 package buy01.user.service.Auth;
 
-import org.apache.catalina.mapper.Mapper;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
