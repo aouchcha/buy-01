@@ -21,12 +21,30 @@ services:
       - "8081:8081"
     depends_on:
       - mongodb
+      - discovery-service
     env_file:
       - .env
     environment:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
       SPRING_DATA_MONGODB_URI: ${SPRING_DATA_MONGODB_URI}
+
+  discovery-service:
+    build: ./Backend/discovery
+    container_name: discovery-service
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
+
+  gateway:
+    build: ./Backend/gateway
+    container_name: gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - discovery-service
+
 
 volumes:
   mongo_data:

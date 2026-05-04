@@ -15,7 +15,7 @@ import buy01.user.service.Auth.registerService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class Authentication {
     private final registerService registerService;
     private final loginService loginService;

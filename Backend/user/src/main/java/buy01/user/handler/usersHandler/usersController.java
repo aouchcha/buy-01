@@ -12,7 +12,7 @@ import buy01.user.dto.User.Userdto;
 import buy01.user.service.usersService.usersService;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 public class usersController {
     final private usersService usersService;
 
