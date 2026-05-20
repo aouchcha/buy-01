@@ -1,7 +1,9 @@
 package buy01.user.handler.Auth;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,8 +27,8 @@ public class Authentication {
         this.loginService = loginService;
     }
 
-    @PostMapping("/signup")
-    public ResponseEntity<authResponse> signUp(@Valid @RequestBody registerRequest request) {
+    @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<authResponse> signUp(@Valid @ModelAttribute registerRequest request) {
         authResponse response = registerService.signUp(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
