@@ -87,6 +87,19 @@ services:
       R2_BUCKET: ${R2_BUCKET}
       R2_ENDPOINT: ${R2_ENDPOINT}
       R2_PUBLIC_URL: ${R2_PUBLIC_URL}
+  product-service:
+    build: ./Backend/product
+    container_name: product-service
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    depends_on:
+      - mongodb
+    env_file:
+      - .env
+    environment:
+      SPRING_DATA_MONGODB_URI: ${PRODUCT_DB_URI}
+      
 
 volumes:
   mongo_data:
