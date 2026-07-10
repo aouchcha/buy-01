@@ -19,7 +19,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @RestController
-@RequestMapping("/product")
+@RequestMapping("/api/product")
 @AllArgsConstructor
 public class ProductController {
 
@@ -56,8 +56,6 @@ public class ProductController {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
-
-
 
 
 

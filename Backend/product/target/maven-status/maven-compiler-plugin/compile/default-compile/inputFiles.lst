@@ -5,4 +5,5 @@
 /home/yakhaldy/Desktop/project/buy-01/Backend/product/src/main/java/Product/Service/dto/ProductResponse.java
 /home/yakhaldy/Desktop/project/buy-01/Backend/product/src/main/java/Product/Service/model/Product.java
 /home/yakhaldy/Desktop/project/buy-01/Backend/product/src/main/java/Product/Service/repository/ProductRepository.java
+/home/yakhaldy/Desktop/project/buy-01/Backend/product/src/main/java/Product/Service/security/JwtService.java
 /home/yakhaldy/Desktop/project/buy-01/Backend/product/src/main/java/Product/Service/service/ProductService.java
