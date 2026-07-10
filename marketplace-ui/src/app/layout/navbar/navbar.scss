@@ -1,0 +1,178 @@
+:root {
+  --color-ivory: #fafaf8;
+  --color-cream: #f2ede6;
+  --color-beige: #e8dfd0;
+  --color-sand: #c9b99a;
+  --color-taupe: #a08060;
+  --color-charcoal: #2c2825;
+  --color-charcoal-light: #3a3530;
+  --color-muted: #635d56;
+  --color-sale: #a08060;
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  border-bottom: 1px solid rgb(from var(--color-beige) r g b / 50%);
+}
+
+.container {
+  max-width: 1300px;
+  margin: auto;
+  padding: 0 1.5rem;
+  height: 80px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  text-decoration: none;
+  color: white;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.logo img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+}
+
+.logo span {
+  white-space: nowrap;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: white;
+  font-weight: 500;
+  transition: 0.25s;
+}
+
+.nav-links a:hover {
+  color: var(--color-charcoal);
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn {
+  padding: 0.7rem 1.2rem;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: 0.25s;
+}
+
+.btn-outline {
+  border: 1px solid var(--color-taupe);
+  color: var(--color-taupe);
+}
+
+.btn-outline:hover {
+  background: var(--color-taupe);
+  color: white;
+}
+
+.btn-primary {
+  background: var(--color-taupe);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--color-charcoal);
+}
+
+.menu-btn {
+  display: none;
+  border: none;
+  background: transparent;
+  color: var(--color-charcoal);
+  font-size: 2rem;
+  cursor: pointer;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .container {
+    height: 72px;
+  }
+
+  .logo img {
+    width: 42px;
+    height: 42px;
+  }
+
+  .logo span {
+    font-size: 1.1rem;
+  }
+
+  .menu-btn {
+    display: block;
+  }
+
+  .nav-links {
+    position: absolute;
+    top: 72px;
+    left: 0;
+    right: 0;
+
+    background: var(--color-ivory);
+    border-bottom: 1px solid var(--color-beige);
+
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 1rem;
+
+    transform: translateY(-120%);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+  }
+
+  .nav-links.mobile-open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .nav-links a {
+    padding: 1rem;
+    border-radius: 10px;
+  }
+
+  .nav-links a:hover {
+    background: var(--color-cream);
+  }
+
+  .actions {
+    flex-direction: column;
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  .btn {
+    text-align: center;
+  }
+}

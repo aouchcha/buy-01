@@ -1,0 +1,32 @@
+<nav class="navbar">
+  <div class="container">
+    <a routerLink="/" class="logo" (click)="closeMenu()">
+      <img src="assets/images/logo.png" alt="Rooster Nest Logo" />
+      <span>Rooster Nest</span>
+    </a>
+
+    <button class="menu-btn" (click)="toggleMenu()">
+      ☰
+    </button>
+
+    <div class="nav-links" [class.mobile-open]="isMenuOpen()">
+      <a routerLink="/" (click)="closeMenu()">Home</a>
+      <a routerLink="/cart" (click)="closeMenu()">Cart</a>
+      <a routerLink="/seller" (click)="closeMenu()">Dashboard</a>
+
+      <div class="actions">
+        <a routerLink="/login" class="btn btn-outline" (click)="closeMenu()">
+          Login
+        </a>
+
+        <a
+          routerLink="/register"
+          class="btn btn-primary"
+          (click)="closeMenu()"
+        >
+          Sign Up
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
