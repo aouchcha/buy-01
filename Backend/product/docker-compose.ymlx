@@ -23,6 +23,8 @@ services:
       - "8083:8083"
     environment:
       USER_DB_URI: mongodb://mongodb:27017/product_db
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
     depends_on:
       mongodb:
         condition: service_healthy

@@ -2,6 +2,7 @@ package buy01.user.service.usersService;
 
 import java.util.List;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import buy01.user.dto.User.Userdto;
@@ -25,5 +26,13 @@ public class usersService {
             dto.setRole(user.getRole());
             return dto;
         }).toList();
+    }
+
+
+
+    public Userdto getUser() {
+        Userdto user = new Userdto("1", "YAHYA", "YYYYY", "yahya@gmail.com", "", "SELLER");
+
+        return user;
     }
 }

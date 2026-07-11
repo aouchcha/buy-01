@@ -1,5 +1,9 @@
 package Product.Service.config;
 
+import java.beans.BeanProperty;
+import java.util.Arrays;
+import java.util.List;
+
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -13,7 +17,6 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import lombok.RequiredArgsConstructor;
 
-
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -22,6 +25,9 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.beans.factory.annotation.Value;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 
 @Configuration
@@ -34,21 +40,33 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
-            .cors((cors) -> cors.disable())
-            .authorizeHttpRequests(auth -> auth
+                // .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                            HttpMethod.GET,
-                            "/api/product/**"
-                        ).permitAll()
+                                HttpMethod.GET,
+                                "/api/product/**")
+                        .permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.decoder(jwtDecoder())
-                        .jwtAuthenticationConverter(jwtAuthenticationConverter())
-                    ));
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
         return http.build();
     }
 
+    // @Bean
+    // public CorsConfigurationSource corsConfigurationSource() {
+    //     CorsConfiguration configuration = new CorsConfiguration();
+    //     configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
+    //     configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    //     configuration.setAllowedHeaders(Arrays.asList("*"));
+    //     configuration.setAllowCredentials(true);
+    //     configuration.setMaxAge(3600L);
+
+    //     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    //     source.registerCorsConfiguration("/**", configuration);
+    //     return source;
+    // }
 
     @Bean
     public JwtDecoder jwtDecoder() {

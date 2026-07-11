@@ -3,6 +3,11 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
-  role: 'CLIENT' | 'SELLER';
+  role: Role;
   profilePictureUrl?: string;
+}
+
+export enum Role {
+  CLIENT,
+  SELLER
 }

@@ -1,29 +1,23 @@
 <app-navbar></app-navbar>
 
 <section class="hero">
+  <div class="hero-orb hero-orb--one" aria-hidden="true"></div>
+  <div class="hero-orb hero-orb--two" aria-hidden="true"></div>
+
   <div class="overlay">
     <div class="hero-content">
-      <span class="badge">
-        Chicken • Pigeon • Ostrich • Exotic Birds
-      </span>
+      <span class="badge">Chicken • Pigeon • Ostrich • Exotic Birds</span>
 
       <h1>
         Find Your Perfect
         <span>Bird Companion</span>
       </h1>
 
-      <p>
-        Buy and sell healthy birds from trusted breeders all over Morocco.
-      </p>
+      <p>Buy and sell healthy birds from trusted breeders all over Morocco.</p>
 
       <div class="hero-buttons">
-        <button class="btn-primary">
-          Browse Birds
-        </button>
-
-        <button class="btn-outline">
-          Become a Seller
-        </button>
+        <button class="btn-primary">Browse Birds</button>
+        <button class="btn-outline">Become a Seller</button>
       </div>
     </div>
   </div>
@@ -33,59 +27,41 @@
   <div class="container">
     <h2>Popular Birds</h2>
 
-    <div class="product-grid">
+    @if (loading()) {
+      <p class="status-message">Loading birds…</p>
+    } @else if (error()) {
+      <p class="status-message status-message--error">{{ error() }}</p>
+    } @else {
+      <div class="product-grid">
+        @for (item of products(); track item.id) {
 
-      <div class="card">
-        <img
-          src="https://images.unsplash.com/photo-1548550023-2bdb3c5beed7"
-          alt="Rooster"
-        />
+          <article class="card" #card>
+            <div class="card-media">
+              <!-- @if (item.image) {
+                <img [src]="item.image" [alt]="item.name" loading="lazy" />
+              } -->
+              <img src="assets/images/background.png" [alt]="item.name" loading="lazy" />
+            </div>
 
-        <div class="card-body">
-          <h3>Premium Rooster</h3>
-          <p>Healthy farm rooster.</p>
+            <div class="card-body">
+              <h3>{{ item.name }}</h3>
+              <p>{{ item.description }}</p>
 
-          <div class="card-footer">
-            <span class="price">350 DH</span>
-            <button>View</button>
-          </div>
-        </div>
+              <div class="card-footer">
+                <span class="price">{{ item.price }} DH</span>
+                <button type="button" class="btn-view">
+                  View
+                  <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
+                    <path d="M2 1l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </article>
+        } @empty {
+          <p class="empty-state">No birds available right now.</p>
+        }
       </div>
-
-      <div class="card">
-        <img
-          src="https://images.unsplash.com/photo-1552728089-57bdde30beb3"
-          alt="Pigeon"
-        />
-
-        <div class="card-body">
-          <h3>Racing Pigeon</h3>
-          <p>Excellent flying abilities.</p>
-
-          <div class="card-footer">
-            <span class="price">500 DH</span>
-            <button>View</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <img
-          src="https://images.unsplash.com/photo-1549608276-5786777e6587"
-          alt="Ostrich"
-        />
-
-        <div class="card-body">
-          <h3>Young Ostrich</h3>
-          <p>Strong and healthy.</p>
-
-          <div class="card-footer">
-            <span class="price">2500 DH</span>
-            <button>View</button>
-          </div>
-        </div>
-      </div>
-
-    </div>
+    }
   </div>
 </section>

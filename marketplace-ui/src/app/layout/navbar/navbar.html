@@ -11,21 +11,29 @@
 
     <div class="nav-links" [class.mobile-open]="isMenuOpen()">
       <a routerLink="/" (click)="closeMenu()">Home</a>
-      <a routerLink="/cart" (click)="closeMenu()">Cart</a>
-      <a routerLink="/seller" (click)="closeMenu()">Dashboard</a>
 
       <div class="actions">
+        @if (isLogin()) {
+        <a routerLink="/profile" (click)="closeMenu()" class="btn btn-primary">
+          Profile
+        </a>
+
+        <a routerLink="/seller" class="btn btn-primary" (click)="closeMenu()">
+          Dashboard
+        </a>
+
+        <a class="btn btn-outline" (click)="logout()">
+          Logout
+        </a>
+        } @else {
         <a routerLink="/login" class="btn btn-outline" (click)="closeMenu()">
           Login
         </a>
 
-        <a
-          routerLink="/register"
-          class="btn btn-primary"
-          (click)="closeMenu()"
-        >
+        <a routerLink="/register" class="btn btn-primary" (click)="closeMenu()">
           Sign Up
         </a>
+        }
       </div>
     </div>
   </div>

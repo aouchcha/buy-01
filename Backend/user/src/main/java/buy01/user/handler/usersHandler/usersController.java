@@ -10,6 +10,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import buy01.user.dto.User.Userdto;
 import buy01.user.service.usersService.usersService;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
+
+
 
 @RestController
 @RequestMapping("/api/users")
@@ -26,4 +34,17 @@ public class usersController {
         List<Userdto> users = usersService.getAllUsers();
         return ResponseEntity.ok(users);
     }
+
+
+   @GetMapping("/me")
+   public ResponseEntity<Userdto> getMe() {
+       Userdto user = usersService.getUser();
+       return ResponseEntity.ok(user);
+   }
+   
+   @PutMapping("/me")
+   public ResponseEntity<Userdto> updateMe() {
+        Userdto user = usersService.getUser();
+       return ResponseEntity.ok(user);
+   }
 }

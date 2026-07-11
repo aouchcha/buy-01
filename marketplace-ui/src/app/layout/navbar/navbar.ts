@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
@@ -9,21 +9,30 @@ import { RouterLink } from '@angular/router';
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
 })
-export class Navbar {
-  isMenuOpen =  signal(false);
+export class Navbar implements OnInit {
+  readonly isMenuOpen = signal(false);
+  readonly isLogin = signal(false);
 
-  
+  ngOnInit(): void {
+    const token = localStorage.getItem('token');
+    this.isLogin.set(!!token);
+  }
 
   toggleMenu(): void {
-    this.isMenuOpen.set(!this.isMenuOpen())
+    this.isMenuOpen.update((value) => !value);
   }
 
   closeMenu(): void {
     this.isMenuOpen.set(false);
   }
 
-  opneCart(): void {
+  openCart(): void {
     this.closeMenu();
+  }
 
+  logout(): void {
+    localStorage.removeItem('token');
+    this.isLogin.set(false);
+    this.closeMenu();
   }
 }
