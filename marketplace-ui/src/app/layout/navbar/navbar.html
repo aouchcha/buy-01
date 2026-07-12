@@ -1,0 +1,41 @@
+<nav class="navbar">
+  <div class="container">
+    <a routerLink="/" class="logo" (click)="closeMenu()">
+      <img src="assets/images/logo.png" alt="Rooster Nest Logo" />
+      <span>Rooster Nest</span>
+    </a>
+
+    <button class="menu-btn" (click)="toggleMenu()">
+      ☰
+    </button>
+
+    <div class="nav-links" [class.mobile-open]="isMenuOpen()">
+      <a routerLink="/" (click)="closeMenu()" class="btn btn-primary">Home</a>
+
+      <div class="actions">
+        @if (isLogin()) {
+        <a routerLink="/profile" (click)="closeMenu()" class="btn btn-primary">
+          Profile
+        </a>
+        @if (isSeller()){
+          <a routerLink="/seller" class="btn btn-primary" (click)="closeMenu()">
+            Dashboard
+          </a>
+        }
+
+        <a class="btn btn-primary" (click)="logout()">
+          Logout
+        </a>
+        } @else {
+        <a routerLink="/login" (click)="closeMenu()" class="btn btn-primary">
+          Login
+        </a>
+
+        <a routerLink="/register" class="btn btn-primary" (click)="closeMenu()">
+          Sign Up
+        </a>
+        }
+      </div>
+    </div>
+  </div>
+</nav>

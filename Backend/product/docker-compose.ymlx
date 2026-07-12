@@ -1,0 +1,39 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - marketplace-net
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  product-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: product-service
+    ports:
+      - "8083:8083"
+    environment:
+      USER_DB_URI: mongodb://mongodb:27017/product_db
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - marketplace-net
+
+networks:
+  marketplace-net:
+    driver: bridge
+
+volumes:
+  mongo-data:

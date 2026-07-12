@@ -1,0 +1,66 @@
+.confirm-dialog {
+  font-family: var(--font-display);
+  padding: 8px 4px 4px;
+  min-width: 280px;
+  max-width: 360px;
+}
+
+.confirm-dialog__title {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-charcoal);
+}
+
+.confirm-dialog__message {
+  margin: 0 0 24px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-muted);
+}
+
+.confirm-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-cancel,
+.btn-confirm {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.btn-cancel {
+  background: var(--color-cream);
+  color: var(--color-charcoal-light);
+  border: 1px solid var(--color-beige);
+
+  &:hover {
+    background: var(--color-beige);
+  }
+}
+
+.btn-confirm {
+  background: var(--color-taupe-deep);
+  color: var(--color-ivory);
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+// Danger variant — used for destructive actions like delete
+.confirm-dialog--danger .btn-confirm {
+  background: #a3382a;
+
+  &:hover {
+    background: #8c2f24;
+  }
+}
