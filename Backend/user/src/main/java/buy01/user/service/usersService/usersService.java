@@ -2,11 +2,13 @@ package buy01.user.service.usersService;
 
 import java.util.List;
 
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import buy01.user.dto.User.UserUpdateRequest;
 import buy01.user.dto.User.Userdto;
 import buy01.user.repository.userRepository;
+import buy01.user.model.userEntity;
+
 
 @Service
 public class usersService {
@@ -28,11 +30,32 @@ public class usersService {
         }).toList();
     }
 
+    public Userdto getUser(String id) {
+        userEntity user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
+        return toDto(user);
+    }
 
-    public Userdto getUser() {
-        Userdto user = new Userdto("1", "YAHYA", "YYYYY", "yahya@gmail.com", "", "SELLER");
+    public Userdto updateMe(String id, UserUpdateRequest request) {
+        userEntity user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return user;
+        user.setFirstName(request.firstName());
+        user.setLastName(request.lastName());
+        user.setProfilePictureUrl(request.profilePictureUrl());
+
+        userRepository.save(user);
+        return toDto(user);
+    }
+
+    private Userdto toDto(userEntity user) {
+        return new Userdto(
+                user.getId(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail(),
+                user.getRole(),
+                user.getProfilePictureUrl());
     }
 }

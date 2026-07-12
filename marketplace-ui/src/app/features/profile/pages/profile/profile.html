@@ -1,3 +1,5 @@
+<app-navbar></app-navbar>
+
 <section class="profile-page">
   <div class="profile-card">
 
@@ -51,6 +53,18 @@
         </label>
       </div>
 
+      <div class="edit-toggle">
+        @if (!isEditing()) {
+          <button type="button" class="btn-edit" (click)="startEditing()">
+            ✎ Edit profile
+          </button>
+        } @else {
+          <button type="button" class="btn-cancel" (click)="cancelEditing()">
+            Cancel
+          </button>
+        }
+      </div>
+
       <div class="form-grid">
 
         <div class="form-group">
@@ -60,6 +74,8 @@
             type="text"
             [ngModel]="user.firstName"
             (ngModelChange)="updateFirstName($event)"
+            [readonly]="!isEditing()"
+            [class.readonly]="!isEditing()"
           />
         </div>
 
@@ -70,6 +86,8 @@
             type="text"
             [ngModel]="user.lastName"
             (ngModelChange)="updateLastName($event)"
+            [readonly]="!isEditing()"
+            [class.readonly]="!isEditing()"
           />
         </div>
 
@@ -80,17 +98,20 @@
             type="email"
             [ngModel]="user.email"
             (ngModelChange)="updateEmail($event)"
+            [readonly]="!isEditing()"
+            [class.readonly]="!isEditing()"
           />
         </div>
 
         <div class="form-group full-width">
           <label>Role</label>
-
+          
           <div class="role-picker">
             <button
               type="button"
               class="role-option"
-                [class.active]="user.role === Role.CLIENT"
+                [class.active]="user.role.toLocaleLowerCase() === Role.CLIENT"
+              [disabled]="!isEditing()"
               (click)="updateRole(Role.CLIENT)"
             >
               Buyer
@@ -99,7 +120,8 @@
             <button
               type="button"
               class="role-option"
-             [class.active]="user.role === Role.SELLER"
+             [class.active]="user.role.toLocaleLowerCase() === Role.SELLER"
+              [disabled]="!isEditing()"
               (click)="updateRole(Role.SELLER)"
             >
               Seller
@@ -109,13 +131,15 @@
 
       </div>
 
-      <button
-        class="btn-save"
-        [disabled]="saving()"
-        (click)="saveProfile()"
-      >
-        {{ saving() ? 'Saving...' : 'Save Changes' }}
-      </button>
+      @if (isEditing()) {
+        <button
+          class="btn-save"
+          [disabled]="saving()"
+          (click)="saveProfile()"
+        >
+          {{ saving() ? 'Saving...' : 'Save Changes' }}
+        </button>
+      }
 
     } @else {
       <p class="state-message">

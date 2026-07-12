@@ -425,3 +425,55 @@
     grid-column: auto;
   }
 }
+// ---------- Edit mode toggle ----------
+
+.edit-toggle {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 20px;
+}
+
+.btn-edit,
+.btn-cancel {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-edit {
+  background: var(--color-cream);
+  border: 1px solid var(--color-beige);
+  color: var(--color-taupe-deep);
+
+  &:hover {
+    background: var(--color-beige);
+  }
+}
+
+.btn-cancel {
+  background: transparent;
+  border: 1px solid var(--color-beige);
+  color: var(--color-muted);
+
+  &:hover {
+    background: var(--color-cream);
+  }
+}
+
+// ---------- Read-only field state ----------
+
+.form-group input.readonly {
+  background: var(--color-cream);
+  color: var(--color-muted);
+  cursor: default;
+  border-color: transparent;
+}
+
+.role-option:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

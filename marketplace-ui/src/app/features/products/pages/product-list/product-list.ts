@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 
 import { Navbar } from '../../../../layout/navbar/navbar';
-import { Product } from '../../../../core/models/product';
+import { ProductDto } from '../../../../core/models/product';
 import { Product as ProductService } from '../../../../core/services/product';
 
 @Component({
@@ -22,7 +22,7 @@ import { Product as ProductService } from '../../../../core/services/product';
 export class ProductList implements OnInit {
   private readonly productService = inject(ProductService);
 
-  readonly products = signal<Product[]>([]);
+  readonly products = signal<ProductDto[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
 

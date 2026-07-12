@@ -1,1 +1,151 @@
-<p>dashboard works!</p>
+<app-navbar></app-navbar>
+
+<section class="dashboard">
+  <header class="dashboard__header">
+    <div class="dashboard__greeting">
+      <span class="dashboard__eyebrow">Seller ledger</span>
+      <h1>Welcome {{ seller?.firstName }}</h1>
+      <p class="dashboard__sub">Here's what's in your catalog today.</p>
+    </div>
+    <button type="button" class="btn btn--primary" (click)="openAddModal()">
+      <span class="btn__icon">+</span>
+      Add product
+    </button>
+  </header>
+
+  <div class="stats">
+    <div class="stat-card">
+      <span class="stat-card__label">Products</span>
+      <span class="stat-card__value">{{ products().length }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card__label">Catalog value</span>
+      <span class="stat-card__value">{{ totalValue() | number: '1.0-0' }} MAD</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card__label">With images</span>
+      <span class="stat-card__value">{{ withImages() }} / {{ products().length }}</span>
+    </div>
+  </div>
+
+  <div class="catalog">
+    <div class="catalog__header">
+      <h2>Your catalog</h2>
+    </div>
+
+    @if (loading()) {
+    <div class="catalog__grid">
+      @for (i of [1, 2, 3]; track i) {
+      <div class="product-card product-card--skeleton"></div>
+      }
+    </div>
+    } @else if (products().length === 0) {
+    <div class="empty-state">
+      <p class="empty-state__title">No products yet</p>
+      <p class="empty-state__sub">Add your first piece to start selling.</p>
+      <button type="button" class="btn btn--primary" (click)="openAddModal()">Add product</button>
+    </div>
+    } @else {
+    <div class="catalog__grid">
+      @for (product of products(); track product.id) {
+      <article class="product-card">
+        <div class="product-card__media">
+          @if (product.imageUrl) {
+          <img [src]="product.imageUrl" [alt]="product.name" />
+          } @else {
+          <div class="product-card__placeholder">No image</div>
+          }
+        </div>
+        <div class="product-card__actions">
+          <a [routerLink]="['/seller/products', product.id, 'edit']" class="icon-btn" title="Edit"
+            aria-label="Edit product">
+            <mat-icon>edit</mat-icon>
+          </a>
+
+          <button class="icon-btn icon-btn--danger" [disabled]="deletingId() === product.id"
+            (click)="deleteProduct(product.id)" title="Delete" aria-label="Delete product">
+            @if (deletingId() === product.id) {
+            <mat-icon>hourglass_empty</mat-icon>
+            } @else {
+            <mat-icon>delete</mat-icon>
+            }
+          </button>
+        </div>
+      </article>
+      }
+    </div>
+    }
+  </div>
+
+  @if (showAddModal()) {
+  <div class="modal-backdrop" (click)="closeAddModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <header class="modal__header">
+        <h2>Add product</h2>
+        <button type="button" class="modal__close" (click)="closeAddModal()" aria-label="Close">✕</button>
+      </header>
+
+      <form [formGroup]="addProductForm" (ngSubmit)="submitAddProduct()" class="modal__form">
+        <div class="field">
+          <label for="name">Name</label>
+          <input id="name" type="text" formControlName="name" placeholder="e.g. Ceramic Vase" />
+          @if (addProductForm.controls.name.invalid && addProductForm.controls.name.touched) {
+          <span class="field__error">Name is required.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="description">Description</label>
+          <textarea id="description" formControlName="description" rows="3" placeholder="Short description"></textarea>
+          @if (addProductForm.controls.description.invalid && addProductForm.controls.description.touched) {
+          <span class="field__error">Description is required.</span>
+          }
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="price">Price (MAD)</label>
+            <input id="price" type="number" step="0.01" formControlName="price" placeholder="0.00" />
+            @if (addProductForm.controls.price.invalid && addProductForm.controls.price.touched) {
+            <span class="field__error">Price must be greater than 0.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label for="quantity">Quantity</label>
+            <input id="quantity" type="number" formControlName="quantity" placeholder="0" />
+            @if (addProductForm.controls.quantity.invalid && addProductForm.controls.quantity.touched) {
+            <span class="field__error">Quantity must be at least 1.</span>
+            }
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="image">Product image</label>
+
+          @if (imagePreviewUrl()) {
+          <div class="image-preview">
+            <img [src]="imagePreviewUrl()" alt="Selected product image" />
+            <button type="button" class="image-preview__remove" (click)="removeSelectedImage()">Remove</button>
+          </div>
+          } @else {
+          <input id="image" type="file" accept="image/*" (change)="onFileSelected($event)" />
+          <span class="field__hint">JPG, PNG or WEBP — max 2MB.</span>
+          }
+
+          @if (fileError()) {
+          <span class="field__error">{{ fileError() }}</span>
+          }
+        </div>
+
+        <footer class="modal__footer">
+          <button type="button" class="btn btn--outline" (click)="closeAddModal()">Cancel</button>
+          <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+            @if (submitting()) { Saving… } @else { Save product }
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+  }
+</section>

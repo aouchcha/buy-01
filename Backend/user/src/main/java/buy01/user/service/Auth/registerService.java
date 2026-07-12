@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import buy01.user.config.Exceptions.MyExeptions.Conflict;
 import buy01.user.config.Exceptions.MyExeptions.badRequest;
-import buy01.user.config.Jwt.Jwt;
+import buy01.user.config.Jwt.JwtService;
 import buy01.user.dto.Auth.authResponse;
 import buy01.user.dto.Auth.registerRequest;
 import buy01.user.dto.User.Userdto;
@@ -21,10 +21,10 @@ import buy01.user.service.kafka.MediaEventProducer;
 public class registerService {
     private static final Logger log = LoggerFactory.getLogger(registerService.class);
     private final userRepository repository;
-    private final Jwt jwtService;
+    private final JwtService jwtService;
     private final MediaEventProducer mediaEventProducer;
 
-    public registerService(userRepository repository, Jwt jwtService, MediaEventProducer mediaEventProducer) {
+    public registerService(userRepository repository, JwtService jwtService, MediaEventProducer mediaEventProducer) {
         this.repository = repository;
         this.jwtService = jwtService;
         this.mediaEventProducer = mediaEventProducer;
@@ -50,7 +50,7 @@ public class registerService {
             }else{
                 log.info("No profile picture provided for user: {}", savedUser.getEmail());
             }
-            String token = jwtService.GenerateToken(savedUser.getEmail(), savedUser.getRole(), savedUser.getId());
+            String token = jwtService.generateToken(savedUser.getEmail(), savedUser.getRole(), savedUser.getId());
             Userdto userdto = new Userdto(savedUser.getId(), savedUser.getFirstName(), savedUser.getLastName(), savedUser.getEmail(), savedUser.getProfilePictureUrl(), savedUser.getRole());
             return new authResponse(token, "user registered successfully", userdto);
         } catch (DuplicateKeyException e) {

@@ -10,23 +10,24 @@
     </button>
 
     <div class="nav-links" [class.mobile-open]="isMenuOpen()">
-      <a routerLink="/" (click)="closeMenu()">Home</a>
+      <a routerLink="/" (click)="closeMenu()" class="btn btn-primary">Home</a>
 
       <div class="actions">
         @if (isLogin()) {
         <a routerLink="/profile" (click)="closeMenu()" class="btn btn-primary">
           Profile
         </a>
+        @if (isSeller()){
+          <a routerLink="/seller" class="btn btn-primary" (click)="closeMenu()">
+            Dashboard
+          </a>
+        }
 
-        <a routerLink="/seller" class="btn btn-primary" (click)="closeMenu()">
-          Dashboard
-        </a>
-
-        <a class="btn btn-outline" (click)="logout()">
+        <a class="btn btn-primary" (click)="logout()">
           Logout
         </a>
         } @else {
-        <a routerLink="/login" class="btn btn-outline" (click)="closeMenu()">
+        <a routerLink="/login" (click)="closeMenu()" class="btn btn-primary">
           Login
         </a>
 

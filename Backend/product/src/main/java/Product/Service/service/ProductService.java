@@ -29,32 +29,50 @@ public class ProductService {
                 .toList();
     }
 
-    public ProductResponse createProduct(ProductRequest productRequest) {
+    public ProductResponse createProduct(ProductRequest productRequest, String userId) {
         Product product = Product.builder()
                 .name(productRequest.name())
                 .description(productRequest.description())
                 .price(productRequest.price())
                 .quantity(productRequest.quantity())
-                .userId("userId-1")
+                .userId(userId)
                 .build();
         productRepository.save(product);
-        return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice(), product.getQuantity(), product.getUserId());
+        return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice(),
+                product.getQuantity(), product.getUserId());
     }
 
-    public ProductResponse updateProduct(ProductRequest productRequest, String id) {
+    public ProductResponse updateProduct(ProductRequest productRequest, String id, String userId) {
         Product product = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
+
+        if (!product.getUserId().equals(userId)) {
+            throw new RuntimeException("You do not own this product");
+        }
+
         product.setName(productRequest.name());
         product.setDescription(productRequest.description());
         product.setPrice(productRequest.price());
         product.setQuantity(productRequest.quantity());
         productRepository.save(product);
-        return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice(), product.getQuantity(), product.getUserId());
-        
+        return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice(),
+                product.getQuantity(), product.getUserId());
     }
 
-    public Void deleteProduct(String id) {
+    public void deleteProduct(String id, String userId) {
+        Product product = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
+
+        if (!product.getUserId().equals(userId)) {
+            throw new RuntimeException("You do not own this product");
+        }
+
         productRepository.deleteById(id);
-        return null;
+    }
+
+    public List<ProductResponse> getMyProduct(String userId) {
+        return productRepository.findByUserId(userId).stream()
+                .map(p -> new ProductResponse(p.getId(), p.getName(), p.getDescription(), p.getPrice(), p.getQuantity(),
+                        p.getUserId()))
+                .toList();
     }
 
 }

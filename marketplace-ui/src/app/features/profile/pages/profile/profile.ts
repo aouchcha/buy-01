@@ -5,25 +5,31 @@ import { HttpClient } from '@angular/common/http';
 
 import { ProfileService } from '../../../../core/services/profile';
 import { User, Role } from '../../../../core/models/user';
+import { Navbar } from '../../../../layout/navbar/navbar';
+import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Navbar],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })
 export class Profile implements OnInit {
   private readonly profileService = inject(ProfileService);
   private readonly http = inject(HttpClient);
+  private readonly toast = inject(ToastService);
 
   readonly Role = Role;
 
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
+  readonly isEditing = signal(false);
 
   readonly profile = signal<User | null>(null);
+
+  private snapshot: User | null = null;
 
   readonly defaultAvatar =
     'data:image/svg+xml;utf8,' +
@@ -57,52 +63,37 @@ export class Profile implements OnInit {
         console.error(err);
         this.error.set('Unable to load profile.');
         this.loading.set(false);
+        this.toast.error('Unable to load profile.');
       },
     });
   }
 
+  startEditing(): void {
+    this.snapshot = this.profile();
+    this.isEditing.set(true);
+  }
+
+  cancelEditing(): void {
+    if (this.snapshot) {
+      this.profile.set(this.snapshot);
+    }
+    this.isEditing.set(false);
+  }
+
   updateFirstName(firstName: string): void {
-    this.profile.update((user) =>
-      user
-        ? {
-          ...user,
-          firstName,
-        }
-        : null
-    );
+    this.profile.update((user) => (user ? { ...user, firstName } : null));
   }
 
   updateLastName(lastName: string): void {
-    this.profile.update((user) =>
-      user
-        ? {
-          ...user,
-          lastName,
-        }
-        : null
-    );
+    this.profile.update((user) => (user ? { ...user, lastName } : null));
   }
 
   updateEmail(email: string): void {
-    this.profile.update((user) =>
-      user
-        ? {
-          ...user,
-          email,
-        }
-        : null
-    );
+    this.profile.update((user) => (user ? { ...user, email } : null));
   }
 
   updateRole(role: Role): void {
-    this.profile.update((user) =>
-      user
-        ? {
-          ...user,
-          role,
-        }
-        : null
-    );
+    this.profile.update((user) => (user ? { ...user, role } : null));
   }
 
   saveProfile(): void {
@@ -118,11 +109,14 @@ export class Profile implements OnInit {
       next: (updatedUser) => {
         this.profile.set(updatedUser);
         this.saving.set(false);
+        this.isEditing.set(false);
+        this.toast.success('Profile updated successfully.');
       },
       error: (err) => {
         console.error(err);
         this.error.set('Unable to save profile.');
         this.saving.set(false);
+        this.toast.error('Unable to save profile. Please try again.');
       },
     });
   }
@@ -136,27 +130,32 @@ export class Profile implements OnInit {
 
     const file = input.files[0];
 
+    if (!file.type.startsWith('image/')) {
+      this.toast.error('Only image files are allowed.');
+      input.value = '';
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      this.toast.error('Image must be 2MB or smaller.');
+      input.value = '';
+      return;
+    }
+
     const formData = new FormData();
     formData.append('file', file);
 
     this.http
-      .post<{ url: string }>(
-        'http://localhost:8080/api/media/upload',
-        formData
-      )
+      .post<{ url: string }>('http://localhost:8080/api/media/upload', formData)
       .subscribe({
         next: (response) => {
           this.profile.update((user) =>
-            user
-              ? {
-                ...user,
-                profilePictureUrl: response.url,
-              }
-              : null
+            user ? { ...user, profilePictureUrl: response.url } : null
           );
+          this.toast.success('Photo updated.');
         },
         error: (err) => {
           console.error(err);
+          this.toast.error('Unable to upload photo.');
         },
       });
   }

@@ -1,14 +1,5 @@
-:root {
-  --color-ivory: #fafaf8;
-  --color-cream: #f2ede6;
-  --color-beige: #e8dfd0;
-  --color-sand: #c9b99a;
-  --color-taupe: #a08060;
-  --color-charcoal: #2c2825;
-  --color-charcoal-light: #3a3530;
-  --color-muted: #635d56;
-  --color-sale: #a08060;
-}
+// NOTE: color tokens (--color-*, --glass-*) come from the global
+// src/styles.scss. Don't redeclare :root here — see dashboard.scss for why.
 
 .navbar {
   position: fixed;
@@ -16,10 +7,11 @@
   width: 100%;
   z-index: 1000;
 
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  // background: var(--glass-bg);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 
-  border-bottom: 1px solid rgb(from var(--color-beige) r g b / 50%);
+  border-bottom: 1px solid rgb(from var(--color-beige) r g b / 10%);
 }
 
 .container {
@@ -39,7 +31,7 @@
   gap: 0.75rem;
 
   text-decoration: none;
-  color: white;
+  color: var(--color-charcoal);
   font-size: 1.35rem;
   font-weight: 700;
 }
@@ -62,14 +54,14 @@
 
 .nav-links a {
   text-decoration: none;
-  color: white;
+  color: var(--color-charcoal);
   font-weight: 500;
   transition: 0.25s;
   cursor: pointer;
 }
 
 .nav-links a:hover {
-  color: var(--color-charcoal);
+  color: var(--color-taupe);
 }
 
 .actions {
