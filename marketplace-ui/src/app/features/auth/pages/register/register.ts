@@ -1,36 +1,51 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { Auth } from '../../../../core/services/auth';
+import { Role } from '../../../../core/models/user';
 
-type Role = 'CLIENT' | 'SELLER';
+function passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
+  const password = control.get('password')?.value;
+  const confirmPassword = control.get('confirmPassword')?.value;
+  return password && confirmPassword && password !== confirmPassword
+    ? { passwordsMismatch: true }
+    : null;
+}
 
 @Component({
   selector: 'app-register',
-  imports: [FormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './register.html',
   styleUrl: './register.scss',
 })
 export class Register {
   private readonly authService = inject(Auth);
   private readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
 
-  firstName = '';
-  lastName = '';
-  email = '';
-  password = '';
-  confirmPassword = '';
+  readonly Role = Role;
 
-  readonly role = signal<Role>('CLIENT');
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly showPassword = signal(false);
   readonly profilePicture = signal<File | null>(null);
   readonly profilePreview = signal<string | null>(null);
 
+  readonly registerForm = this.fb.group(
+    {
+      firstName: ['', Validators.required],
+      lastName: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['', Validators.required],
+      role: [Role.CLIENT, Validators.required],
+    },
+    { validators: passwordsMatchValidator },
+  );
+
   selectRole(role: Role): void {
-    this.role.set(role);
+    this.registerForm.controls.role.setValue(role);
   }
 
   togglePassword(): void {
@@ -71,19 +86,24 @@ export class Register {
   onSubmit(): void {
     this.error.set(null);
 
-    if (this.password !== this.confirmPassword) {
-      this.error.set('Passwords do not match.');
+    if (this.registerForm.invalid) {
+      this.registerForm.markAllAsTouched();
+      if (this.registerForm.errors?.['passwordsMismatch']) {
+        this.error.set('Passwords do not match.');
+      }
       return;
     }
 
     this.loading.set(true);
 
+    const { firstName, lastName, email, password, role } = this.registerForm.getRawValue();
+
     const formData = new FormData();
-    formData.append('email', this.email);
-    formData.append('password', this.password);
-    formData.append('firstName', this.firstName);
-    formData.append('lastName', this.lastName);
-    formData.append('role', this.role());
+    formData.append('email', email!);
+    formData.append('password', password!);
+    formData.append('firstName', firstName!);
+    formData.append('lastName', lastName!);
+    formData.append('role', role!);
 
     const picture = this.profilePicture();
     if (picture) {

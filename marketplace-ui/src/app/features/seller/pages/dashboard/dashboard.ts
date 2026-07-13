@@ -65,7 +65,10 @@ export class Dashboard implements OnInit {
         this.products.set(products);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        this.loading.set(false);
+        this.toast.error('Unable to load your products.');
+      },
     });
   }
 
@@ -182,7 +185,10 @@ export class Dashboard implements OnInit {
             },
           });
         },
-        error: () => this.submitting.set(false),
+        error: () => {
+          this.submitting.set(false);
+          this.toast.error('Unable to create product.');
+        },
       });
   }
 }

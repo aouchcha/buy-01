@@ -1,24 +1,20 @@
 import { HttpClient } from "@angular/common/http";
 import { User } from "../models/user";
 import { inject, Injectable } from "@angular/core";
-
+import { environment } from "../../../environments/environment";
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProfileService {
   private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${environment.apiUrl}/users/me`;
 
   getMe() {
-    return this.http.get<User>(
-      'http://localhost:8080/api/users/me'
-    );
+    return this.http.get<User>(this.apiUrl);
   }
 
   updateMe(data: User) {
-    return this.http.put<User>(
-      'http://localhost:8080/api/users/me',
-      data
-    );
+    return this.http.put<User>(this.apiUrl, data);
   }
 }

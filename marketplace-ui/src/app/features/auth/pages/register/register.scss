@@ -150,16 +150,31 @@ h1 {
   margin-bottom: 1rem;
 }
 
-label {
+fieldset.form-group {
+  border: none;
+  padding: 0;
+}
+
+label,
+legend,
+.form-group-label {
   display: block;
   margin-bottom: 0.6rem;
   color: var(--color-charcoal-light, #4a4038);
   font-weight: 600;
+  padding: 0;
 }
 
 .optional {
   font-weight: 400;
   color: var(--color-muted, #9c9186);
+}
+
+.field-error {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #a3382a;
 }
 
 input {

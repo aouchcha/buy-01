@@ -8,6 +8,6 @@ export interface User {
 }
 
 export enum Role {
-  CLIENT = 'clinet',
+  CLIENT = 'client',
   SELLER = 'seller'
 }

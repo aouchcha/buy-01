@@ -1,0 +1,107 @@
+:host {
+  display: block;
+  font-family: var(--font-display, "Inter", system-ui, sans-serif);
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+}
+
+.error-page {
+  min-height: calc(100vh - 80px);
+  background:
+    radial-gradient(circle at top left, var(--color-beige, #e8dcc4), transparent 45%),
+    radial-gradient(circle at bottom right, var(--color-taupe, #a08060), transparent 50%),
+    linear-gradient(135deg, var(--color-ivory, #fdfbf7), var(--color-cream, #f4ede1));
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+  padding: 2rem;
+  text-align: center;
+}
+
+.background-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+.orb-1 {
+  width: 500px;
+  height: 500px;
+  background: rgba(201, 185, 154, 0.45);
+  top: -150px;
+  left: -150px;
+}
+
+.orb-2 {
+  width: 450px;
+  height: 450px;
+  background: rgba(160, 128, 96, 0.35);
+  right: -120px;
+  bottom: -120px;
+}
+
+.error-card {
+  position: relative;
+  z-index: 2;
+  max-width: 480px;
+  background: var(--glass-bg, rgba(255, 255, 255, 0.65));
+  backdrop-filter: blur(30px);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.5));
+  border-radius: 32px;
+  padding: 3rem;
+  box-shadow: var(--shadow-lift, 0 20px 60px rgba(60, 45, 30, 0.15));
+}
+
+.error-code {
+  display: block;
+  font-size: 5rem;
+  font-weight: 700;
+  color: var(--color-taupe-deep, #7c5f44);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+h1 {
+  margin: 0 0 0.75rem;
+  font-size: 1.5rem;
+  color: var(--color-charcoal, #1d1b19);
+}
+
+p {
+  margin: 0 0 2rem;
+  color: var(--color-muted, #6b6560);
+}
+
+.btn-primary {
+  display: inline-block;
+  padding: 0.95rem 2rem;
+  border-radius: 50px;
+  border: none;
+  background: var(--color-taupe, #a08060);
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 320ms var(--ease-apple), box-shadow 320ms var(--ease-apple),
+    background 320ms var(--ease-apple);
+}
+
+.btn-primary:hover {
+  background: var(--color-taupe-deep, #7c5f44);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift, 0 24px 48px rgba(29, 27, 25, 0.16));
+}
+
+.btn-primary:focus-visible {
+  outline: 2px solid var(--color-sand);
+  outline-offset: 3px;
+}

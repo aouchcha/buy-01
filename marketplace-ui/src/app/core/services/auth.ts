@@ -4,14 +4,15 @@ import { LoginRequest } from '../models/auth-request';
 import { Observable, tap, BehaviorSubject } from 'rxjs';
 import { AuthResponse } from '../models/auth-response';
 import { Role, User } from '../models/user';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class Auth {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8080/api/auth';
-  private readonly userApiUrl = 'http://localhost:8080/api/users'; 
+  private readonly apiUrl = `${environment.apiUrl}/auth`;
+  private readonly userApiUrl = `${environment.apiUrl}/users`;
 
   readonly Role = Role;
 

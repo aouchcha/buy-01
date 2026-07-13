@@ -1,9 +1,9 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 
 import { ProfileService } from '../../../../core/services/profile';
+import { Media } from '../../../../core/services/media';
 import { User, Role } from '../../../../core/models/user';
 import { Navbar } from '../../../../layout/navbar/navbar';
 import { ToastService } from '../../../../core/services/toast.service';
@@ -17,7 +17,7 @@ import { ToastService } from '../../../../core/services/toast.service';
 })
 export class Profile implements OnInit {
   private readonly profileService = inject(ProfileService);
-  private readonly http = inject(HttpClient);
+  private readonly mediaService = inject(Media);
   private readonly toast = inject(ToastService);
 
   readonly Role = Role;
@@ -130,33 +130,24 @@ export class Profile implements OnInit {
 
     const file = input.files[0];
 
-    if (!file.type.startsWith('image/')) {
-      this.toast.error('Only image files are allowed.');
-      input.value = '';
-      return;
-    }
-    if (file.size > 2 * 1024 * 1024) {
-      this.toast.error('Image must be 2MB or smaller.');
+    const validationError = this.mediaService.validateImage(file);
+    if (validationError) {
+      this.toast.error(validationError);
       input.value = '';
       return;
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
-
-    this.http
-      .post<{ url: string }>('http://localhost:8080/api/media/upload', formData)
-      .subscribe({
-        next: (response) => {
-          this.profile.update((user) =>
-            user ? { ...user, profilePictureUrl: response.url } : null
-          );
-          this.toast.success('Photo updated.');
-        },
-        error: (err) => {
-          console.error(err);
-          this.toast.error('Unable to upload photo.');
-        },
-      });
+    this.mediaService.uploadAvatar(file).subscribe({
+      next: (response) => {
+        this.profile.update((user) =>
+          user ? { ...user, profilePictureUrl: response.url } : null
+        );
+        this.toast.success('Photo updated.');
+      },
+      error: (err) => {
+        console.error(err);
+        this.toast.error('Unable to upload photo.');
+      },
+    });
   }
 }

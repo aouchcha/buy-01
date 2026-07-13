@@ -1,0 +1,57 @@
+<app-navbar></app-navbar>
+
+<section class="edit-page">
+  <div class="edit-card">
+    <h1>Edit product</h1>
+
+    @if (loading()) {
+      <p class="status-message">Loading product…</p>
+    } @else if (notFound()) {
+      <p class="status-message status-message--error">This product could not be found.</p>
+      <a routerLink="/seller" class="btn btn--outline">Back to dashboard</a>
+    } @else {
+      <form [formGroup]="editProductForm" (ngSubmit)="submit()">
+        <div class="field">
+          <label for="name">Name</label>
+          <input id="name" type="text" formControlName="name" placeholder="e.g. Ceramic Vase" />
+          @if (editProductForm.controls.name.invalid && editProductForm.controls.name.touched) {
+            <span class="field__error">Name is required.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="description">Description</label>
+          <textarea id="description" formControlName="description" rows="3" placeholder="Short description"></textarea>
+          @if (editProductForm.controls.description.invalid && editProductForm.controls.description.touched) {
+            <span class="field__error">Description is required.</span>
+          }
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="price">Price (MAD)</label>
+            <input id="price" type="number" step="0.01" formControlName="price" placeholder="0.00" />
+            @if (editProductForm.controls.price.invalid && editProductForm.controls.price.touched) {
+              <span class="field__error">Price must be greater than 0.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label for="quantity">Quantity</label>
+            <input id="quantity" type="number" formControlName="quantity" placeholder="0" />
+            @if (editProductForm.controls.quantity.invalid && editProductForm.controls.quantity.touched) {
+              <span class="field__error">Quantity must be at least 1.</span>
+            }
+          </div>
+        </div>
+
+        <footer class="form-footer">
+          <a routerLink="/seller" class="btn btn--outline">Cancel</a>
+          <button type="submit" class="btn btn--primary" [disabled]="saving()">
+            @if (saving()) { Saving… } @else { Save changes }
+          </button>
+        </footer>
+      </form>
+    }
+  </div>
+</section>

@@ -2,21 +2,29 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { MediaResponse } from '../models/media';
+import { environment } from '../../../environments/environment';
 
 
-export const MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB, matches backend limit?
+export const MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB, matches backend limit
 
 @Injectable({
   providedIn: 'root',
 })
 export class Media {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8080/api/media/images';
+  private readonly apiUrl = `${environment.apiUrl}/media/images`;
 
   uploadImage(productId: number, file: File): Observable<MediaResponse> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('productId', productId.toString());
+
+    return this.http.post<MediaResponse>(this.apiUrl, formData);
+  }
+
+  uploadAvatar(file: File): Observable<MediaResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
 
     return this.http.post<MediaResponse>(this.apiUrl, formData);
   }

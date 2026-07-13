@@ -3,13 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { ProductDto, ProductRequest } from '../models/product';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class Product {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8080/api/product';
+  private readonly apiUrl = `${environment.apiUrl}/product`;
 
   getAll(): Observable<ProductDto[]> {
     return this.http.get<ProductDto[]>(this.apiUrl);
@@ -25,6 +26,10 @@ export class Product {
 
   create(request: ProductRequest): Observable<ProductDto> {
     return this.http.post<ProductDto>(this.apiUrl, request);
+  }
+
+  update(id: number, request: ProductRequest): Observable<ProductDto> {
+    return this.http.put<ProductDto>(`${this.apiUrl}/${id}`, request);
   }
 
   deleteProduct(id: number): Observable<void> {
