@@ -732,3 +732,14 @@ buy01/
 - [Apache Kafka Quickstart](https://kafka.apache.org/quickstart)
 - [Spring Cloud Gateway](https://spring.io/projects/spring-cloud-gateway)
 - [Netflix Eureka](https://spring.io/projects/spring-cloud-netflix)
+
+
+
+```
+ docker compose down -v
+docker builder prune -f
+mvn clean
+docker compose build --no-cache
+docker compose up
+
+```
