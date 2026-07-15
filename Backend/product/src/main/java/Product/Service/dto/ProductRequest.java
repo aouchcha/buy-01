@@ -4,21 +4,19 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-
 public record ProductRequest(
-    @NotBlank(message = "Name is required")
-    String name,
-    
-    @NotBlank(message = "description is required")
-    String description,
-    
-    @NotNull(message = "price is required")
-    @Min(value = 0, message = "Price must be positive")
-    double price,
+        @NotBlank(message = "Name is required") @Size(min = 2, max = 100, message = "name must be between 2 and 100 characters") String name,
 
-    
-    @NotNull(message = "quantity is required")
-    @Min(value = 1, message = "Quantity must be greater than 0")
-    Integer quantity
+        @NotBlank(message = "description is required") @Size(min = 10, max = 1000, message = "description must be between 10 and 1000 characters") String description,
 
-){}
+        @NotNull(message = "price is required") 
+        @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
+        @DecimalMax(value = "999999.99", message = "Price must be less than 999999.99")
+        Double price,
+
+        @NotNull(message = "quantity is required")
+        @Min(value = 1, message = "Quantity must be greater than 0")
+        Integer quantity
+
+) {
+}

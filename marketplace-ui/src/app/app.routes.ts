@@ -8,8 +8,6 @@ import { Profile } from './features/profile/pages/profile/profile';
 import { authGuard } from './core/guards/auth-guard';
 import { roleGuard } from './core/guards/role-guard';
 import { Dashboard } from './features/seller/pages/dashboard/dashboard'
-import { EditProduct } from './features/seller/pages/edit-product/edit-product'
-import { Role } from './core/models/user'
 import { Unauthorized } from './features/errors/pages/unauthorized/unauthorized';
 import { ServerError } from './features/errors/pages/server-error/server-error';
 import { NotFound } from './features/errors/pages/not-found/not-found';
@@ -38,12 +36,6 @@ export const routes: Routes = [
         canActivate: [authGuard, roleGuard],
         data: { roles: ['seller'] },
         component: Dashboard
-    },
-    {
-        path: 'seller/products/:id/edit',
-        canActivate: [authGuard, roleGuard],
-        data: { roles: ['seller'] },
-        component: EditProduct
     },
     {
         path: 'unauthorized',

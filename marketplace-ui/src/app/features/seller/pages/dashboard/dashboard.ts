@@ -1,6 +1,5 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Auth } from '../../../../core/services/auth';
 import { Product } from '../../../../core/services/product';
@@ -14,7 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule, Navbar, MatIconModule],
+  imports: [CommonModule, ReactiveFormsModule, Navbar, MatIconModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
@@ -46,8 +45,23 @@ export class Dashboard implements OnInit {
     quantity: [null as number | null, [Validators.required, Validators.min(1)]],
   });
 
+  // --- Edit product modal state ---
+  readonly showEditModal = signal(false);
+  readonly submittingEdit = signal(false);
+  readonly editingProduct = signal<ProductDto | null>(null);
+  readonly selectedEditFile = signal<File | null>(null);
+  readonly editImagePreviewUrl = signal<string | null>(null);
+  readonly editFileError = signal<string | null>(null);
+
+  readonly editProductForm = this.fb.group({
+    name: ['', Validators.required],
+    description: ['', Validators.required],
+    price: [null as number | null, [Validators.required, Validators.min(0.01)]],
+    quantity: [null as number | null, [Validators.required, Validators.min(1)]],
+  });
+
   readonly totalValue = computed(() =>
-    this.products().reduce((sum, p) => sum + p.price, 0)
+    this.products().reduce((sum, p) => sum + p.price * p.quantity, 0)
   );
 
   readonly withImages = computed(
@@ -188,6 +202,119 @@ export class Dashboard implements OnInit {
         error: () => {
           this.submitting.set(false);
           this.toast.error('Unable to create product.');
+        },
+      });
+  }
+
+  // --- Edit product modal ---
+
+  openEditModal(product: ProductDto): void {
+    this.editingProduct.set(product);
+    this.editProductForm.setValue({
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      quantity: product.quantity,
+    });
+    this.editImagePreviewUrl.set(product.imageUrl ?? null);
+    this.selectedEditFile.set(null);
+    this.editFileError.set(null);
+    this.showEditModal.set(true);
+  }
+
+  closeEditModal(): void {
+    this.showEditModal.set(false);
+    this.editingProduct.set(null);
+    this.editProductForm.reset();
+    this.selectedEditFile.set(null);
+    this.editImagePreviewUrl.set(null);
+    this.editFileError.set(null);
+  }
+
+  onEditFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+
+    if (!file) {
+      this.selectedEditFile.set(null);
+      this.editFileError.set(null);
+      return;
+    }
+
+    const error = this.mediaService.validateImage(file);
+    if (error) {
+      this.editFileError.set(error);
+      this.selectedEditFile.set(null);
+      input.value = '';
+      return;
+    }
+
+    this.editFileError.set(null);
+    this.selectedEditFile.set(file);
+    this.editImagePreviewUrl.set(URL.createObjectURL(file));
+  }
+
+  removeEditSelectedImage(): void {
+    this.selectedEditFile.set(null);
+    this.editImagePreviewUrl.set(null);
+    this.editFileError.set(null);
+  }
+
+  submitEditProduct(): void {
+    if (this.editProductForm.invalid) {
+      this.editProductForm.markAllAsTouched();
+      return;
+    }
+
+    const current = this.editingProduct();
+    if (!current) return;
+
+    this.submittingEdit.set(true);
+    const { name, description, price, quantity } = this.editProductForm.getRawValue();
+
+    this.productService
+      .update(current.id, {
+        name: name!,
+        description: description!,
+        price: price!,
+        quantity: quantity!,
+      })
+      .subscribe({
+        next: (updated) => {
+          const file = this.selectedEditFile();
+          if (!file) {
+            this.products.update((list) =>
+              list.map((p) => (p.id === current.id ? { ...p, ...updated } : p))
+            );
+            this.submittingEdit.set(false);
+            this.closeEditModal();
+            return;
+          }
+
+          this.mediaService.uploadImage(current.id, file).subscribe({
+            next: (media) => {
+              this.products.update((list) =>
+                list.map((p) =>
+                  p.id === current.id ? { ...p, ...updated, imageUrl: media.url } : p
+                )
+              );
+              this.submittingEdit.set(false);
+              this.closeEditModal();
+            },
+            error: () => {
+              // Product was updated but the new image failed to upload — keep other changes.
+              this.products.update((list) =>
+                list.map((p) => (p.id === current.id ? { ...p, ...updated } : p))
+              );
+              this.submittingEdit.set(false);
+              this.toast.error('Product updated, but the image failed to upload.');
+              this.closeEditModal();
+            },
+          });
+        },
+        error: () => {
+          this.submittingEdit.set(false);
+          this.toast.error('Unable to update product.');
         },
       });
   }
