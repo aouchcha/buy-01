@@ -1,5 +1,8 @@
 package Product.Service.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -32,6 +35,10 @@ public class Product {
 
     @Field("user_id")
     private String userId;
+
+    @Builder.Default
+    @Field("image_urls")
+    private List<String> imageUrls = new ArrayList<>();
 }
 
 

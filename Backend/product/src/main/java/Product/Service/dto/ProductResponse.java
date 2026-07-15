@@ -1,5 +1,6 @@
 package Product.Service.dto;
 
+import java.util.List;
 
 public record ProductResponse(
     String id,
@@ -7,7 +8,8 @@ public record ProductResponse(
     String description,
     double price,
     Integer quantity,
-    String userId
+    String userId,
+    List<String> imageUrls
 ) {
 
 }

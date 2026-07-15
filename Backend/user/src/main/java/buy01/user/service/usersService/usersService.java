@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import buy01.user.config.Exceptions.MyExeptions.notFound;
 import buy01.user.dto.User.UserUpdateRequest;
 import buy01.user.dto.User.Userdto;
 import buy01.user.repository.userRepository;
@@ -32,14 +33,14 @@ public class usersService {
 
     public Userdto getUser(String id) {
         userEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new notFound("User not found"));
 
         return toDto(user);
     }
 
     public Userdto updateMe(String id, UserUpdateRequest request) {
         userEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new notFound("User not found"));
 
         user.setFirstName(request.firstName());
         user.setLastName(request.lastName());
@@ -55,7 +56,7 @@ public class usersService {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getEmail(),
-                user.getRole(),
-                user.getProfilePictureUrl());
+                user.getProfilePictureUrl(),
+                user.getRole());
     }
 }

@@ -67,6 +67,10 @@ services:
       - "8080:8080"
     depends_on:
       - discovery-service
+    env_file:
+      - .env
+    environment:
+      CORS_ALLOWED_ORIGIN: ${CORS_ALLOWED_ORIGIN:-http://localhost:4200}
 
   media-service:
     build: ./Backend/media
@@ -95,6 +99,7 @@ services:
       - "8083:8083"
     depends_on:
       - mongodb
+      - discovery-service
     env_file:
       - .env
     environment:

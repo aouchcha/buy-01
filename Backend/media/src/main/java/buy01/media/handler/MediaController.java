@@ -28,7 +28,7 @@ public class MediaController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MediaResponse> uploadProductImage(
-            @RequestParam("productId") Long productId,
+            @RequestParam("productId") String productId,
             @RequestParam("file") MultipartFile file) {
 
         MediaResponse response = mediaService.uploadProductImage(productId, file);

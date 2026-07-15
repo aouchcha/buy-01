@@ -3,7 +3,7 @@ package buy01.user.service.Auth;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
-import buy01.user.config.Exceptions.MyExeptions.notFound;
+import buy01.user.config.Exceptions.MyExeptions.unauthorized;
 import buy01.user.config.Jwt.JwtService;
 import buy01.user.dto.Auth.authRequest;
 import buy01.user.dto.Auth.authResponse;
@@ -26,10 +26,10 @@ public class loginService {
         final String password = request.getPassword();
         final userEntity user = repository.findByEmail(email);
         if (user == null) {
-            throw new notFound("bad cridentials user is null");
+            throw new unauthorized("Incorrect email or password");
         }
         if (!BCrypt.checkpw(password, user.getPassword())) {
-            throw new notFound("bad cridentials password not match");
+            throw new unauthorized("Incorrect email or password");
         }
         String token = jwt.generateToken(user.getEmail(), user.getRole(), user.getId());
         Userdto userdto = new Userdto(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail(), user.getProfilePictureUrl(), user.getRole());

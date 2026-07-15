@@ -1,5 +1,6 @@
 package buy01.gateway.Security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,9 +14,10 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 
 @Configuration
-// @EnableMethodSecurity
 public class SecurityConfig {
 
+    @Value("${cors.allowed-origin}")
+    private String allowedOrigin;
 
 @Bean
 SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
@@ -31,7 +33,7 @@ SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
 @Bean
 CorsWebFilter corsWebFilter() {
     CorsConfiguration config = new CorsConfiguration();
-    config.addAllowedOrigin("http://localhost:4200");
+    config.addAllowedOrigin(allowedOrigin);
     config.addAllowedMethod("*");
     config.addAllowedHeader("*");
 
@@ -42,5 +44,5 @@ CorsWebFilter corsWebFilter() {
     return new CorsWebFilter(source);
 }
 
-    
+
 }

@@ -13,6 +13,7 @@ import buy01.user.dto.Auth.authResponse;
 import buy01.user.dto.Auth.registerRequest;
 import buy01.user.dto.User.Userdto;
 import buy01.user.dto.kafka.MediaUploadEvent;
+import buy01.user.model.Roles;
 import buy01.user.model.userEntity;
 import buy01.user.repository.userRepository;
 import buy01.user.service.kafka.MediaEventProducer;
@@ -30,6 +31,14 @@ public class registerService {
         this.mediaEventProducer = mediaEventProducer;
     }
 
+    private static String normalizeRegistrableRole(String role) {
+        String normalized = role == null ? "" : role.trim().toUpperCase();
+        if (!normalized.equals(Roles.CLIENT.name()) && !normalized.equals(Roles.SELLER.name())) {
+            throw new badRequest("Role must be CLIENT or SELLER");
+        }
+        return normalized;
+    }
+
     public authResponse signUp(registerRequest request) {
         try {
             userEntity user = new userEntity();
@@ -37,7 +46,7 @@ public class registerService {
             user.setLastName(request.getLastName());
             user.setEmail(request.getEmail());
             user.setPassword(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()));
-            user.setRole(request.getRole());
+            user.setRole(normalizeRegistrableRole(request.getRole()));
             userEntity savedUser = repository.save(user);
             if (request.getProfilePicture() != null && !request.getProfilePicture().isEmpty()) {
                 log.info("Publishing media upload event for user: {}", savedUser.getEmail());
@@ -55,6 +64,8 @@ public class registerService {
             return new authResponse(token, "user registered successfully", userdto);
         } catch (DuplicateKeyException e) {
             throw new Conflict("The user already exists");
+        } catch (badRequest e) {
+            throw e;
         } catch(Exception e) {
             throw new badRequest("user can't registerd" + e.getMessage());
         }

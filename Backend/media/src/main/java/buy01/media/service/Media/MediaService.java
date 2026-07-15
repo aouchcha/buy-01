@@ -8,7 +8,7 @@ import buy01.media.dto.Media.MediaResponse;
 @Service
 public class MediaService {
 
-    public MediaResponse uploadProductImage(Long productId, MultipartFile file) {
+    public MediaResponse uploadProductImage(String productId, MultipartFile file) {
         // 1. Validate image
         // 2. Store file (disk, S3, Cloudinary, etc.)
         // 3. Save image URL to product

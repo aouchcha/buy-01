@@ -4,7 +4,6 @@ import java.beans.BeanProperty;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.context.annotation.Bean;
@@ -18,13 +17,10 @@ import org.springframework.security.web.SecurityFilterChain;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.beans.factory.annotation.Value;
-import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -47,6 +43,9 @@ public class SecurityConfig {
                                 HttpMethod.GET,
                                 "/api/product/**")
                         .permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/product").hasRole("SELLER")
+                        .requestMatchers(HttpMethod.PUT, "/api/product/**").hasRole("SELLER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/product/**").hasRole("SELLER")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.decoder(jwtDecoder())
@@ -76,12 +75,6 @@ public class SecurityConfig {
         SecretKeySpec key = new SecretKeySpec(
                 secret.getBytes(), "HmacSHA256");
         return NimbusJwtDecoder.withSecretKey(key).build();
-    }
-
-    @Bean
-    public JwtEncoder jwtEncoder() {
-        SecretKey key = new SecretKeySpec(secret.getBytes(), "HmacSHA256");
-        return new NimbusJwtEncoder(new ImmutableSecret<>(key));
     }
 
     @Bean

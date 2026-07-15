@@ -29,7 +29,7 @@ export class Auth {
   }
 
   register(data: FormData): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/signup`, data).pipe(
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, data).pipe(
       tap((res) => {
         localStorage.setItem('token', res.token);
         this.currentUserSubject.next(res.user);
