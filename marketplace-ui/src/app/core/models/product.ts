@@ -1,12 +1,13 @@
 
 export interface ProductDto {
-  id: number;
+  id: string;
   name: string;
   description: string;
   price: number;
   quantity: number;
+  userId?: string;
+  imageUrls?: string[];
   imageUrl?: string;
-  createdAt: string;
 }
 
 export interface ProductRequest {

@@ -16,7 +16,7 @@ export class Product {
     return this.http.get<ProductDto[]>(this.apiUrl);
   }
 
-  getById(id: number): Observable<ProductDto> {
+  getById(id: string): Observable<ProductDto> {
     return this.http.get<ProductDto>(`${this.apiUrl}/${id}`);
   }
 
@@ -28,11 +28,11 @@ export class Product {
     return this.http.post<ProductDto>(this.apiUrl, request);
   }
 
-  update(id: number, request: ProductRequest): Observable<ProductDto> {
+  update(id: string, request: ProductRequest): Observable<ProductDto> {
     return this.http.put<ProductDto>(`${this.apiUrl}/${id}`, request);
   }
 
-  deleteProduct(id: number): Observable<void> {
+  deleteProduct(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

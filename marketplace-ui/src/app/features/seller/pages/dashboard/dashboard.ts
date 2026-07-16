@@ -29,7 +29,7 @@ export class Dashboard implements OnInit {
 
   readonly products = signal<ProductDto[]>([]);
   readonly loading = signal<boolean>(true);
-  readonly deletingId = signal<number | null>(null);
+  readonly deletingId = signal<string | null>(null);
 
   // --- Add product modal state ---
   readonly showAddModal = signal(false);
@@ -76,7 +76,10 @@ export class Dashboard implements OnInit {
     this.loading.set(true);
     this.productService.getMyProducts().subscribe({
       next: (products) => {
-        this.products.set(products);
+        this.products.set(products.map(p => ({
+          ...p,
+          imageUrl: p.imageUrl ?? p.imageUrls?.[0],
+        })));
         this.loading.set(false);
       },
       error: () => {
@@ -86,7 +89,7 @@ export class Dashboard implements OnInit {
     });
   }
 
-  deleteProduct(id: number): void {
+  deleteProduct(id: string): void {
     this.confirmService
       .open({
         title: 'Delete this product?',
