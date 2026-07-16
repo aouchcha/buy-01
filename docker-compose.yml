@@ -12,13 +12,23 @@ services:
       MONGO_INITDB_DATABASE: ${DB_NAME}
     volumes:
       - mongo_data:/data/db
-      
+    networks:
+      - buy01-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
     container_name: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - buy01-network
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
@@ -34,23 +44,8 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-
-  user-service:
-    build: ./Backend/user
-    container_name: user-service
-    restart: unless-stopped
-    ports:
-      - "8081:8081"
-    depends_on:
-      - mongodb
-      - discovery-service
-      - kafka
-    env_file:
-      - .env
-    environment:
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION}
-      SPRING_DATA_MONGODB_URI: ${USER_DB_URI}
+    networks:
+      - buy01-network
 
   discovery-service:
     build: ./Backend/discovery
@@ -58,6 +53,8 @@ services:
     restart: unless-stopped
     ports:
       - "8761:8761"
+    networks:
+      - buy01-network
 
   gateway:
     build: ./Backend/gateway
@@ -71,6 +68,30 @@ services:
       - .env
     environment:
       CORS_ALLOWED_ORIGIN: ${CORS_ALLOWED_ORIGIN:-http://localhost:4200}
+    networks:
+      - buy01-network
+
+  user-service:
+    build: ./Backend/user
+    container_name: user-service
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+      kafka:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      SPRING_MONGODB_URI: ${USER_DB_URI}
+    networks:
+      - buy01-network
 
   media-service:
     build: ./Backend/media
@@ -79,18 +100,24 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      - discovery-service
-      - mongodb
-      - kafka
+      mongodb:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+      kafka:
+        condition: service_started
     env_file:
       - .env
     environment:
-      SPRING_DATA_MONGODB_URI: ${MEDIA_DB_URI}
+      SPRING_MONGODB_URI: ${MEDIA_DB_URI}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       R2_BUCKET: ${R2_BUCKET}
       R2_ENDPOINT: ${R2_ENDPOINT}
       R2_PUBLIC_URL: ${R2_PUBLIC_URL}
+    networks:
+      - buy01-network
+
   product-service:
     build: ./Backend/product
     container_name: product-service
@@ -98,13 +125,22 @@ services:
     ports:
       - "8083:8083"
     depends_on:
-      - mongodb
-      - discovery-service
+      mongodb:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+      kafka:
+        condition: service_started
     env_file:
       - .env
     environment:
-      SPRING_DATA_MONGODB_URI: ${PRODUCT_DB_URI}
-      
+      SPRING_MONGODB_URI: ${PRODUCT_DB_URI}
+    networks:
+      - buy01-network
+
+networks:
+  buy01-network:
+    driver: bridge
 
 volumes:
   mongo_data:
