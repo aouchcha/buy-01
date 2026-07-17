@@ -82,9 +82,9 @@ export class Dashboard implements OnInit {
         })));
         this.loading.set(false);
       },
-      error: () => {
+      error: (err) => {
         this.loading.set(false);
-        this.toast.error('Unable to load your products.');
+        this.toast.error(err.error || 'Unable to load your products.');
       },
     });
   }
@@ -109,9 +109,9 @@ export class Dashboard implements OnInit {
             this.deletingId.set(null);
             this.toast.success('Product deleted.');
           },
-          error: () => {
+          error: (err) => {
             this.deletingId.set(null);
-            this.toast.error('Unable to delete product.');
+            this.toast.error(err.error || 'Unable to delete product.');
           },
         });
       });
@@ -194,17 +194,24 @@ export class Dashboard implements OnInit {
               this.submitting.set(false);
               this.closeAddModal();
             },
-            error: () => {
+            error: (err) => {
               // Product was created but the image upload failed — keep it visible without an image.
               this.products.update((list) => [product, ...list]);
               this.submitting.set(false);
+              this.toast.error(
+                err.error || 'image upload failed.'
+              );
               this.closeAddModal();
             },
           });
         },
-        error: () => {
+        error: (err) => {
+          console.log(err);
+
           this.submitting.set(false);
-          this.toast.error('Unable to create product.');
+          this.toast.error(
+            err.error || 'Unable to create product.'
+          );
         },
       });
   }
@@ -304,20 +311,19 @@ export class Dashboard implements OnInit {
               this.submittingEdit.set(false);
               this.closeEditModal();
             },
-            error: () => {
-              // Product was updated but the new image failed to upload — keep other changes.
+            error: (err) => {
               this.products.update((list) =>
                 list.map((p) => (p.id === current.id ? { ...p, ...updated } : p))
               );
               this.submittingEdit.set(false);
-              this.toast.error('Product updated, but the image failed to upload.');
+              this.toast.error(err.error || 'Product updated, but the image failed to upload.');
               this.closeEditModal();
             },
           });
         },
-        error: () => {
+        error: (err) => {
           this.submittingEdit.set(false);
-          this.toast.error('Unable to update product.');
+          this.toast.error(err.error || 'Unable to update product.');
         },
       });
   }
