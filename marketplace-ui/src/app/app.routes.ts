@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { Role } from './core/models/user';
 
 import { ProductList } from "./features/products/pages/product-list/product-list";
 import { Login } from "./features/auth/pages/login/login"
@@ -34,7 +35,7 @@ export const routes: Routes = [
     {
         path: 'seller',
         canActivate: [authGuard, roleGuard],
-        data: { roles: ['seller'] },
+        data: { roles: [Role.SELLER] },
         component: Dashboard
     },
     {

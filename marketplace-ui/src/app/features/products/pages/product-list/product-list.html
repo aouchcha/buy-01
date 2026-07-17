@@ -37,10 +37,11 @@
 
           <article class="card" #card>
             <div class="card-media">
-              <!-- @if (item.image) {
-                <img [src]="item.image" [alt]="item.name" loading="lazy" />
-              } -->
-              <img src="assets/images/background.png" [alt]="item.name" loading="lazy" />
+              @if (item.imageUrls?.[0]) {
+                <img [src]="item.imageUrls![0]" [alt]="item.name" loading="lazy" />
+              } @else {
+                <img src="assets/images/background.png" [alt]="item.name" loading="lazy" />
+              }
             </div>
 
             <div class="card-body">
@@ -49,12 +50,6 @@
 
               <div class="card-footer">
                 <span class="price">{{ item.price }} DH</span>
-                <!-- <button type="button" class="btn-view">
-                  View
-                  <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">
-                    <path d="M2 1l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-                  </svg>
-                </button> -->
               </div>
             </div>
           </article>

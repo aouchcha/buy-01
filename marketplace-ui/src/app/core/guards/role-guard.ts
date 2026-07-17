@@ -3,7 +3,6 @@ import { CanActivateFn } from '@angular/router';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Auth } from '../services/auth';
-import { Role } from '../models/user';
 
 export const roleGuard: CanActivateFn = (route, state) => {
     const authService = inject(Auth);
@@ -19,7 +18,7 @@ export const roleGuard: CanActivateFn = (route, state) => {
         return false;
     }
     if (userRole != null) {
-        if (requiredRoles && !requiredRoles.includes(userRole.toLowerCase())) {
+        if (requiredRoles && !requiredRoles.includes(userRole)) {
             router.navigate(['/unauthorized']);
             return false;
         }
