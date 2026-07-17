@@ -105,7 +105,7 @@ export class Profile implements OnInit {
 
     this.saving.set(true);
 
-    this.profileService.updateMe(user).subscribe({
+    this.profileService.updateMe(user, undefined).subscribe({
       next: (updatedUser) => {
         this.profile.set(updatedUser);
         this.saving.set(false);
@@ -137,12 +137,12 @@ export class Profile implements OnInit {
       return;
     }
 
-    this.mediaService.uploadAvatar(file).subscribe({
-      next: (response) => {
-        this.profile.update((user) =>
-          user ? { ...user, profilePictureUrl: response.url } : null
-        );
-        this.toast.success('Photo updated.');
+    const currentUser = this.profile();
+    if (!currentUser) return;
+
+    this.profileService.updateMe(currentUser, file).subscribe({
+      next: () => {
+        this.toast.success('Photo upload in progress.');
       },
       error: (err) => {
         console.error(err);

@@ -27,10 +27,9 @@ public class CheckEventConsumer {
     public void consumeFailed(String message) {
         try {
             AcceptedUpload event = objectMapper.readValue(message, AcceptedUpload.class);
-            userEntity user = userRepository.findById(event.userId()).orElseThrow(() -> new notFound("User not found"));
-            userRepository.delete(user);
+            log.warn("Avatar upload failed for user: {}", event.userId());
         } catch (Exception e) {
-            log.error("Failed to process failed media upload: {}", e.getMessage());
+            log.error("Failed to process failed media upload event: {}", e.getMessage());
         }
     }
 

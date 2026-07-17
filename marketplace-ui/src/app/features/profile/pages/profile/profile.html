@@ -110,7 +110,7 @@
             <button
               type="button"
               class="role-option"
-                [class.active]="user.role.toLocaleLowerCase() === Role.CLIENT"
+                [class.active]="user.role === Role.CLIENT"
               [disabled]="!isEditing()"
               (click)="updateRole(Role.CLIENT)"
             >
@@ -120,7 +120,7 @@
             <button
               type="button"
               class="role-option"
-             [class.active]="user.role.toLocaleLowerCase() === Role.SELLER"
+             [class.active]="user.role === Role.SELLER"
               [disabled]="!isEditing()"
               (click)="updateRole(Role.SELLER)"
             >

@@ -7,9 +7,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import buy01.user.dto.User.UserUpdateRequest;
 import buy01.user.dto.User.Userdto;
@@ -38,11 +40,13 @@ public class usersController {
         return ResponseEntity.ok(user);
     }
 
-    @PutMapping("/me")
-    public ResponseEntity<Userdto> updateMe(@RequestBody UserUpdateRequest userUpdateRequest,
+    @PutMapping(value = "/me", consumes = "multipart/form-data")
+    public ResponseEntity<Userdto> updateMe(
+            @RequestPart("data") UserUpdateRequest data,
+            @RequestParam(value = "file", required = false) MultipartFile file,
             @AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
-        Userdto user = usersService.updateMe(userId, userUpdateRequest);
+        Userdto user = usersService.updateMe(userId, data, file);
         return ResponseEntity.ok(user);
     }
 }

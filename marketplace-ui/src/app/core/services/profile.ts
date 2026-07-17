@@ -14,7 +14,12 @@ export class ProfileService {
     return this.http.get<User>(this.apiUrl);
   }
 
-  updateMe(data: User) {
-    return this.http.put<User>(this.apiUrl, data);
+  updateMe(data: User, file?: File) {
+    const formData = new FormData();
+    formData.append('data', new Blob([JSON.stringify({ firstName: data.firstName, lastName: data.lastName })], { type: 'application/json' }));
+    if (file) {
+      formData.append('file', file);
+    }
+    return this.http.put<User>(this.apiUrl, formData);
   }
 }
