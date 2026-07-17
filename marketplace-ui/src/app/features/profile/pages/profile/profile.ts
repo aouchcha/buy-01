@@ -28,8 +28,10 @@ export class Profile implements OnInit {
   readonly isEditing = signal(false);
 
   readonly profile = signal<User | null>(null);
+  readonly avatarPreview = signal<string | null>(null);
 
   private snapshot: User | null = null;
+  private pendingAvatarFile: File | null = null;
 
   readonly defaultAvatar =
     'data:image/svg+xml;utf8,' +
@@ -78,6 +80,15 @@ export class Profile implements OnInit {
       this.profile.set(this.snapshot);
     }
     this.isEditing.set(false);
+    this.clearPendingAvatar();
+  }
+
+  private clearPendingAvatar(): void {
+    if (this.avatarPreview()) {
+      URL.revokeObjectURL(this.avatarPreview()!);
+    }
+    this.avatarPreview.set(null);
+    this.pendingAvatarFile = null;
   }
 
   updateFirstName(firstName: string): void {
@@ -105,11 +116,12 @@ export class Profile implements OnInit {
 
     this.saving.set(true);
 
-    this.profileService.updateMe(user, undefined).subscribe({
+    this.profileService.updateMe(user, this.pendingAvatarFile ?? undefined).subscribe({
       next: (updatedUser) => {
         this.profile.set(updatedUser);
         this.saving.set(false);
         this.isEditing.set(false);
+        this.clearPendingAvatar();
         this.toast.success('Profile updated successfully.');
       },
       error: (err) => {
@@ -137,17 +149,16 @@ export class Profile implements OnInit {
       return;
     }
 
-    const currentUser = this.profile();
-    if (!currentUser) return;
+    if (!this.isEditing()) {
+      this.startEditing();
+    }
 
-    this.profileService.updateMe(currentUser, file).subscribe({
-      next: () => {
-        this.toast.success('Photo upload in progress.');
-      },
-      error: (err) => {
-        console.error(err);
-        this.toast.error('Unable to upload photo.');
-      },
-    });
+    if (this.avatarPreview()) {
+      URL.revokeObjectURL(this.avatarPreview()!);
+    }
+
+    this.pendingAvatarFile = file;
+    this.avatarPreview.set(URL.createObjectURL(file));
+    input.value = '';
   }
 }

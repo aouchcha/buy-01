@@ -27,7 +27,7 @@ export class Navbar implements OnInit {
     const token = localStorage.getItem('token');
     this.isLogin.set(!!token);
     const role = this.authService.getUserRole()
-    this.isSeller.set(Role.SELLER === role?.toLowerCase())
+    this.isSeller.set(Role.SELLER === role)
 
   }
 

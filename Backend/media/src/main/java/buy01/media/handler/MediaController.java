@@ -21,10 +21,6 @@ public class MediaController {
 
     private final MediaService mediaService;
 
-    @PostMapping("/test")
-    public ResponseEntity<String> test() {
-        return ResponseEntity.ok("POST works");
-    }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MediaResponse> uploadProductImage(
@@ -43,13 +39,10 @@ public class MediaController {
         return ResponseEntity.ok(response);
     }
 
-    // @GetMapping("/health")
-    // public ResponseEntity<String> health() {
-    // return ResponseEntity.ok("media-service is running");
-    // }
-
     @GetMapping("/health")
     public ResponseEntity<String> health() {
-        return ResponseEntity.ok("HELLO NEW VERSION");
+    return ResponseEntity.ok("media-service is running");
     }
+
+
 }

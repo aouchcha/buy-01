@@ -187,7 +187,7 @@ wait_for_http "discovery-service" "http://localhost:8761/eureka/apps" "200"
 wait_for_http "gateway"           "http://localhost:8080/api/product"  "200"
 wait_for_http "user-service"      "http://localhost:8081/api/auth/login" "401"
 wait_for_http "product-service"   "http://localhost:8083/api/product/health" "200"
-wait_for_http "media-service"     "http://localhost:8082/actuator/health" "200"
+wait_for_http "media-service"     "http://localhost:8082/api/media/health" "200"
 
 echo ""
 info "────────────────────────────────────────────"
