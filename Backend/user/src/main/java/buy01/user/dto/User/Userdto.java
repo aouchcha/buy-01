@@ -1,5 +1,6 @@
 package buy01.user.dto.User;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Userdto {
+
     private String id;
     private String firstName;
     private String lastName;

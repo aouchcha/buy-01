@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- Default console logging for everything -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Combined file appender for the 4 selected loggers -->
+    <appender name="TRACKED_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/tracked.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/tracked.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%logger{36}] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Route these 4 loggers ONLY to the file, not console/root -->
+    <logger name="buy01.user.service.Auth.registerService" level="INFO" additivity="false">
+        <appender-ref ref="TRACKED_FILE"/>
+    </logger>
+
+    <!-- <logger name="buy01.media.service.kafka.MediaConsumer" level="INFO" additivity="false">
+        <appender-ref ref="TRACKED_FILE"/>
+    </logger> -->
+
+    <logger name="buy01.user.service.kafka.CheckEventConsumer" level="INFO" additivity="false">
+        <appender-ref ref="TRACKED_FILE"/>
+    </logger>
+
+    <logger name="buy01.user.service.kafka.MediaEventProducer" level="INFO" additivity="false">
+        <appender-ref ref="TRACKED_FILE"/>
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>

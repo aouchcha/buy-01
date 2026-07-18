@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import buy01.user.config.Exceptions.MyExeptions.notFound;
 import buy01.user.dto.kafka.AcceptedUpload;
+import buy01.user.dto.kafka.DeclinedUpload;
 import buy01.user.model.userEntity;
 import buy01.user.repository.userRepository;
 
@@ -24,11 +25,11 @@ public class CheckEventConsumer {
     }
 
     @KafkaListener(topics = "media.upload.failed", groupId = "user-service")
-    public void consumeFailed(String message) {
+    public void consumeFailed(DeclinedUpload event) {
         try {
-            AcceptedUpload event = objectMapper.readValue(message, AcceptedUpload.class);
+            // DeclinedUpload event = objectMapper.readValue(message, DeclinedUpload.class);
             userEntity user = userRepository.findById(event.userId()).orElseThrow(() -> new notFound("User not found"));
-            userRepository.delete(user);
+            // userRepository.delete(user);
         } catch (Exception e) {
             log.error("Failed to process failed media upload: {}", e.getMessage());
         }

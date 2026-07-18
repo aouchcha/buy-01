@@ -1,7 +1,7 @@
 services:
-  mongodb:
+  mongodb1:
     image: mongo:latest
-    container_name: buy01DB
+    container_name: users-db
     ports:
       - "27017:27017"
     env_file:
@@ -9,10 +9,44 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
-      MONGO_INITDB_DATABASE: ${DB_NAME}
+      MONGO_INITDB_DATABASE: ${USERS_DB_NAME}
     volumes:
-      - mongo_data:/data/db
-      
+      - users_mongo_data:/data/db
+    healthcheck:
+      test: >
+        mongosh --quiet
+        -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD
+        --authenticationDatabase admin
+        --eval "db.adminCommand('ping')"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  mongodb:
+    image: mongo:latest
+    container_name: products-db
+    ports:
+      - "27018:27017"
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${PRODUCTS_DB_NAME}
+    volumes:
+      - products_mongo_data:/data/db
+    healthcheck:
+      test: >
+        mongosh --quiet
+        -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD
+        --authenticationDatabase admin
+        --eval "db.adminCommand('ping')"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
     container_name: zookeeper
@@ -42,11 +76,16 @@ services:
     ports:
       - "8081:8081"
     depends_on:
-      - mongodb
-      - discovery-service
-      - kafka
+      mongodb1:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+      kafka:
+        condition: service_started
     env_file:
       - .env
+    volumes:
+      - ./logs/user-service:/app/logs
     environment:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
@@ -75,9 +114,12 @@ services:
     ports:
       - "8082:8082"
     depends_on:
-      - discovery-service
-      - mongodb
-      - kafka
+      mongodb:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+      kafka:
+        condition: service_started
     env_file:
       - .env
     environment:
@@ -89,4 +131,5 @@ services:
       R2_PUBLIC_URL: ${R2_PUBLIC_URL}
 
 volumes:
-  mongo_data:
+  users_mongo_data:
+  products_mongo_data:

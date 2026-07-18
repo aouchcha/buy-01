@@ -41,14 +41,13 @@ public class registerService {
             userEntity savedUser = repository.save(user);
             if (request.getProfilePicture() != null && !request.getProfilePicture().isEmpty()) {
                 log.info("Publishing media upload event for user: {}", savedUser.getEmail());
-                mediaEventProducer.publishMediaUploadEvent(new MediaUploadEvent(
-                    savedUser.getId(),
-                    request.getProfilePicture().getOriginalFilename(),
-                    request.getProfilePicture().getContentType(),
-                    request.getProfilePicture().getBytes()
-                ));
-            }else{
-                log.info("No profile picture provided for user: {}", savedUser.getEmail());
+                    mediaEventProducer.publishMediaUploadEvent(
+                        new MediaUploadEvent(
+                        savedUser.getId(),
+                        request.getProfilePicture().getOriginalFilename(),
+                        request.getProfilePicture().getBytes()
+                    )
+                );
             }
             String token = jwtService.GenerateToken(savedUser.getEmail(), savedUser.getRole(), savedUser.getId());
             Userdto userdto = new Userdto(savedUser.getId(), savedUser.getFirstName(), savedUser.getLastName(), savedUser.getEmail(), savedUser.getProfilePictureUrl(), savedUser.getRole());
