@@ -1,4 +1,4 @@
-package buy01.media.config;
+package buy01.media.config.R2Config;
 
 import java.net.URI;
 

@@ -1,5 +1,5 @@
-package buy01.user.dto.kafka;
+// package buy01.user.dto.kafka;
 
-public record MediaDeleteEvent(
-    String avatarUrl
-) {}
+// public record MediaDeleteEvent(
+//     String avatarUrl
+// ) {}

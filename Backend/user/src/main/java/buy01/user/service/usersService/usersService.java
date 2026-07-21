@@ -9,21 +9,22 @@ import buy01.user.config.Exceptions.MyExeptions.notFound;
 import buy01.user.config.Helpers.Mapper;
 import buy01.user.dto.User.UpdateAvatar;
 import buy01.user.dto.User.Userdto;
-import buy01.user.dto.kafka.MediaUploadEvent;
+// import buy01.user.dto.kafka.MediaUploadEvent;
 import buy01.user.model.userEntity;
 import buy01.user.repository.userRepository;
-import buy01.user.service.kafka.MediaEventProducer;
+// import buy01.user.service.kafka.MediaEventProducer;
 
 @Service
 public class usersService {
     private final userRepository userRepository;
-    private final MediaEventProducer uploadImage;
+    // private final MediaEventProducer uploadImage;
 
     public usersService(
-            userRepository userRepository,
-            MediaEventProducer uploadImage) {
+            userRepository userRepository
+            // ,MediaEventProducer uploadImage
+        ) {
         this.userRepository = userRepository;
-        this.uploadImage = uploadImage;
+        // this.uploadImage = uploadImage;
     }
 
     public List<Userdto> getAllUsers() {
@@ -47,17 +48,18 @@ public class usersService {
         if (user == null) {
             throw new notFound("user not found");
         }
-        try {
+        
+        // try {
 
-            uploadImage.publishMediaUploadEvent(
-                new MediaUploadEvent(
-                    user.getId(),
-                    request.getImage().getName(),
-                    request.getImage().getBytes()
-                )
-            );
-        } catch (Exception e) {
-            // TODO: handle exception
-        }
+        //     uploadImage.publishMediaUploadEvent(
+        //         new MediaUploadEvent(
+        //             user.getId(),
+        //             request.getImage().getName(),
+        //             request.getImage().getBytes()
+        //         )
+        //     );
+        // } catch (Exception e) {
+        //     // TODO: handle exception
+        // }
     }
 }

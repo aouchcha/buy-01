@@ -17,24 +17,27 @@ import buy01.user.repository.userRepository;
 public class CheckEventConsumer {
     private static final Logger log = LoggerFactory.getLogger(CheckEventConsumer.class);
     private final userRepository userRepository;
-    private final ObjectMapper objectMapper;
+    // private final ObjectMapper objectMapper;
 
-    public CheckEventConsumer(userRepository userRepository, ObjectMapper objectMapper) {
+    public CheckEventConsumer(
+        userRepository userRepository
+        // , ObjectMapper objectMapper
+    ) {
         this.userRepository = userRepository;
-        this.objectMapper = objectMapper;
+        // this.objectMapper = objectMapper;
     }
 
-    @KafkaListener(topics = "media.upload.failed", groupId = "user-service")
-    public void consumeFailed(DeclinedUpload event) {
-        try {
-            // DeclinedUpload event = objectMapper.readValue(message, DeclinedUpload.class);
-            userEntity user = userRepository.findById(event.userId()).orElseThrow(() -> new notFound("User not found"));
-            log.info("Declined Upload in user service");
-            // userRepository.delete(user);
-        } catch (Exception e) {
-            log.error("Failed to process failed media upload: {}", e.getMessage());
-        }
-    }
+    // @KafkaListener(topics = "media.upload.failed", groupId = "user-service")
+    // public void consumeFailed(DeclinedUpload event) {
+    //     try {
+    //         // DeclinedUpload event = objectMapper.readValue(message, DeclinedUpload.class);
+    //         userEntity user = userRepository.findById(event.userId()).orElseThrow(() -> new notFound("User not found"));
+    //         log.info("Declined Upload in user service");
+    //         // userRepository.delete(user);
+    //     } catch (Exception e) {
+    //         log.error("Failed to process failed media upload: {}", e.getMessage());
+    //     }
+    // }
 
     @KafkaListener(topics = "media.upload.success", groupId = "user-service")
     public void consumeSuccess(AcceptedUpload event) {

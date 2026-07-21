@@ -1,4 +1,4 @@
-package buy01.media.config;
+package buy01.media.config.kafka;
 
 import java.util.HashMap;
 import java.util.Map;

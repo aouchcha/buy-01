@@ -20,9 +20,9 @@ public class MediaConsumer {
     private static final Logger log = LoggerFactory.getLogger(MediaConsumer.class);
 
     private final R2StorageService r2StorageService;
+    private final Tika tika;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final ObjectMapper objectMapper;
-    private final Tika tika;
 
     public MediaConsumer(R2StorageService r2StorageService, KafkaTemplate<String, Object> kafkaTemplate,
             ObjectMapper objectMapper) {
@@ -65,8 +65,8 @@ public class MediaConsumer {
             }
 
             // notify success
-            AcceptedUpload success = new AcceptedUpload(event.userId(), url);
-            kafkaTemplate.send("media.upload.success", event.userId(), success);
+            // AcceptedUpload success = new AcceptedUpload(event.userId(), url);
+            // kafkaTemplate.send("media.upload.success", event.userId(), success);
             log.info("Avatar uploaded successfully for user: {}", event.userId());
 
         } catch (Exception e) {
