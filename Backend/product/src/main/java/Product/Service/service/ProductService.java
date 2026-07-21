@@ -64,6 +64,13 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
+    public void addImageUrl(String productId, String imageUrl) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND));
+        product.getImageUrls().add(imageUrl);
+        productRepository.save(product);
+    }
+
     public List<ProductResponse> getMyProduct(String userId) {
         return productRepository.findByUserId(userId).stream()
                 .map(this::toResponse)
