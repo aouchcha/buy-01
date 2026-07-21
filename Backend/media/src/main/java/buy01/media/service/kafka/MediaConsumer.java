@@ -7,9 +7,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import buy01.media.dto.kafka.AcceptedUpload;
@@ -36,9 +33,9 @@ public class MediaConsumer {
     }
 
     @KafkaListener(topics = "media.upload", groupId = "media-service")
-    public void consume(String message) {
+    public void consume(MediaUploadEvent event) {
         try {
-            MediaUploadEvent event = objectMapper.readValue(message, MediaUploadEvent.class);
+            // MediaUploadEvent event = objectMapper.readValue(message, MediaUploadEvent.class);
             log.info("Received media upload event for user: {}", event.userId());
 
             // validate with Tika
@@ -60,22 +57,19 @@ public class MediaConsumer {
                         detectedType,
                         event.content());
             } catch (Exception e) {
-               String failed = objectMapper.writeValueAsString(
-                        new DeclinedUpload(event.userId(), "Media couldn't be uploaded"));
+              
+                DeclinedUpload    failed =  new DeclinedUpload(event.userId(), "Media couldn't be uploaded");
                 kafkaTemplate.send("media.upload.failed", event.userId(), failed);
                 log.error("Failed to process media upload: {}", e.getMessage());
                 return;
             }
 
             // notify success
-            String success = objectMapper.writeValueAsString(
-                    new AcceptedUpload(event.userId(), url));
+            AcceptedUpload success = new AcceptedUpload(event.userId(), url);
             kafkaTemplate.send("media.upload.success", event.userId(), success);
             log.info("Avatar uploaded successfully for user: {}", event.userId());
 
-        } catch (JsonMappingException e) {
-            log.error("Error when try to map JSON in the Media Consumer");
-        }catch (JsonProcessingException e) {
+        } catch (Exception e) {
             log.error("Error when try to proccess JSON in the Media Consumer");
         } 
     }

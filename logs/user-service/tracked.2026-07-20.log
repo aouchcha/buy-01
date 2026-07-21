@@ -1,0 +1,20 @@
+2026-07-20 11:41:38.510 INFO  [b.user.service.Auth.registerService] - Publishing media upload event for user: aymane.ouchchate@gmail.com
+2026-07-20 11:47:20.096 INFO  [b.user.service.Auth.registerService] - Publishing media upload event for user: achraf.ouchchate@gmail.com
+2026-07-20 12:11:46.570 INFO  [b.u.service.kafka.MediaEventProducer] - fire the upload media event
+2026-07-20 12:11:46.571 INFO  [b.user.service.Auth.registerService] - Publishing media upload event for user: achraf.ouchchate@gmail.com
+2026-07-20 12:18:09.948 INFO  [b.u.service.kafka.MediaEventProducer] - fire the upload media event
+2026-07-20 12:18:09.948 INFO  [b.user.service.Auth.registerService] - Publishing media upload event for user: achraf.ouchchate@gmail.com
+2026-07-20 12:26:00.898 INFO  [b.u.service.kafka.MediaEventProducer] - fire the upload media event
+2026-07-20 12:26:00.898 INFO  [b.user.service.Auth.registerService] - Publishing media upload event for user: achraf.ouchchate@gmail.com
+2026-07-20 12:27:35.789 INFO  [b.u.service.kafka.MediaEventProducer] - fire the upload media event
+2026-07-20 12:27:35.789 INFO  [b.user.service.Auth.registerService] - Publishing media upload event for user: aymane.ouchchate@gmail.com
+2026-07-20 12:35:02.189 INFO  [b.u.service.kafka.MediaEventProducer] - fire the upload media event
+2026-07-20 12:35:02.189 INFO  [b.user.service.Auth.registerService] - Publishing media upload event for user: aymane.ouchchate@gmail.com
+2026-07-20 12:41:36.715 INFO  [b.u.service.kafka.MediaEventProducer] - fire the upload media event
+2026-07-20 12:41:36.715 INFO  [b.user.service.Auth.registerService] - Publishing media upload event for user: aymane.ouchchate@gmail.com
+2026-07-20 12:46:59.637 INFO  [b.u.service.kafka.MediaEventProducer] - fire the upload media event
+2026-07-20 12:46:59.637 INFO  [b.user.service.Auth.registerService] - Publishing media upload event for user: aymane.ouchchate@gmail.com
+2026-07-20 13:01:38.459 INFO  [b.u.service.kafka.MediaEventProducer] - fire the upload media event
+2026-07-20 13:01:38.460 INFO  [b.user.service.Auth.registerService] - Publishing media upload event for user: aymane.ouchchate@gmail.com
+2026-07-20 13:04:48.600 INFO  [b.u.service.kafka.MediaEventProducer] - fire the upload media event
+2026-07-20 13:04:48.600 INFO  [b.user.service.Auth.registerService] - Publishing media upload event for user: aymane.ouchchate@gmail.com

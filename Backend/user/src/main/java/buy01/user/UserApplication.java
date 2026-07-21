@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import buy01.user.model.Roles;
@@ -11,6 +12,7 @@ import buy01.user.model.userEntity;
 import buy01.user.repository.userRepository;
 
 @SpringBootApplication
+@EnableKafka
 public class UserApplication {
 
 	private final userRepository userRepository;

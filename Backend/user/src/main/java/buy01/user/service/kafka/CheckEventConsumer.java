@@ -29,6 +29,7 @@ public class CheckEventConsumer {
         try {
             // DeclinedUpload event = objectMapper.readValue(message, DeclinedUpload.class);
             userEntity user = userRepository.findById(event.userId()).orElseThrow(() -> new notFound("User not found"));
+            log.info("Declined Upload in user service");
             // userRepository.delete(user);
         } catch (Exception e) {
             log.error("Failed to process failed media upload: {}", e.getMessage());
@@ -36,12 +37,14 @@ public class CheckEventConsumer {
     }
 
     @KafkaListener(topics = "media.upload.success", groupId = "user-service")
-    public void consumeSuccess(String message) {
+    public void consumeSuccess(AcceptedUpload event) {
         try {
-            AcceptedUpload event = objectMapper.readValue(message, AcceptedUpload.class);
+            // AcceptedUpload event = objectMapper.readValue(message, AcceptedUpload.class);
             userEntity user = userRepository.findById(event.userId()).orElseThrow(() -> new notFound("User not found"));
             user.setProfilePictureUrl(event.MediaUrl());
             userRepository.save(user);
+            log.info("Consume Success in user service");
+
         } catch (Exception e) {
             log.error("Failed to process successful media upload: {}", e.getMessage());
         }
