@@ -1,7 +1,7 @@
 package buy01.user.model;
 
 public enum Roles {
-    CLIENT,
+    BUYER,
     SELLER,
     ADMIN
 }

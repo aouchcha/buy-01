@@ -27,7 +27,7 @@ public class Authentication {
         this.loginService = loginService;
     }
 
-    @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<authResponse> signUp(@Valid @ModelAttribute registerRequest request) {
         authResponse response = registerService.signUp(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

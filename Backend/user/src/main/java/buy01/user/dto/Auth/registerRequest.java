@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @EqualsAndHashCode(callSuper=true)
 @NoArgsConstructor
-public class registerRequest extends authRequest {
+public class    registerRequest extends authRequest {
 	@NotBlank(message = "First name is required")
     private String firstName;
 
