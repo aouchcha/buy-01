@@ -1,8 +1,5 @@
 package Product.Service.config;
 
-import java.beans.BeanProperty;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.crypto.spec.SecretKeySpec;
 
@@ -10,8 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.security.web.SecurityFilterChain;
 
 import lombok.RequiredArgsConstructor;
@@ -21,9 +17,6 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @RequiredArgsConstructor
@@ -43,9 +36,9 @@ public class SecurityConfig {
                                 HttpMethod.GET,
                                 "/api/product/**")
                         .permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/product").hasRole("SELLER")
-                        .requestMatchers(HttpMethod.PUT, "/api/product/**").hasRole("SELLER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/product/**").hasRole("SELLER")
+                        // .requestMatchers(HttpMethod.POST, "/api/product").hasRole("SELLER")
+                        // .requestMatchers(HttpMethod.PUT, "/api/product/**").hasRole("SELLER")
+                        // .requestMatchers(HttpMethod.DELETE, "/api/product/**").hasRole("SELLER")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.decoder(jwtDecoder())

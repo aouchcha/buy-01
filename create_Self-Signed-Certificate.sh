@@ -1,21 +1,25 @@
 #!/bin/bash
-
 set -e
 
-KEYSTORE_PATH="Backend/gateway/src/main/resources/keystore.p12"
+KEYSTORE_DIR="Backend/gateway/src/main/resources"
+KEYSTORE_PATH="${KEYSTORE_DIR}/keystore.p12"
+
 ALIAS="gateway"
 PASSWORD="${SSL_KEYSTORE_PASSWORD:-buy01pass}"
 VALIDITY=3650
 DNAME="CN=localhost, OU=buy01, O=buy01, L=Unknown, ST=Unknown, C=MA"
 
-echo "Generating Self-Signed Certificate (keystore.p12)..."
+mkdir -p "$KEYSTORE_DIR"
 
-DOCKER_HOST=unix:///Users/yahya/.colima/default/docker.sock \
+echo "Generating Self-Signed Certificate..."
+
 docker run --rm \
-  -v "$(pwd)/Backend/gateway/src/main/resources:/out" \
-  eclipse-temurin:21-jdk-alpine sh -c "
-    keytool -genkeypair \
-      -alias ${ALIAS} \
+  -v "$(pwd)/${KEYSTORE_DIR}:/out" \
+  eclipse-temurin:21-jdk-alpine \
+  sh -c "
+    keytool \
+      -genkeypair \
+      -alias '${ALIAS}' \
       -keyalg RSA \
       -keysize 2048 \
       -storetype PKCS12 \
@@ -23,10 +27,9 @@ docker run --rm \
       -validity ${VALIDITY} \
       -storepass '${PASSWORD}' \
       -dname '${DNAME}' \
-      -noprompt && echo 'keystore.p12 generated OK'
+      -noprompt
   "
 
-echo "Certificate saved to: ${KEYSTORE_PATH}"
-echo "Alias    : ${ALIAS}"
-echo "Validity : ${VALIDITY} days"
-echo "Password : set via SSL_KEYSTORE_PASSWORD env var (default: buy01pass)"
+echo
+echo "Certificate generated:"
+echo "  ${KEYSTORE_PATH}"

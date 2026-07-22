@@ -40,12 +40,15 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductRequest productRequest,
-            @AuthenticationPrincipal Jwt jwt) {
-        String userId = jwt.getSubject();
-        ProductResponse productResponse = productService.createProduct(productRequest, userId);
-        return ResponseEntity.ok(productResponse);
+    public ResponseEntity<String> createProduct(){
+        return  ResponseEntity.ok("hello =>");
     }
+    // public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody ProductRequest productRequest,
+    //         @AuthenticationPrincipal Jwt jwt) {
+    //     String userId = jwt.getSubject();
+    //     ProductResponse productResponse = productService.createProduct(productRequest, userId);
+    //     return ResponseEntity.ok(productResponse);
+    // }
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> updateProduct(@Valid @RequestBody ProductRequest productRequest,
