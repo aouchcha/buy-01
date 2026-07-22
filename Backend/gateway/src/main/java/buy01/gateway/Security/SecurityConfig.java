@@ -1,11 +1,15 @@
 package buy01.gateway.Security;
 
+import javax.crypto.spec.SecretKeySpec;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
 import org.springframework.web.cors.CorsConfiguration;
@@ -19,30 +23,41 @@ public class SecurityConfig {
     @Value("${cors.allowed-origin}")
     private String allowedOrigin;
 
-@Bean
-SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-    return http
-            .csrf(ServerHttpSecurity.CsrfSpec::disable)
-            .cors(Customizer.withDefaults())
-            .authorizeExchange(exchanges ->
-                    exchanges.anyExchange().permitAll())
-            .build();
-}
+    @Value("${spring.security.oauth2.resourceserver.jwt.secret}")
+    private String jwtSecret;
 
+    @Bean
+    SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+        return http
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .cors(Customizer.withDefaults())
+                .authorizeExchange(exchanges -> exchanges
+                        // Routes publiques : auth (login/register)
+                        .pathMatchers("/api/auth/**").permitAll()
+                        // Toutes les autres routes nécessitent une authentification
+                        .anyExchange().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt.jwtDecoder(reactiveJwtDecoder())))
+                .build();
+    }
 
-@Bean
-CorsWebFilter corsWebFilter() {
-    CorsConfiguration config = new CorsConfiguration();
-    config.addAllowedOrigin(allowedOrigin);
-    config.addAllowedMethod("*");
-    config.addAllowedHeader("*");
+    @Bean
+    public ReactiveJwtDecoder reactiveJwtDecoder() {
+        SecretKeySpec key = new SecretKeySpec(jwtSecret.getBytes(), "HmacSHA256");
+        return NimbusReactiveJwtDecoder.withSecretKey(key).build();
+    }
 
-    UrlBasedCorsConfigurationSource source =
-            new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", config);
+    @Bean
+    CorsWebFilter corsWebFilter() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedOrigin(allowedOrigin);
+        config.addAllowedMethod("*");
+        config.addAllowedHeader("*");
 
-    return new CorsWebFilter(source);
-}
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
 
-
+        return new CorsWebFilter(source);
+    }
 }
