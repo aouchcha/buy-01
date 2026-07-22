@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.tika.Tika;
-// import org.apache.tika.Tika;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,7 +25,7 @@ public class Upload {
             Tika tika,
             KafkaTemplate<String, Object> kafkaTemplate) {
         this.r2 = r2;
-        this.tika = new Tika();
+        this.tika = tika;
         this.kafkaTemplate = kafkaTemplate;
     }
 
@@ -34,12 +33,17 @@ public class Upload {
         if (!CanUploadToR2(pictures.getPictures())) {
             throw new MyBadRequest("One Of the images is not valid image");
         }
+
+        if (pictures.getType().equals("Avatar") && pictures.getPictures().length != 1) {
+            throw new MyBadRequest("you should upload one avatar at time");
+        }
         try {
             List<String> urls = new ArrayList<>();
             for (MultipartFile pic : pictures.getPictures()) {
-                String fileName = UUID.randomUUID().toString();
+                String fileName = pictures.getType() + "/" + UUID.randomUUID().toString();
                 String contenType = tika.detect(pic.getBytes());
                 String url = r2.upload(fileName, contenType, pic.getBytes());
+                System.out.println( "uuuuuuuuuuuuuuuuuuuuuuuuuuuu" + url);
                 urls.add(url);
             }
             AcceptedUpload success = new AcceptedUpload(pictures.getProductId(), pictures.getUserId(), urls);

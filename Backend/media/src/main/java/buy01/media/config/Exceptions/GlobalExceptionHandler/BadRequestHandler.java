@@ -12,7 +12,7 @@ import buy01.media.config.Exceptions.MyExeptions.MyBadRequest;
 public class BadRequestHandler {
     @ExceptionHandler(MyBadRequest.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<String> bad(String message) {
-        return ResponseEntity.badRequest().body(message);
+    public ResponseEntity<String> bad(MyBadRequest ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 }

@@ -1,9 +1,13 @@
-2026-07-21 10:01:05.029 INFO  [b.u.service.kafka.MediaEventProducer] - fire the upload media event
-2026-07-21 10:01:05.030 INFO  [b.user.service.Auth.registerService] - Publishing media upload event for user: aymane.ouchchate@gmail.com
-2026-07-21 10:15:25.629 INFO  [b.u.service.kafka.MediaEventProducer] - fire the upload media event
-2026-07-21 10:15:25.629 INFO  [b.user.service.Auth.registerService] - Publishing media upload event for user: aymane.ouchchate@gmail.com
-2026-07-21 10:22:20.372 INFO  [b.u.service.kafka.MediaEventProducer] - fire the upload media event
-2026-07-21 10:22:20.372 INFO  [b.user.service.Auth.registerService] - Publishing media upload event for user: aymane.ouchchate@gmail.com
-2026-07-21 10:33:06.875 INFO  [b.u.service.kafka.MediaEventProducer] - fire the upload media event
-2026-07-21 10:33:06.875 INFO  [b.user.service.Auth.registerService] - Publishing media upload event for user: aymane.ouchchate@gmail.com
-2026-07-21 10:33:07.699 INFO  [b.u.service.kafka.CheckEventConsumer] - Consume Success in user service
+2026-07-22 09:30:51.307 INFO  [b.u.service.kafka.CheckEventConsumer] - Consume Success in user service
+2026-07-22 10:03:39.887 INFO  [b.u.service.kafka.CheckEventConsumer] - Consume Success in user service
+2026-07-22 10:06:52.954 INFO  [b.u.service.kafka.CheckEventConsumer] - Consume Success in user service
+2026-07-22 10:14:24.664 INFO  [b.u.service.kafka.CheckEventConsumer] - Consume Success in user service
+2026-07-22 10:23:26.313 INFO  [b.u.service.kafka.CheckEventConsumer] - Consume Success in user service
+2026-07-22 10:28:45.508 INFO  [b.u.service.kafka.CheckEventConsumer] - Consume Success in user service
+2026-07-22 13:25:38.473 INFO  [b.u.service.kafka.CheckEventConsumer] - Consume Success in user service
+2026-07-22 13:27:55.376 INFO  [b.u.service.kafka.CheckEventConsumer] - Consume Success in user service
+2026-07-22 13:33:53.979 INFO  [b.u.service.kafka.CheckEventConsumer] - Consume Success in user service
+2026-07-22 13:38:53.383 INFO  [b.u.service.kafka.CheckEventConsumer] - Consume Success in user service
+2026-07-22 13:39:31.217 INFO  [b.u.service.kafka.CheckEventConsumer] - Consume Success in user service
+2026-07-22 13:40:10.240 INFO  [b.u.service.kafka.CheckEventConsumer] - Consume Success in user service
+2026-07-22 13:40:47.818 INFO  [b.u.service.kafka.CheckEventConsumer] - Consume Success in user service

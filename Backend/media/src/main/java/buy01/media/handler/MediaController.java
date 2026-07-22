@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import buy01.media.dto.media.UploadRequest;
 import buy01.media.service.media.Upload;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/media")
@@ -21,7 +22,7 @@ public class MediaController {
     }
 
     @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> uploadMedia(@ModelAttribute UploadRequest pictures) {
+    public ResponseEntity<String> uploadMedia(@Valid @ModelAttribute UploadRequest pictures) {
         uploadService.UploadPics(pictures);
         return ResponseEntity.ok("Uploaded Successfuly");
     }

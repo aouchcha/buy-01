@@ -44,7 +44,12 @@ public class CheckEventConsumer {
         try {
             // AcceptedUpload event = objectMapper.readValue(message, AcceptedUpload.class);
             userEntity user = userRepository.findById(event.userId()).orElseThrow(() -> new notFound("User not found"));
-            user.setProfilePictureUrl(event.MediaUrl());
+            System.out.println(event.userId());
+            for (String url : event.MediaUrls()) {
+
+                System.out.println(url);
+                user.setProfilePictureUrl(url);
+            }
             userRepository.save(user);
             log.info("Consume Success in user service");
 
