@@ -1,5 +1,4 @@
-package buy01.user.config.Security;
-
+package Product.Service.config;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,10 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
-public class JwtFilter extends OncePerRequestFilter {
-
-    public JwtFilter() {
-    }
+public class HeaderAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
