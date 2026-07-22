@@ -33,6 +33,7 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAllProduct() {
+        System.out.println("============================================================================\n===============++=================++++==============++=========================\n=============================\n");
         return ResponseEntity.ok(productService.getAllProduct());
     }
 
