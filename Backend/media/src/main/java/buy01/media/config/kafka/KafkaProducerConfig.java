@@ -26,8 +26,10 @@ public class KafkaProducerConfig {
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
-        config.put(JacksonJsonSerializer.TYPE_MAPPINGS, "acceptUpload:buy01.media.dto.kafka.AcceptedUpload,"
-                + "declineUpload:buy01.media.dto.kafka.DeclinedUpload");
+        config.put(JacksonJsonSerializer.TYPE_MAPPINGS, 
+            "acceptUpload:buy01.media.dto.kafka.AcceptedUpload,"
+                + "productImageUploaded:buy01.media.dto.kafka.ProductImageUploadedEvent,"
+                + "productImageDeleted:buy01.media.dto.kafka.DeleteEvent");
         return new DefaultKafkaProducerFactory<>(config);
     }
 
