@@ -1,1 +1,95 @@
-<p>product-details works!</p>
+<app-navbar></app-navbar>
+
+<section class="details-page">
+
+  @if (loading()) {
+    <div class="details-skeleton">
+      <div class="skeleton-media"></div>
+      <div class="skeleton-body">
+        <div class="skeleton-line skeleton-line--title"></div>
+        <div class="skeleton-line"></div>
+        <div class="skeleton-line skeleton-line--short"></div>
+      </div>
+    </div>
+  } @else if (error()) {
+    <div class="details-error">
+      <p>{{ error() }}</p>
+      <a routerLink="/" class="btn-back">← Back to catalog</a>
+    </div>
+  } @else if (product()) {
+
+    <div class="details-grid">
+
+      <!-- Media -->
+      <div class="details-media">
+        <div class="main-image">
+          <img [src]="currentImage" [alt]="product()!.name" />
+
+          @if (product()!.imageUrls.length > 1) {
+            <button class="nav-btn nav-btn--prev" (click)="prevImage()" aria-label="Previous">&#8249;</button>
+            <button class="nav-btn nav-btn--next" (click)="nextImage()" aria-label="Next">&#8250;</button>
+
+            <div class="image-counter">
+              {{ imageIndex() + 1 }} / {{ product()!.imageUrls.length }}
+            </div>
+          }
+        </div>
+
+        @if (product()!.imageUrls.length > 1) {
+          <div class="thumbnails">
+            @for (url of product()!.imageUrls; track url; let i = $index) {
+              <button
+                class="thumb"
+                [class.active]="i === imageIndex()"
+                (click)="imageIndex.set(i)"
+              >
+                <img [src]="url" [alt]="product()!.name + ' ' + (i + 1)" />
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Info -->
+      <div class="details-info">
+        <a routerLink="/" class="back-link">← Back to catalog</a>
+
+        <h1>{{ product()!.name }}</h1>
+
+        <div class="price-row">
+          <span class="price">{{ product()!.price | number:'1.0-2' }} DH</span>
+          <span class="stock" [class.low]="product()!.quantity <= 3">
+            {{ product()!.quantity }} in stock
+          </span>
+        </div>
+
+        <div class="divider"></div>
+
+        <p class="description">{{ product()!.description }}</p>
+
+        <div class="divider"></div>
+
+        <!-- Seller card -->
+        <div class="seller-card">
+          <div class="seller-avatar">
+            @if (seller()?.profilePictureUrl) {
+              <img [src]="seller()!.profilePictureUrl" [alt]="seller()!.firstName" />
+            } @else {
+              <span class="seller-initials">{{ sellerInitials() }}</span>
+            }
+          </div>
+          <div class="seller-info">
+            <span class="seller-label">Seller</span>
+            @if (seller()) {
+              <span class="seller-name">{{ seller()!.firstName }} {{ seller()!.lastName }}</span>
+            } @else {
+              <span class="seller-name">—</span>
+            }
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  }
+</section>

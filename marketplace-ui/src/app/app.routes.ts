@@ -12,6 +12,7 @@ import { Dashboard } from './features/seller/pages/dashboard/dashboard'
 import { Unauthorized } from './features/errors/pages/unauthorized/unauthorized';
 import { ServerError } from './features/errors/pages/server-error/server-error';
 import { NotFound } from './features/errors/pages/not-found/not-found';
+import { ProductDetails } from './features/products/pages/product-details/product-details';
 export const routes: Routes = [
     {
     path: '',
@@ -37,6 +38,10 @@ export const routes: Routes = [
         canActivate: [authGuard, roleGuard],
         data: { roles: [Role.SELLER] },
         component: Dashboard
+    },
+    {
+        path: 'products/:id',
+        component: ProductDetails,
     },
     {
         path: 'unauthorized',

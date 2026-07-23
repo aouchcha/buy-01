@@ -119,8 +119,8 @@ export class Register {
 
         const picture = this.profilePicture();
         if (picture) {
-          this.mediaService.uploadImage(response.user.id, null,picture).subscribe({
-            next: (media) => {
+          this.mediaService.uploadImage(response.user.id, null, [picture], 'Avatar').subscribe({
+            next: () => {
 
             },
             error: (err) => {

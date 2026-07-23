@@ -35,10 +35,19 @@
       <div class="product-grid">
         @for (item of products(); track item.id) {
 
-          <article class="card" #card>
+          <article class="card" (click)="goToProduct(item.id)">
             <div class="card-media">
-              @if (item.imageUrls?.[0]) {
-                <img [src]="item.imageUrls![0]" [alt]="item.name" loading="lazy" />
+              @if (item.imageUrls.length > 0) {
+                <img [src]="item.imageUrls[getImageIndex(item.id)]" [alt]="item.name" loading="lazy" />
+                @if (item.imageUrls.length > 1) {
+                  <button class="carousel-btn carousel-btn--prev" (click)="prevImage(item, $event)" aria-label="Previous image">&#8249;</button>
+                  <button class="carousel-btn carousel-btn--next" (click)="nextImage(item, $event)" aria-label="Next image">&#8250;</button>
+                  <span class="carousel-dots">
+                    @for (url of item.imageUrls; track url; let i = $index) {
+                      <span class="carousel-dot" [class.active]="i === getImageIndex(item.id)"></span>
+                    }
+                  </span>
+                }
               } @else {
                 <img src="assets/images/background.png" [alt]="item.name" loading="lazy" />
               }
@@ -50,6 +59,12 @@
 
               <div class="card-footer">
                 <span class="price">{{ item.price }} DH</span>
+                <button class="btn-view" (click)="goToProduct(item.id)">
+                  View
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
               </div>
             </div>
           </article>

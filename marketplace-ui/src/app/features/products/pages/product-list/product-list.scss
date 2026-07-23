@@ -317,6 +317,61 @@
   padding: 3rem 0;
 }
 
+/* CAROUSEL */
+
+.card-media {
+  position: relative;
+}
+
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(29, 27, 25, 0.55);
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 200ms;
+  z-index: 2;
+
+  &:hover {
+    background: rgba(29, 27, 25, 0.85);
+  }
+}
+
+.carousel-btn--prev { left: 8px; }
+.carousel-btn--next { right: 8px; }
+
+.carousel-dots {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 5px;
+  z-index: 2;
+}
+
+.carousel-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transition: background 200ms;
+
+  &.active {
+    background: white;
+  }
+}
+
 /* MOBILE */
 
 @media (max-width: 768px) {

@@ -42,6 +42,12 @@ public class usersService {
         // return null;
     }
 
+    public Userdto getUserById(String id) {
+        final userEntity user = userRepository.findById(id)
+                .orElseThrow(() -> new notFound("user not found"));
+        return Mapper.MappToUSerDto(user);
+    }
+
     public void updateProfile(UpdateAvatar request) {
         final String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final userEntity user = userRepository.findById(userId).orElse(null);

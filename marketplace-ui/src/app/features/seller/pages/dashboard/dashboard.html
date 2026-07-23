@@ -50,8 +50,12 @@
       @for (product of products(); track product.id) {
       <article class="product-card">
         <div class="product-card__media">
-          @if (product.imageUrl) {
-          <img [src]="product.imageUrl" [alt]="product.name" />
+          @if (product.imageUrls.length) {
+          <div class="product-card__images">
+            @for (url of product.imageUrls; track url) {
+            <img [src]="url" [alt]="product.name" />
+            }
+          </div>
           } @else {
           <div class="product-card__placeholder">No image</div>
           }
@@ -126,16 +130,25 @@
         </div>
 
         <div class="field">
-          <label for="image">Product image</label>
+          <label>Product images <span class="field__hint">(max 3)</span></label>
 
-          @if (imagePreviewUrl()) {
-          <div class="image-preview">
-            <img [src]="imagePreviewUrl()" alt="Selected product image" />
-            <button type="button" class="image-preview__remove" (click)="removeSelectedImage()">Remove</button>
+          @if (imagePreviewUrls().length) {
+          <div class="image-previews">
+            @for (url of imagePreviewUrls(); track url; let i = $index) {
+            <div class="image-preview">
+              <img [src]="url" alt="Product image {{ i + 1 }}" />
+              <button type="button" class="image-preview__remove" (click)="removeSelectedImage(i)">✕</button>
+            </div>
+            }
           </div>
-          } @else {
-          <input id="image" type="file" accept="image/*" (change)="onFileSelected($event)" />
-          <span class="field__hint">JPG, PNG or WEBP — max 2MB.</span>
+          }
+
+          @if (imagePreviewUrls().length < 3) {
+          <label class="upload-btn">
+            <input type="file" accept="image/*" multiple (change)="onFileSelected($event)" hidden />
+            + Add image
+          </label>
+          <span class="field__hint">JPG, PNG or WEBP — max 2MB each.</span>
           }
 
           @if (fileError()) {
@@ -198,16 +211,31 @@
         </div>
 
         <div class="field">
-          <label for="edit-image">Product image</label>
+          <label>Product images <span class="field__hint">(max 3)</span></label>
 
-          @if (editImagePreviewUrl()) {
-          <div class="image-preview">
-            <img [src]="editImagePreviewUrl()" alt="Selected product image" />
-            <button type="button" class="image-preview__remove" (click)="removeEditSelectedImage()">Remove</button>
+          @if (existingImageUrls().length || selectedEditFilePreviews().length) {
+          <div class="image-previews">
+            @for (url of existingImageUrls(); track url; let i = $index) {
+            <div class="image-preview">
+              <img [src]="url" alt="Product image" />
+              <button type="button" class="image-preview__remove" (click)="removeExistingImage(i)">✕</button>
+            </div>
+            }
+            @for (url of selectedEditFilePreviews(); track url; let i = $index) {
+            <div class="image-preview image-preview--new">
+              <img [src]="url" alt="New image {{ i + 1 }}" />
+              <button type="button" class="image-preview__remove" (click)="removeEditFile(i)">✕</button>
+            </div>
+            }
           </div>
-          } @else {
-          <input id="edit-image" type="file" accept="image/*" (change)="onEditFileSelected($event)" />
-          <span class="field__hint">JPG, PNG or WEBP — max 2MB.</span>
+          }
+
+          @if ((existingImageUrls().length + selectedEditFiles().length) < 3) {
+          <label class="upload-btn">
+            <input type="file" accept="image/*" multiple (change)="onEditFileSelected($event)" hidden />
+            + Add image
+          </label>
+          <span class="field__hint">JPG, PNG or WEBP — max 2MB each.</span>
           }
 
           @if (editFileError()) {
