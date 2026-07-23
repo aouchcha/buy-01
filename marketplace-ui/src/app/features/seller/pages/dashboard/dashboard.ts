@@ -64,9 +64,9 @@ export class Dashboard implements OnInit {
     this.products().reduce((sum, p) => sum + p.price * p.quantity, 0)
   );
 
-  readonly withImages = computed(
-    () => this.products().filter((p) => p.imageUrl).length
-  );
+  // readonly withImages = computed(
+  //   () => this.products().filter((p) => p.imageUrl).length
+  // );
 
   ngOnInit(): void {
     this.fetchProducts();
@@ -78,7 +78,7 @@ export class Dashboard implements OnInit {
       next: (products) => {
         this.products.set(products.map(p => ({
           ...p,
-          imageUrl: p.imageUrl ?? p.imageUrls?.[0],
+          imageUrl:  p.imageUrls?.[0],
         })));
         this.loading.set(false);
       },
@@ -188,14 +188,13 @@ export class Dashboard implements OnInit {
             return;
           }
 
-          this.mediaService.uploadImage(product.id, file).subscribe({
+          this.mediaService.uploadImage(product.userId, product.id, file).subscribe({
             next: (media) => {
               this.products.update((list) => [{ ...product, imageUrl: media.url }, ...list]);
               this.submitting.set(false);
               this.closeAddModal();
             },
             error: (err) => {
-              // Product was created but the image upload failed — keep it visible without an image.
               this.products.update((list) => [product, ...list]);
               this.submitting.set(false);
               this.toast.error(
@@ -226,7 +225,7 @@ export class Dashboard implements OnInit {
       price: product.price,
       quantity: product.quantity,
     });
-    this.editImagePreviewUrl.set(product.imageUrl ?? null);
+    this.editImagePreviewUrl.set(product.imageUrls[0] ?? null);
     this.selectedEditFile.set(null);
     this.editFileError.set(null);
     this.showEditModal.set(true);
