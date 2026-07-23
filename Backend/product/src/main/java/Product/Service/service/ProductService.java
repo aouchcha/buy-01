@@ -39,7 +39,6 @@ public class ProductService {
                 .price(productRequest.price())
                 .quantity(productRequest.quantity())
                 .userId(userId)
-                .imageUrls(productRequest.imageUrls() != null ? productRequest.imageUrls() : new ArrayList<>())
                 .build();
         productRepository.save(product);
         return toResponse(product);
@@ -52,9 +51,6 @@ public class ProductService {
         product.setDescription(productRequest.description());
         product.setPrice(productRequest.price());
         product.setQuantity(productRequest.quantity());
-        if (productRequest.imageUrls() != null) {
-            product.setImageUrls(productRequest.imageUrls());
-        }
         productRepository.save(product);
         return toResponse(product);
     }

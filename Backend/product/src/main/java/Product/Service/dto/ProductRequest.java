@@ -21,9 +21,9 @@ public record ProductRequest(
 
         @NotNull(message = "quantity is required")
         @Min(value = 1, message = "Quantity must be greater than 0")
-        Integer quantity,
+        Integer quantity
 
-        List<String> imageUrls
+        // List<String> imageUrls
 
 ) {
 }
