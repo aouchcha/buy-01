@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,6 +35,11 @@ public class usersController {
     public ResponseEntity<Userdto> getProfile() {
         Userdto profile = usersService.getProfile();
         return ResponseEntity.ok(profile);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Userdto> getUserById(@PathVariable String id) {
+        return ResponseEntity.ok(usersService.getUserById(id));
     }
 
     @PutMapping("/me")

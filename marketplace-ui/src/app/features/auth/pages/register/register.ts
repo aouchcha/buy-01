@@ -4,6 +4,8 @@ import { Router, RouterLink } from '@angular/router';
 
 import { Auth } from '../../../../core/services/auth';
 import { Role } from '../../../../core/models/user';
+import { Media } from '../../../../core/services/media';
+import { ToastService } from '../../../../core/services/toast.service';
 
 function passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
   const password = control.get('password')?.value;
@@ -23,7 +25,9 @@ export class Register {
   private readonly authService = inject(Auth);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
-
+  private readonly mediaService = inject(Media);
+  private readonly toast = inject(ToastService);
+  
   readonly Role = Role;
 
   readonly loading = signal(false);
@@ -65,8 +69,8 @@ export class Register {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      this.error.set('Profile picture must be smaller than 5MB.');
+    if (file.size > 2 * 1024 * 1024) {
+      this.error.set('Profile picture must be smaller than 2MB.');
       return;
     }
 
@@ -105,13 +109,29 @@ export class Register {
     formData.append('lastName', lastName!);
     formData.append('role', role!);
 
-    const picture = this.profilePicture();
-    if (picture) {
-      formData.append('profilePicture', picture);
-    }
+    // const picture = this.profilePicture();
+    // if (picture) {
+    //   formData.append('profilePicture', picture);
+    // }
 
     this.authService.register(formData).subscribe({
       next: (response) => {
+
+        const picture = this.profilePicture();
+        if (picture) {
+          this.mediaService.uploadImage(response.user.id, null, [picture], 'Avatar').subscribe({
+            next: () => {
+
+            },
+            error: (err) => {
+              this.toast.error(
+                err.error || 'image upload failed.'
+              );
+              // this.loading.set(false);
+            },
+          });
+        }
+
         localStorage.setItem('token', response.token);
         this.loading.set(false);
         this.router.navigate(['/']);

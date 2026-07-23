@@ -5,9 +5,8 @@ export interface ProductDto {
   description: string;
   price: number;
   quantity: number;
-  userId?: string;
-  imageUrls?: string[];
-  imageUrl?: string;
+  userId: string;
+  imageUrls: string[];
 }
 
 export interface ProductRequest {

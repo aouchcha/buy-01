@@ -14,10 +14,25 @@ export class Media {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/media`;
 
-  uploadImage(productId: string, file: File): Observable<MediaResponse> {
+  uploadImage(
+    userId: string,
+    productId: string | null,
+    files: File[],
+    type: string
+  ): Observable<MediaResponse> {
+
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('productId', productId);
+
+    for (const file of files) {
+      formData.append('pictures', file); 
+    }
+
+    formData.append('userId', userId);
+    formData.append('type', type);
+
+    if (productId) {
+      formData.append('productId', productId);
+    }
 
     return this.http.post<MediaResponse>(this.apiUrl, formData);
   }
