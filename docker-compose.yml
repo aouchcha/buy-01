@@ -53,6 +53,33 @@ services:
     networks:
       - buy01-network
 
+  media-mongodb:
+    image: mongo:latest
+    container_name: media-db
+    ports:
+      - "27019:27017"
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MEDIA_DB_URI}
+    volumes:
+      - media_mongo_data:/data/db
+    healthcheck:
+      test: >
+        mongosh --quiet
+        -u $$MONGO_INITDB_ROOT_USERNAME
+        -p $$MONGO_INITDB_ROOT_PASSWORD
+        --authenticationDatabase admin
+        --eval "db.adminCommand('ping')"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - buy01-network
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
     container_name: zookeeper
@@ -176,3 +203,4 @@ networks:
 volumes:
   users_mongo_data:
   products_mongo_data:
+  media_mongo_data:
