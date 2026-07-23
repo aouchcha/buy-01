@@ -400,3 +400,17 @@ input:focus {
     font-size: 1.8rem;
   }
 }
+
+.btn-back-home {
+  display: block;
+  text-align: center;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--color-muted);
+  text-decoration: none;
+  transition: color 200ms;
+
+  &:hover {
+    color: var(--color-charcoal);
+  }
+}
