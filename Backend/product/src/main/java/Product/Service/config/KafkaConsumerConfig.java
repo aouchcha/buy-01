@@ -29,7 +29,8 @@ public class KafkaConsumerConfig {
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         config.put(JacksonJsonDeserializer.TRUSTED_PACKAGES, "Product.Service.dto.kafka.*");
         config.put(JacksonJsonDeserializer.TYPE_MAPPINGS,
-                "productImageUploaded:Product.Service.dto.kafka.ProductImageUploadedEvent");
+                "productImageUploaded:Product.Service.dto.kafka.ProductImageUploadedEvent," +
+                "productImageDeleted:Product.Service.dto.kafka.ProductImageDeletedEvent");
         return new DefaultKafkaConsumerFactory<>(config);
     }
 

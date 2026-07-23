@@ -1,6 +1,9 @@
 package Product.Service.dto.kafka;
 
+import java.util.List;
+
 public record ProductImageUploadedEvent(
+        String userId,
         String productId,
-        String imageUrl
+        List<String> imageUrls
 ) {}

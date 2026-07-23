@@ -60,10 +60,20 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
-    public void addImageUrl(String productId, String imageUrl) {
+    public void addImageUrl(String productId, List<String> imageUrls) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND));
-        product.getImageUrls().add(imageUrl);
+        // product.getImageUrls().add(imageUrl);
+        product.setImageUrls(imageUrls);
+        productRepository.save(product);
+    }
+
+    public void removeImageUrl(String productId, String url) {
+         Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND));
+        List<String> urls = product.getImageUrls();
+        urls.remove(url);
+        product.setImageUrls(urls);
         productRepository.save(product);
     }
 

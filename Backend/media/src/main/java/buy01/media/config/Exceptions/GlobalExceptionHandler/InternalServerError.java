@@ -11,6 +11,7 @@ public class InternalServerError {
     @ExceptionHandler(InternalError.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<String> handleInternal(InternalError err) {
+        System.out.println("????????????????????????????????????????" + err.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("internal server error");
     }
 }

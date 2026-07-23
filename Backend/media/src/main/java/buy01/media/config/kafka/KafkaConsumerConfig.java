@@ -30,7 +30,7 @@ public class KafkaConsumerConfig {
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         config.put(JacksonJsonDeserializer.TRUSTED_PACKAGES, "buy01.media.dto.kafka.*");
-        config.put(JacksonJsonDeserializer.TYPE_MAPPINGS, "mediaUploadEvent:buy01.media.dto.kafka.MediaUploadEvent," +
+        config.put(JacksonJsonDeserializer.TYPE_MAPPINGS,
                         "mediaDeletedEvent:buy01.media.dto.kafka.MediaDeleteEvent");
         // config.put(JacksonJsonDeserializer.USE_TYPE_INFO_HEADERS, false);
         return new DefaultKafkaConsumerFactory<>(config);
