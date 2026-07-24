@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import buy01.user.dto.Auth.authResponse;
@@ -27,8 +28,8 @@ public class Authentication {
         this.loginService = loginService;
     }
 
-    @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<authResponse> signUp(@Valid @ModelAttribute registerRequest request) {
+    @PostMapping("/signup")
+    public ResponseEntity<authResponse> signUp(@Valid @RequestBody registerRequest request) {
         authResponse response = registerService.signUp(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

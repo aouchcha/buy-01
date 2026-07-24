@@ -9,9 +9,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import buy01.media.dto.media.MediaResponse;
+import buy01.media.dto.media.UpdateMedia;
 import buy01.media.dto.media.UploadRequest;
 import buy01.media.service.media.MediaService;
 // import buy01.media.service.media.Upload;
@@ -28,14 +31,20 @@ public class MediaController {
 
     @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<List<String>> uploadMedia(@Valid @ModelAttribute UploadRequest pictures) {
-        List<String> urls = mediaService.UploadPics(pictures);
-        return ResponseEntity.ok(urls);
+        List<String> dtos = mediaService.UploadPics(pictures);
+        return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<MediaResponse>> getAllMedia() {
+        List<MediaResponse> medias = mediaService.getAll();
+        return ResponseEntity.ok(medias);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<String> getMedia(@PathVariable String id) {
-        String url = mediaService.getMedia(id);
-        return ResponseEntity.ok(url);
+    public ResponseEntity<MediaResponse> getMedia(@PathVariable String id) {
+        MediaResponse dto = mediaService.getMedia(id);
+        return ResponseEntity.ok(dto);
     }
 
     @DeleteMapping("/{id}")
@@ -47,5 +56,11 @@ public class MediaController {
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("media-service is running");
+    }
+
+    @PutMapping
+    public ResponseEntity<List<MediaResponse>> updatePiture(@Valid @ModelAttribute UpdateMedia request) {
+        List<MediaResponse> responses = mediaService.updateMedia(request);
+        return ResponseEntity.ok(responses);
     }
 }

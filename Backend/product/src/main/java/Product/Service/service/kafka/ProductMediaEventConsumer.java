@@ -24,7 +24,7 @@ public class ProductMediaEventConsumer {
         productService.addImageUrl(event.productId(), event.imageUrls());
     }
 
-    @KafkaListener(topics = "product.deleted")
+    @KafkaListener(topics = "product.media.deleted")
     public void onImageDeleted(ProductImageDeletedEvent event) {
         productService.removeImageUrl(event.productId(), event.url());
     }
