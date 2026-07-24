@@ -7,6 +7,9 @@ import { Media } from '../../../../core/services/media';
 import { User, Role } from '../../../../core/models/user';
 import { Navbar } from '../../../../layout/navbar/navbar';
 import { ToastService } from '../../../../core/services/toast.service';
+import { Product } from '../../../../core/services/product'; // adjust path if needed
+import { ProductDto } from '../../../../core/models/product';
+
 
 @Component({
   selector: 'app-profile',
@@ -19,6 +22,11 @@ export class Profile implements OnInit {
   private readonly profileService = inject(ProfileService);
   private readonly mediaService = inject(Media);
   private readonly toast = inject(ToastService);
+  private readonly productService = inject(Product);
+
+
+  readonly products = signal<ProductDto[]>([]);
+  readonly productsLoading = signal(true);
 
   readonly Role = Role;
 
@@ -48,6 +56,7 @@ export class Profile implements OnInit {
 
   ngOnInit(): void {
     this.loadProfile();
+    this.fetchProducts();
   }
 
   loadProfile(): void {
@@ -88,24 +97,28 @@ export class Profile implements OnInit {
     this.profile.update((user) => (user ? { ...user, lastName } : null));
   }
 
-  updateEmail(email: string): void {
-    this.profile.update((user) => (user ? { ...user, email } : null));
-  }
-
-  updateRole(role: Role): void {
-    this.profile.update((user) => (user ? { ...user, role } : null));
-  }
-
   saveProfile(): void {
     const user = this.profile();
+    const original = this.snapshot;
 
     if (!user) {
       return;
     }
 
+    const nameChanged =
+      !original ||
+      user.firstName !== original.firstName ||
+      user.lastName !== original.lastName;
+
+    if (!nameChanged) {
+      // Nothing to persist — just exit edit mode.
+      this.isEditing.set(false);
+      return;
+    }
+
     this.saving.set(true);
 
-    this.profileService.updateMe(user, undefined).subscribe({
+    this.profileService.updateMe(user).subscribe({
       next: (updatedUser) => {
         this.profile.set(updatedUser);
         this.saving.set(false);
@@ -140,13 +153,33 @@ export class Profile implements OnInit {
     const currentUser = this.profile();
     if (!currentUser) return;
 
-    this.profileService.updateMe(currentUser, file).subscribe({
-      next: () => {
-        this.toast.success('Photo upload in progress.');
+    this.mediaService.uploadImage(currentUser.id, null, [file], 'Avatar').subscribe({
+      next: (media) => {
+        this.toast.success('Photo updated successfully.');
+
+        if (media?.urls[0]) {
+          this.profile.update((user) => (user ? { ...user, profilePictureUrl: media.urls[0] } : null));
+        }
       },
       error: (err) => {
         console.error(err);
-        this.toast.error('Unable to upload photo.');
+        this.toast.error(err.error || 'Unable to upload photo.');
+      },
+    });
+
+    input.value = '';
+  }
+
+  private fetchProducts(): void {
+    this.productsLoading.set(true);
+    this.productService.getMyProducts().subscribe({
+      next: (products) => {
+        this.products.set(products);
+        this.productsLoading.set(false);
+      },
+      error: (err) => {
+        this.productsLoading.set(false);
+        this.toast.error(err.error || 'Unable to load your products.');
       },
     });
   }

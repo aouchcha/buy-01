@@ -9,6 +9,7 @@ import { Profile } from './features/profile/pages/profile/profile';
 import { authGuard } from './core/guards/auth-guard';
 import { roleGuard } from './core/guards/role-guard';
 import { Dashboard } from './features/seller/pages/dashboard/dashboard'
+import { MediaManagement } from './features/seller/pages/media-management/media-management'
 import { Unauthorized } from './features/errors/pages/unauthorized/unauthorized';
 import { ServerError } from './features/errors/pages/server-error/server-error';
 import { NotFound } from './features/errors/pages/not-found/not-found';
@@ -38,6 +39,12 @@ export const routes: Routes = [
         canActivate: [authGuard, roleGuard],
         data: { roles: [Role.SELLER] },
         component: Dashboard
+    },
+    {
+        path: 'seller/media',
+        canActivate: [authGuard, roleGuard],
+        data: { roles: [Role.SELLER] },
+        component: MediaManagement
     },
     {
         path: 'products/:id',

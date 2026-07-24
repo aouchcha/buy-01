@@ -1,14 +1,11 @@
 <app-navbar></app-navbar>
 
 <section class="profile-page">
+  <div class="profile-wrapper">
   <div class="profile-card">
 
     <div class="profile-banner">
-      <img
-        src="assets/images/background.png"
-        alt=""
-        class="banner-img"
-      />
+      <img src="assets/images/background.png" alt="" class="banner-img" />
 
       <div class="banner-overlay">
         <h1>My Profile</h1>
@@ -22,46 +19,38 @@
 
     <div class="profile-content">
 
-    @if (loading()) {
+      @if (loading()) {
       <p class="state-message">Loading profile...</p>
-    }
+      }
 
-    @else if (error()) {
+      @else if (error()) {
       <p class="state-message error">
         {{ error() }}
       </p>
-    }
+      }
 
-    @else if (profile(); as user) {
+      @else if (profile(); as user) {
 
       <div class="avatar-section avatar-overlap">
-        <img
-          [src]="user.profilePictureUrl || defaultAvatar"
-          (error)="onAvatarError($event)"
-          alt="Profile picture"
-          class="avatar"
-        />
-
+        <img [src]="user.profilePictureUrl || defaultAvatar" (error)="onAvatarError($event)" alt="Profile picture"
+          class="avatar" />
+        @if (isEditing()) {
         <label class="upload-btn">
           Change photo
-          <input
-            type="file"
-            accept="image/*"
-            hidden
-            (change)="onAvatarSelected($event)"
-          />
+          <input type="file" accept="image/*" hidden (change)="onAvatarSelected($event)" />
         </label>
+        }
       </div>
 
       <div class="edit-toggle">
         @if (!isEditing()) {
-          <button type="button" class="btn-edit" (click)="startEditing()">
-            ✎ Edit profile
-          </button>
+        <button type="button" class="btn-edit" (click)="startEditing()">
+          ✎ Edit profile
+        </button>
         } @else {
-          <button type="button" class="btn-cancel" (click)="cancelEditing()">
-            Cancel
-          </button>
+        <button type="button" class="btn-cancel" (click)="cancelEditing()">
+          Cancel
+        </button>
         }
       </div>
 
@@ -70,84 +59,98 @@
         <div class="form-group">
           <label>First name</label>
 
-          <input
-            type="text"
-            [ngModel]="user.firstName"
-            (ngModelChange)="updateFirstName($event)"
-            [readonly]="!isEditing()"
-            [class.readonly]="!isEditing()"
-          />
+          <input type="text" [ngModel]="user.firstName" (ngModelChange)="updateFirstName($event)"
+            [readonly]="!isEditing()" [class.readonly]="!isEditing()" />
         </div>
 
         <div class="form-group">
           <label>Last name</label>
 
-          <input
-            type="text"
-            [ngModel]="user.lastName"
-            (ngModelChange)="updateLastName($event)"
-            [readonly]="!isEditing()"
-            [class.readonly]="!isEditing()"
-          />
+          <input type="text" [ngModel]="user.lastName" (ngModelChange)="updateLastName($event)"
+            [readonly]="!isEditing()" [class.readonly]="!isEditing()" />
         </div>
 
         <div class="form-group full-width">
           <label>Email</label>
-
-          <input
-            type="email"
-            [ngModel]="user.email"
-            (ngModelChange)="updateEmail($event)"
-            [readonly]="!isEditing()"
-            [class.readonly]="!isEditing()"
-          />
+          <input type="email" [ngModel]="user.email" readonly class="readonly" />
         </div>
 
         <div class="form-group full-width">
           <label>Role</label>
-          
+
           <div class="role-picker">
-            <button
-              type="button"
-              class="role-option"
-                [class.active]="user.role === Role.CLIENT"
-              [disabled]="!isEditing()"
-              (click)="updateRole(Role.CLIENT)"
-            >
+            @if(user.role === Role.CLIENT){
+            <button type="button" class="role-option" [class.active]="user.role === Role.CLIENT" disabled>
               Buyer
             </button>
-
-            <button
-              type="button"
-              class="role-option"
-             [class.active]="user.role === Role.SELLER"
-              [disabled]="!isEditing()"
-              (click)="updateRole(Role.SELLER)"
-            >
+            } @else{
+            <button type="button" class="role-option" [class.active]="user.role === Role.SELLER" disabled>
               Seller
             </button>
+            }
           </div>
         </div>
 
       </div>
 
       @if (isEditing()) {
-        <button
-          class="btn-save"
-          [disabled]="saving()"
-          (click)="saveProfile()"
-        >
-          {{ saving() ? 'Saving...' : 'Save Changes' }}
-        </button>
+      <button class="btn-save" [disabled]="saving()" (click)="saveProfile()">
+        {{ saving() ? 'Saving...' : 'Save Changes' }}
+      </button>
       }
 
-    } @else {
+      } @else {
       <p class="state-message">
         Profile not found.
       </p>
-    }
+      }
 
     </div>
 
+    @if (profile()) {
+    <div class="catalog-section">
+      <div class="catalog__header">
+        <h2>Your products</h2>
+      </div>
+
+    @if (productsLoading()) {
+    <div class="catalog__grid">
+      @for (i of [1, 2, 3]; track i) {
+      <div class="product-card product-card--skeleton"></div>
+      }
+    </div>
+    } @else if (products().length === 0) {
+    <div class="empty-state">
+      <p class="empty-state__title">No products yet</p>
+      <p class="empty-state__sub">Your listed products will appear here.</p>
+    </div>
+    } @else {
+    <div class="catalog__grid">
+      @for (product of products(); track product.id) {
+      <article class="product-card">
+        <div class="product-card__media">
+          @if (product.imageUrls.length) {
+          <div class="product-card__images">
+            @for (url of product.imageUrls; track url) {
+            <img [src]="url" [alt]="product.name" />
+            }
+          </div>
+          } @else {
+          <div class="product-card__placeholder">No image</div>
+          }
+        </div>
+        <div class="product-card__body">
+          <h3>{{ product.name }}</h3>
+          <p class="product-card__desc">{{ product.description }}</p>
+          <p class="product-card__price">{{ product.price | number: '1.0-2' }} MAD</p>
+        </div>
+      </article>
+      }
+    </div>
+    }
+    </div>
+    }
+
+  </div>
   </div>
 </section>
