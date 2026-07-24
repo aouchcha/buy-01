@@ -7,6 +7,9 @@ import { Media } from '../../../../core/services/media';
 import { User, Role } from '../../../../core/models/user';
 import { Navbar } from '../../../../layout/navbar/navbar';
 import { ToastService } from '../../../../core/services/toast.service';
+import { Product } from '../../../../core/services/product'; // adjust path if needed
+import { ProductDto } from '../../../../core/models/product';
+
 
 @Component({
   selector: 'app-profile',
@@ -19,6 +22,11 @@ export class Profile implements OnInit {
   private readonly profileService = inject(ProfileService);
   private readonly mediaService = inject(Media);
   private readonly toast = inject(ToastService);
+  private readonly productService = inject(Product);
+
+
+  readonly products = signal<ProductDto[]>([]);
+  readonly productsLoading = signal(true);
 
   readonly Role = Role;
 
@@ -48,6 +56,7 @@ export class Profile implements OnInit {
 
   ngOnInit(): void {
     this.loadProfile();
+    this.fetchProducts();
   }
 
   loadProfile(): void {
@@ -159,5 +168,19 @@ export class Profile implements OnInit {
     });
 
     input.value = '';
+  }
+
+  private fetchProducts(): void {
+    this.productsLoading.set(true);
+    this.productService.getMyProducts().subscribe({
+      next: (products) => {
+        this.products.set(products);
+        this.productsLoading.set(false);
+      },
+      error: (err) => {
+        this.productsLoading.set(false);
+        this.toast.error(err.error || 'Unable to load your products.');
+      },
+    });
   }
 }

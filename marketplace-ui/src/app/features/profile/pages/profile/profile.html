@@ -1,6 +1,7 @@
 <app-navbar></app-navbar>
 
 <section class="profile-page">
+  <div class="profile-wrapper">
   <div class="profile-card">
 
     <div class="profile-banner">
@@ -82,11 +83,11 @@
             <button type="button" class="role-option" [class.active]="user.role === Role.CLIENT" disabled>
               Buyer
             </button>
-          } @else{
+            } @else{
             <button type="button" class="role-option" [class.active]="user.role === Role.SELLER" disabled>
               Seller
             </button>
-          }
+            }
           </div>
         </div>
 
@@ -106,5 +107,50 @@
 
     </div>
 
+    @if (profile()) {
+    <div class="catalog-section">
+      <div class="catalog__header">
+        <h2>Your products</h2>
+      </div>
+
+    @if (productsLoading()) {
+    <div class="catalog__grid">
+      @for (i of [1, 2, 3]; track i) {
+      <div class="product-card product-card--skeleton"></div>
+      }
+    </div>
+    } @else if (products().length === 0) {
+    <div class="empty-state">
+      <p class="empty-state__title">No products yet</p>
+      <p class="empty-state__sub">Your listed products will appear here.</p>
+    </div>
+    } @else {
+    <div class="catalog__grid">
+      @for (product of products(); track product.id) {
+      <article class="product-card">
+        <div class="product-card__media">
+          @if (product.imageUrls.length) {
+          <div class="product-card__images">
+            @for (url of product.imageUrls; track url) {
+            <img [src]="url" [alt]="product.name" />
+            }
+          </div>
+          } @else {
+          <div class="product-card__placeholder">No image</div>
+          }
+        </div>
+        <div class="product-card__body">
+          <h3>{{ product.name }}</h3>
+          <p class="product-card__desc">{{ product.description }}</p>
+          <p class="product-card__price">{{ product.price | number: '1.0-2' }} MAD</p>
+        </div>
+      </article>
+      }
+    </div>
+    }
+    </div>
+    }
+
+  </div>
   </div>
 </section>
