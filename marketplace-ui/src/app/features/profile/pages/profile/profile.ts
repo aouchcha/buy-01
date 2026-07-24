@@ -88,24 +88,28 @@ export class Profile implements OnInit {
     this.profile.update((user) => (user ? { ...user, lastName } : null));
   }
 
-  updateEmail(email: string): void {
-    this.profile.update((user) => (user ? { ...user, email } : null));
-  }
-
-  updateRole(role: Role): void {
-    this.profile.update((user) => (user ? { ...user, role } : null));
-  }
-
   saveProfile(): void {
     const user = this.profile();
+    const original = this.snapshot;
 
     if (!user) {
       return;
     }
 
+    const nameChanged =
+      !original ||
+      user.firstName !== original.firstName ||
+      user.lastName !== original.lastName;
+
+    if (!nameChanged) {
+      // Nothing to persist — just exit edit mode.
+      this.isEditing.set(false);
+      return;
+    }
+
     this.saving.set(true);
 
-    this.profileService.updateMe(user, undefined).subscribe({
+    this.profileService.updateMe(user).subscribe({
       next: (updatedUser) => {
         this.profile.set(updatedUser);
         this.saving.set(false);
@@ -140,14 +144,20 @@ export class Profile implements OnInit {
     const currentUser = this.profile();
     if (!currentUser) return;
 
-    this.profileService.updateMe(currentUser, file).subscribe({
-      next: () => {
-        this.toast.success('Photo upload in progress.');
+    this.mediaService.uploadImage(currentUser.id, null, [file], 'Avatar').subscribe({
+      next: (media) => {
+        this.toast.success('Photo updated successfully.');
+
+        if (media?.urls[0]) {
+          this.profile.update((user) => (user ? { ...user, profilePictureUrl: media.urls[0] } : null));
+        }
       },
       error: (err) => {
         console.error(err);
-        this.toast.error('Unable to upload photo.');
+        this.toast.error(err.error || 'Unable to upload photo.');
       },
     });
+
+    input.value = '';
   }
 }

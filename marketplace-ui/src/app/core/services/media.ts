@@ -12,7 +12,7 @@ export const MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB, matches backend lim
 })
 export class Media {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/media`;
+  private readonly apiUrl = `${environment.apiUrl}/media/images`;
 
   uploadImage(
     userId: string,
@@ -37,12 +37,12 @@ export class Media {
     return this.http.post<MediaResponse>(this.apiUrl, formData);
   }
 
-  uploadAvatar(file: File): Observable<MediaResponse> {
-    const formData = new FormData();
-    formData.append('file', file);
+  // uploadAvatar(file: File): Observable<MediaResponse> {
+  //   const formData = new FormData();
+  //   formData.append('file', file);
 
-    return this.http.post<MediaResponse>(`${this.apiUrl}/avatar`, formData);
-  }
+  //   return this.http.post<MediaResponse>(`${this.apiUrl}/avatar`, formData);
+  // }
 
   validateImage(file: File): string | null {
     if (!file.type.startsWith('image/')) {

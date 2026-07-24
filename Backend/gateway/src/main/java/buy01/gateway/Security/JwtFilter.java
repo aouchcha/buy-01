@@ -36,11 +36,30 @@ public class JwtFilter implements GlobalFilter, Ordered {
         String path = exchange.getRequest().getPath().value();
 
         // Public endpoints
-        if (path.startsWith("/api/auth/")
-                || (path.startsWith("/api/product")
-                        && exchange.getRequest().getMethod() == HttpMethod.GET)) {
+        if (path.startsWith("/api/auth/")) {
+            System.out.println(">>>>>>>>>>>>>>> skip 0");
             return chain.filter(exchange);
         }
+        if (HttpMethod.GET.equals(exchange.getRequest().getMethod())) {
+
+            // Public product list
+            if (path.equals("/api/product")) {
+                System.out.println(">>>>>>>>>>>>>>> skip 1");
+                return chain.filter(exchange);
+            }
+
+            // Public product details: /api/product/{id}
+            if (path.startsWith("/api/product") && !path.equals("/api/product/myProducts")) {
+                System.out.println(">>>>>>>>>>>>>>> skip 2");
+                return chain.filter(exchange);
+            }
+        }
+        // if (path.startsWith("/api/auth/")
+        // || (path.startsWith("/api/product")
+        // && exchange.getRequest().getMethod() == HttpMethod.GET)) {
+        // System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> skip");
+        // return chain.filter(exchange);
+        // }
 
         String token = resolveToken(exchange);
 
