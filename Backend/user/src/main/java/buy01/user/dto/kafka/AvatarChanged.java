@@ -1,8 +1,8 @@
 package buy01.user.dto.kafka;
 
-public record DeclinedUpload(
+public record AvatarChanged(
     String userId,
-    String message
+    String url
 ) {
     
 }

@@ -3,10 +3,13 @@ package Product.Service.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import Product.Service.dto.ProductRequest;
 import Product.Service.dto.ProductResponse;
+import Product.Service.dto.kafka.ProductCreated;
+import Product.Service.dto.kafka.ProductDeleted;
 import Product.Service.exception.ForbiddenException;
 import Product.Service.exception.ProductNotFoundException;
 import Product.Service.model.Product;
@@ -19,6 +22,8 @@ public class ProductService {
     private static final String PRODUCT_NOT_FOUND = "Product not found";
 
     private final ProductRepository productRepository;
+
+    private final KafkaTemplate<String, Object> kafka;
 
     public ProductResponse getProduct(String id) {
         Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND));
@@ -40,7 +45,9 @@ public class ProductService {
                 .quantity(productRequest.quantity())
                 .userId(userId)
                 .build();
-        productRepository.save(product);
+        product = productRepository.save(product);
+        ProductCreated event = new ProductCreated(product.getId(), userId);
+        kafka.send("product.created", userId, event);
         return toResponse(product);
     }
 
@@ -57,6 +64,8 @@ public class ProductService {
 
     public void deleteProduct(String id, String userId) {
         ownedProductOrThrow(id, userId);
+        ProductDeleted event = new ProductDeleted(id);
+        kafka.send("product.deleted", id, event);
         productRepository.deleteById(id);
     }
 

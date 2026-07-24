@@ -4,13 +4,16 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import buy01.user.dto.User.UpdateAvatar;
+import buy01.user.dto.User.UpdateMe;
 import buy01.user.dto.User.Userdto;
 import buy01.user.service.usersService.usersService;
 
@@ -23,8 +26,8 @@ public class usersController {
         this.usersService = usersService;
     }
 
-    @GetMapping
-    // @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Userdto>> getAllUsers() {
         List<Userdto> users = usersService.getAllUsers();
         return ResponseEntity.ok(users);
@@ -37,8 +40,16 @@ public class usersController {
     }
 
     @PutMapping("/me")
-    public ResponseEntity<String> updateAvatar(@ModelAttribute UpdateAvatar request) {
+    public ResponseEntity<String> updateAvatar(@RequestBody UpdateMe request) {
         usersService.updateProfile(request);
         return ResponseEntity.ok().body(null);
     }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> removeUser(@PathVariable String id) {
+        usersService.remove(id);
+        return ResponseEntity.ok("User removed with success");
+    }
+
 }

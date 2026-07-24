@@ -29,7 +29,11 @@ public class KafkaProducerConfig {
         config.put(JacksonJsonSerializer.TYPE_MAPPINGS, 
             "acceptUpload:buy01.media.dto.kafka.AcceptedUpload,"
                 + "productImageUploaded:buy01.media.dto.kafka.ProductImageUploadedEvent,"
-                + "productImageDeleted:buy01.media.dto.kafka.DeleteEvent");
+                + "productImageDeleted:buy01.media.dto.kafka.DeleteEvent,"
+                + "avatarDeleted:buy01.media.dto.kafka.AvatarDeleted,"
+                + "avatarChanged:buy01.media.dto.kafka.AvatarChanged"
+                // + "productImageChanged:buy01.media.dto.kafka."
+            );
         return new DefaultKafkaProducerFactory<>(config);
     }
 
