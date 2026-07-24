@@ -1,0 +1,135 @@
+<app-navbar></app-navbar>
+
+<section class="media-page">
+  <header class="media-page__header">
+    <div class="media-page__greeting">
+      <span class="media-page__eyebrow">Media library</span>
+      <h1>Your images</h1>
+      <p class="media-page__sub">All photos attached to your products.</p>
+    </div>
+    <button type="button" class="btn btn--primary" (click)="openUploadModal()">
+      <span class="btn__icon">+</span>
+      Upload images
+    </button>
+  </header>
+
+  <div class="stats">
+    <div class="stat-card">
+      <span class="stat-card__label">Total images</span>
+      <span class="stat-card__value">{{ totalImages() }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card__label">Products</span>
+      <span class="stat-card__value">{{ totalProducts() }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card__label">With images</span>
+      <span class="stat-card__value">{{ productsWithImages() }} / {{ totalProducts() }}</span>
+    </div>
+  </div>
+
+  <div class="gallery-section">
+    <div class="gallery-section__header">
+      <h2>All media</h2>
+    </div>
+
+    @if (loading()) {
+    <div class="media-grid">
+      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+      <div class="media-card media-card--skeleton"></div>
+      }
+    </div>
+    } @else if (allMedia().length === 0) {
+    <div class="empty-state">
+      <p class="empty-state__title">No images yet</p>
+      <p class="empty-state__sub">Upload images to your products to see them here.</p>
+      <button type="button" class="btn btn--primary" (click)="openUploadModal()">Upload images</button>
+    </div>
+    } @else {
+    <div class="media-grid">
+      @for (item of allMedia(); track item.url) {
+      <article class="media-card">
+        <div class="media-card__image">
+          <img [src]="item.url" [alt]="item.productName" loading="lazy" />
+          <button
+            class="media-card__delete"
+            [disabled]="deletingUrl() === item.url"
+            (click)="deleteImage(item)"
+            title="Delete image"
+            aria-label="Delete image">
+            @if (deletingUrl() === item.url) {
+            <mat-icon>hourglass_empty</mat-icon>
+            } @else {
+            <mat-icon>delete</mat-icon>
+            }
+          </button>
+        </div>
+        <div class="media-card__meta">
+          <span class="media-card__product">{{ item.productName }}</span>
+        </div>
+      </article>
+      }
+    </div>
+    }
+  </div>
+
+  @if (showUploadModal()) {
+  <div class="modal-backdrop" (click)="closeUploadModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <header class="modal__header">
+        <h2>Upload images</h2>
+        <button type="button" class="modal__close" (click)="closeUploadModal()" aria-label="Close">✕</button>
+      </header>
+
+      <div class="modal__body">
+        <div class="field">
+          <label for="product-select">Product</label>
+          @if (products().length === 0) {
+          <p class="field__hint">No products found. Add a product first.</p>
+          } @else {
+          <select id="product-select" (change)="onProductChange($event)">
+            @for (product of products(); track product.id) {
+            <option [value]="product.id">{{ product.name }}</option>
+            }
+          </select>
+          }
+        </div>
+
+        <div class="field">
+          <label>Images <span class="field__hint">(max 3)</span></label>
+
+          @if (previewUrls().length) {
+          <div class="image-previews">
+            @for (url of previewUrls(); track url; let i = $index) {
+            <div class="image-preview">
+              <img [src]="url" alt="Preview {{ i + 1 }}" />
+              <button type="button" class="image-preview__remove" (click)="removeSelectedFile(i)">✕</button>
+            </div>
+            }
+          </div>
+          }
+
+          @if (previewUrls().length < 3) {
+          <label class="upload-btn">
+            <input type="file" accept="image/*" multiple (change)="onFileSelected($event)" hidden />
+            + Add image
+          </label>
+          <span class="field__hint">JPG, PNG or WEBP — max 2 MB each.</span>
+          }
+
+          @if (fileError()) {
+          <span class="field__error">{{ fileError() }}</span>
+          }
+        </div>
+
+        <footer class="modal__footer">
+          <button type="button" class="btn btn--outline" (click)="closeUploadModal()">Cancel</button>
+          <button type="button" class="btn btn--primary" [disabled]="uploading()" (click)="submitUpload()">
+            @if (uploading()) { Uploading… } @else { Upload }
+          </button>
+        </footer>
+      </div>
+    </div>
+  </div>
+  }
+</section>

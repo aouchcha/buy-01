@@ -44,6 +44,14 @@ export class Media {
   //   return this.http.post<MediaResponse>(`${this.apiUrl}/avatar`, formData);
   // }
 
+  getMyImages(userId: string): Observable<MediaResponse> {
+    return this.http.get<MediaResponse>(`${this.apiUrl}?userId=${userId}`);
+  }
+
+  deleteImage(mediaId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${mediaId}`);
+  }
+
   validateImage(file: File): string | null {
     if (!file.type.startsWith('image/')) {
       return 'Only image files are allowed.';

@@ -7,10 +7,16 @@
       <h1>Welcome {{ seller?.firstName }}</h1>
       <p class="dashboard__sub">Here's what's in your catalog today.</p>
     </div>
-    <button type="button" class="btn btn--primary" (click)="openAddModal()">
-      <span class="btn__icon">+</span>
-      Add product
-    </button>
+    <div class="dashboard__actions">
+      <a routerLink="/seller/media" class="btn btn--outline">
+        <mat-icon>photo_library</mat-icon>
+        Media
+      </a>
+      <button type="button" class="btn btn--primary" (click)="openAddModal()">
+        <span class="btn__icon">+</span>
+        Add product
+      </button>
+    </div>
   </header>
 
   <div class="stats">
