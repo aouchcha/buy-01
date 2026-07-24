@@ -39,6 +39,11 @@ public class usersController {
         return ResponseEntity.ok(profile);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Userdto> getUserById(@PathVariable String id) {
+        return ResponseEntity.ok(usersService.getUserById(id));
+    }
+
     @PutMapping("/me")
     public ResponseEntity<String> updateAvatar(@RequestBody UpdateMe request) {
         usersService.updateProfile(request);

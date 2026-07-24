@@ -34,8 +34,8 @@ export class Dashboard implements OnInit {
   // --- Add product modal state ---
   readonly showAddModal = signal(false);
   readonly submitting = signal(false);
-  readonly selectedFile = signal<File | null>(null);
-  readonly imagePreviewUrl = signal<string | null>(null);
+  readonly selectedFiles = signal<File[]>([]);
+  readonly imagePreviewUrls = signal<string[]>([]);
   readonly fileError = signal<string | null>(null);
 
   readonly addProductForm = this.fb.group({
@@ -49,8 +49,9 @@ export class Dashboard implements OnInit {
   readonly showEditModal = signal(false);
   readonly submittingEdit = signal(false);
   readonly editingProduct = signal<ProductDto | null>(null);
-  readonly selectedEditFile = signal<File | null>(null);
-  readonly editImagePreviewUrl = signal<string | null>(null);
+  readonly existingImageUrls = signal<string[]>([]);
+  readonly selectedEditFiles = signal<File[]>([]);
+  readonly selectedEditFilePreviews = signal<string[]>([]);
   readonly editFileError = signal<string | null>(null);
 
   readonly editProductForm = this.fb.group({
@@ -64,8 +65,8 @@ export class Dashboard implements OnInit {
     this.products().reduce((sum, p) => sum + p.price * p.quantity, 0)
   );
 
-  readonly withImages = computed(
-    () => this.products().filter((p) => p.imageUrl).length
+  readonly withImages = computed(() =>
+    this.products().filter(p => p.imageUrls?.length > 0).length
   );
 
   ngOnInit(): void {
@@ -76,10 +77,7 @@ export class Dashboard implements OnInit {
     this.loading.set(true);
     this.productService.getMyProducts().subscribe({
       next: (products) => {
-        this.products.set(products.map(p => ({
-          ...p,
-          imageUrl: p.imageUrl ?? p.imageUrls?.[0],
-        })));
+        this.products.set(products);
         this.loading.set(false);
       },
       error: (err) => {
@@ -126,40 +124,41 @@ export class Dashboard implements OnInit {
   closeAddModal(): void {
     this.showAddModal.set(false);
     this.addProductForm.reset();
-    this.selectedFile.set(null);
-    this.imagePreviewUrl.set(null);
+    this.selectedFiles.set([]);
+    this.imagePreviewUrls.set([]);
     this.fileError.set(null);
   }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
+    if (!input.files?.length) return;
 
-    if (!file) {
-      this.selectedFile.set(null);
-      this.imagePreviewUrl.set(null);
-      this.fileError.set(null);
+    const newFiles = Array.from(input.files);
+    input.value = '';
+
+    const remaining = 3 - this.selectedFiles().length;
+    if (remaining <= 0) {
+      this.fileError.set('Maximum 3 images per product.');
       return;
     }
 
-    const error = this.mediaService.validateImage(file);
-    if (error) {
-      this.fileError.set(error);
-      this.selectedFile.set(null);
-      this.imagePreviewUrl.set(null);
-      input.value = '';
-      return;
+    const toAdd = newFiles.slice(0, remaining);
+    for (const file of toAdd) {
+      const error = this.mediaService.validateImage(file);
+      if (error) {
+        this.fileError.set(error);
+        return;
+      }
     }
 
     this.fileError.set(null);
-    this.selectedFile.set(file);
-    this.imagePreviewUrl.set(URL.createObjectURL(file));
+    this.selectedFiles.update(list => [...list, ...toAdd]);
+    this.imagePreviewUrls.update(list => [...list, ...toAdd.map(f => URL.createObjectURL(f))]);
   }
 
-  removeSelectedImage(): void {
-    this.selectedFile.set(null);
-    this.imagePreviewUrl.set(null);
-    this.fileError.set(null);
+  removeSelectedImage(index: number): void {
+    this.selectedFiles.update(list => list.filter((_, i) => i !== index));
+    this.imagePreviewUrls.update(list => list.filter((_, i) => i !== index));
   }
 
   submitAddProduct(): void {
@@ -180,27 +179,27 @@ export class Dashboard implements OnInit {
       })
       .subscribe({
         next: (product) => {
-          const file = this.selectedFile();
-          if (!file) {
+          const files = this.selectedFiles();
+          const localPreviews = this.imagePreviewUrls();
+
+          if (!files.length) {
             this.products.update((list) => [product, ...list]);
             this.submitting.set(false);
             this.closeAddModal();
             return;
           }
 
-          this.mediaService.uploadImage(product.id, file).subscribe({
-            next: (media) => {
-              this.products.update((list) => [{ ...product, imageUrl: media.url }, ...list]);
+          // Optimistic update avec previews locaux
+          this.products.update((list) => [{ ...product, imageUrls: localPreviews }, ...list]);
+
+          this.mediaService.uploadImage(product.userId, product.id, files, 'Product').subscribe({
+            next: () => {
               this.submitting.set(false);
               this.closeAddModal();
             },
             error: (err) => {
-              // Product was created but the image upload failed — keep it visible without an image.
-              this.products.update((list) => [product, ...list]);
               this.submitting.set(false);
-              this.toast.error(
-                err.error || 'image upload failed.'
-              );
+              this.toast.error(err.error || 'Product created, but images failed to upload.');
               this.closeAddModal();
             },
           });
@@ -226,8 +225,9 @@ export class Dashboard implements OnInit {
       price: product.price,
       quantity: product.quantity,
     });
-    this.editImagePreviewUrl.set(product.imageUrl ?? null);
-    this.selectedEditFile.set(null);
+    this.existingImageUrls.set(product.imageUrls ?? []);
+    this.selectedEditFiles.set([]);
+    this.selectedEditFilePreviews.set([]);
     this.editFileError.set(null);
     this.showEditModal.set(true);
   }
@@ -236,38 +236,46 @@ export class Dashboard implements OnInit {
     this.showEditModal.set(false);
     this.editingProduct.set(null);
     this.editProductForm.reset();
-    this.selectedEditFile.set(null);
-    this.editImagePreviewUrl.set(null);
+    this.existingImageUrls.set([]);
+    this.selectedEditFiles.set([]);
+    this.selectedEditFilePreviews.set([]);
     this.editFileError.set(null);
   }
 
   onEditFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
+    if (!input.files?.length) return;
 
-    if (!file) {
-      this.selectedEditFile.set(null);
-      this.editFileError.set(null);
+    const newFiles = Array.from(input.files);
+    input.value = '';
+
+    const remaining = 3 - this.existingImageUrls().length - this.selectedEditFiles().length;
+    if (remaining <= 0) {
+      this.editFileError.set('Maximum 3 images per product.');
       return;
     }
 
-    const error = this.mediaService.validateImage(file);
-    if (error) {
-      this.editFileError.set(error);
-      this.selectedEditFile.set(null);
-      input.value = '';
-      return;
+    const toAdd = newFiles.slice(0, remaining);
+    for (const file of toAdd) {
+      const error = this.mediaService.validateImage(file);
+      if (error) {
+        this.editFileError.set(error);
+        return;
+      }
     }
 
     this.editFileError.set(null);
-    this.selectedEditFile.set(file);
-    this.editImagePreviewUrl.set(URL.createObjectURL(file));
+    this.selectedEditFiles.update(list => [...list, ...toAdd]);
+    this.selectedEditFilePreviews.update(list => [...list, ...toAdd.map(f => URL.createObjectURL(f))]);
   }
 
-  removeEditSelectedImage(): void {
-    this.selectedEditFile.set(null);
-    this.editImagePreviewUrl.set(null);
-    this.editFileError.set(null);
+  removeExistingImage(index: number): void {
+    this.existingImageUrls.update(list => list.filter((_, i) => i !== index));
+  }
+
+  removeEditFile(index: number): void {
+    this.selectedEditFiles.update(list => list.filter((_, i) => i !== index));
+    this.selectedEditFilePreviews.update(list => list.filter((_, i) => i !== index));
   }
 
   submitEditProduct(): void {
@@ -291,32 +299,36 @@ export class Dashboard implements OnInit {
       })
       .subscribe({
         next: (updated) => {
-          const file = this.selectedEditFile();
-          if (!file) {
+          const files = this.selectedEditFiles();
+          const existingUrls = this.existingImageUrls();
+          const localPreviews = this.selectedEditFilePreviews();
+
+          if (!files.length) {
             this.products.update((list) =>
-              list.map((p) => (p.id === current.id ? { ...p, ...updated } : p))
+              list.map((p) => (p.id === current.id ? { ...p, ...updated, imageUrls: existingUrls } : p))
             );
             this.submittingEdit.set(false);
             this.closeEditModal();
             return;
           }
 
-          this.mediaService.uploadImage(current.id, file).subscribe({
-            next: (media) => {
-              this.products.update((list) =>
-                list.map((p) =>
-                  p.id === current.id ? { ...p, ...updated, imageUrl: media.url } : p
-                )
-              );
+          // Optimistic update
+          const optimisticUrls = [...existingUrls, ...localPreviews];
+          this.products.update((list) =>
+            list.map((p) => (p.id === current.id ? { ...p, ...updated, imageUrls: optimisticUrls } : p))
+          );
+
+          this.mediaService.uploadImage(current.userId, current.id, files, 'Product').subscribe({
+            next: () => {
               this.submittingEdit.set(false);
               this.closeEditModal();
             },
             error: (err) => {
               this.products.update((list) =>
-                list.map((p) => (p.id === current.id ? { ...p, ...updated } : p))
+                list.map((p) => (p.id === current.id ? { ...p, ...updated, imageUrls: existingUrls } : p))
               );
               this.submittingEdit.set(false);
-              this.toast.error(err.error || 'Product updated, but the image failed to upload.');
+              this.toast.error(err.error || 'Product updated, but images failed to upload.');
               this.closeEditModal();
             },
           });
