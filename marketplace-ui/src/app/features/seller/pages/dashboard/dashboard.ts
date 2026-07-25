@@ -199,6 +199,8 @@ export class Dashboard implements OnInit {
               this.closeAddModal();
             },
             error: (err) => {
+              console.log(err);
+              
               this.submitting.set(false);
               this.toast.error(err.error || 'Product created, but images failed to upload.');
               this.closeAddModal();
