@@ -6,4 +6,5 @@ import lombok.Data;
 public class MediaResponse {
     String id;
     String url;
+    String productId;
 }

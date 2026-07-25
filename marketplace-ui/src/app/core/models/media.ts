@@ -1,3 +1,5 @@
 export interface MediaResponse {
-   urls: string[];
+  id: string;
+  url: string;
+  productId?: string;
 }

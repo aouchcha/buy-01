@@ -4,12 +4,14 @@ import { Auth } from '../../../../core/services/auth';
 import { Product } from '../../../../core/services/product';
 import { Media } from '../../../../core/services/media';
 import { ProductDto } from '../../../../core/models/product';
+import { MediaResponse } from '../../../../core/models/media';
 import { Navbar } from '../../../../layout/navbar/navbar';
 import { ConfirmService } from '../../../../core/services/confirm';
 import { ToastService } from '../../../../core/services/toast.service';
 import { MatIconModule } from '@angular/material/icon';
 
 interface MediaItem {
+  id: string;
   url: string;
   productId: string;
   productName: string;
@@ -32,6 +34,7 @@ export class MediaManagement implements OnInit {
   readonly seller = this.auth.getCurrentUser();
 
   readonly products = signal<ProductDto[]>([]);
+  readonly medias = signal<MediaResponse[]>([]);
   readonly loading = signal(true);
   readonly deletingUrl = signal<string | null>(null);
 
@@ -43,20 +46,20 @@ export class MediaManagement implements OnInit {
   readonly fileError = signal<string | null>(null);
   readonly selectedProductId = signal<string | null>(null);
 
-  readonly allMedia = computed<MediaItem[]>(() =>
-    this.products().flatMap((p) =>
-      (p.imageUrls ?? []).map((url) => ({
-        url,
-        productId: p.id,
-        productName: p.name,
-      }))
-    )
-  );
+  readonly allMedia = computed<MediaItem[]>(() => {
+    const productMap = new Map(this.products().map((p) => [p.id, p.name]));
+    return this.medias().map((m) => ({
+      id: m.id,
+      url: m.url,
+      productId: m.productId ?? '',
+      productName: productMap.get(m.productId ?? '') ?? 'Unknown product',
+    }));
+  });
 
-  readonly totalImages = computed(() => this.allMedia().length);
+  readonly totalImages = computed(() => this.medias().length);
   readonly totalProducts = computed(() => this.products().length);
   readonly productsWithImages = computed(
-    () => this.products().filter((p) => p.imageUrls?.length > 0).length
+    () => new Set(this.medias().map((m) => m.productId).filter(Boolean)).size
   );
 
   ngOnInit(): void {
@@ -65,8 +68,12 @@ export class MediaManagement implements OnInit {
   }
 
   private loadMedias(): void {
-    // this.loading.set(true);
-    
+    this.mediaService.getMyImages().subscribe({
+      next: (medias) => this.medias.set(medias),
+      error: (err) => {
+        this.toast.error(err.error || 'Unable to load media.');
+      },
+    });
   }
 
   private loadProducts(): void {
@@ -97,15 +104,10 @@ export class MediaManagement implements OnInit {
 
         this.deletingUrl.set(item.url);
 
-        const mediaId = item.url.split('/').pop() ?? item.url;
-        this.mediaService.deleteImage(mediaId).subscribe({
+        this.mediaService.deleteImage(item.id).subscribe({
           next: () => {
-            this.products.update((list) =>
-              list.map((p) =>
-                p.id === item.productId
-                  ? { ...p, imageUrls: p.imageUrls.filter((u) => u !== item.url) }
-                  : p
-              )
+            this.medias.update((list) =>
+              list.filter((m) => m.id !== item.id)
             );
             this.deletingUrl.set(null);
             this.toast.success('Image deleted.');
@@ -192,12 +194,8 @@ export class MediaManagement implements OnInit {
     this.uploading.set(true);
     this.mediaService.uploadImage(seller.id, productId, files, 'Product').subscribe({
       next: (res) => {
-        this.products.update((list) =>
-          list.map((p) =>
-            p.id === productId
-              ? { ...p, imageUrls: [...(p.imageUrls ?? []), ...(res.urls ?? [])] }
-              : p
-          )
+        this.medias.update((list) =>
+          [...list, ...res]
         );
         this.uploading.set(false);
         this.closeUploadModal();

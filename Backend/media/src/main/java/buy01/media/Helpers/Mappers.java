@@ -8,6 +8,7 @@ public class Mappers {
         MediaResponse dto = new MediaResponse();
         dto.setId(media.getId());
         dto.setUrl(media.getUrl());
-        return dto; 
+        dto.setProductId(media.getProductId());
+        return dto;
     }
 }
