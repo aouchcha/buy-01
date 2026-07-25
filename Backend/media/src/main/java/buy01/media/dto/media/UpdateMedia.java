@@ -10,9 +10,9 @@ import lombok.Data;
 
 @Data
 public class UpdateMedia {
-    @NotNull(message = "deleted urls shouldn't be null")
+    // @NotNull(message = "deleted urls shouldn't be null")
     String[] deletedUrls;
-    @NotNull(message = "new images urls shouldn't be null")
+    // @NotNull(message = "new images urls shouldn't be null")
     MultipartFile[] newImages;
     String type;
     String userId;

@@ -1,6 +1,7 @@
 package buy01.media.service.media;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -62,7 +63,7 @@ public class MediaService {
             throw new MyBadRequest("you should upload one avatar at time");
         }
 
-        if (pictures.getType().equals("Procuct")
+        if (pictures.getType().equals("Product")
                 && !checkRepository.existsByProductIdAndOwnerId(pictures.getProductId(), pictures.getUserId())) {
             throw new MyForbiden("The product not created or you are not the owner of the product");
         }
@@ -101,67 +102,116 @@ public class MediaService {
     }
 
     public List<MediaResponse> updateMedia(UpdateMedia request) {
-        String[] toRemove = request.getDeletedUrls();
-        System.out.println("NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN" + toRemove.length);
-        for (String url : toRemove) {
-            System.out.println("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU" + url);
-            MediaEntity media = mediaRepository.findByUrl(url);
-            if (media == null) {
-                throw new MyNotFound("Media not found");
+        String type = request.getType();
+
+        if (!"Avatar".equals(type) && !"Product".equals(type)) {
+            throw new MyBadRequest("Media type must be Avatar or Product");
+        }
+
+        if ("Avatar".equals(type)
+                && request.getNewImages() != null
+                && request.getNewImages().length > 1) {
+            throw new MyBadRequest("You can upload only one avatar.");
+        }
+
+        if ("Product".equals(type)
+                && !checkRepository.existsByProductIdAndOwnerId(
+                        request.getProductId(),
+                        request.getUserId())) {
+            throw new MyForbiden("Product not found or you are not the owner.");
+        }
+
+        if (request.getDeletedUrls() != null) {
+
+            for (String url : request.getDeletedUrls()) {
+
+                MediaEntity media = mediaRepository.findByUrl(url);
+
+                if (media == null) {
+                    throw new MyNotFound("Media not found: " + url);
+                }
+
+                deleteMedia(media.getId());
             }
-            deleteMedia(media.getId());
         }
 
-        if (!CanUploadToR2(request.getNewImages())) {
-            System.out.println("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKk" + request.getNewImages().length);
+        MultipartFile[] images = request.getNewImages();
 
-            throw new MyBadRequest("One Of the images is not valid image");
-        }
+        if (images != null && images.length > 0) {
 
-        if (!request.getType().equals("Avatar") && !request.getType().equals("Product")) {
-            throw new MyBadRequest("The type of the media isn't valid (Avatar or Product)");
-        }
-
-        if (request.getType().equals("Avatar") && request.getNewImages().length != 1) {
-            throw new MyBadRequest("you should upload one avatar at time");
-        }
-
-        if (request.getType().equals("Procuct")
-                && !checkRepository.existsByProductIdAndOwnerId(request.getProductId(), request.getUserId())) {
-            throw new MyForbiden("The product not created or you are not the owner of the product");
-        }
-
-        try {
-            List<String> urls = new ArrayList<>();
-            List<MediaEntity> medias = new ArrayList<>();
-            for (MultipartFile pic : request.getNewImages()) {
-                String fileName = request.getType() + "/" + UUID.randomUUID().toString();
-                String contenType = tika.detect(pic.getBytes());
-                String url = r2.upload(fileName, contenType, pic.getBytes());
-                System.out.println("uuuuuuuuuuuuuuuuuuuuuuuuuuuu" + url);
-                urls.add(url);
-                MediaEntity media = new MediaEntity();
-                media.setOwnerId(request.getUserId());
-                media.setProductId(request.getProductId());
-                media.setType(request.getType());
-                media.setUrl(url);
-                media = mediaRepository.save(media);
-                medias.add(media);
+            if (!CanUploadToR2(images)) {
+                throw new MyBadRequest("One or more uploaded files are invalid.");
             }
-            if (request.getType().equals("Avatar")) {
-                AcceptedUpload success = new AcceptedUpload(request.getUserId(), urls);
-                kafkaTemplate.send("avatar.upload.success", request.getUserId(), success);
-            } else {
-                System.out.println("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP");
-                ProductImageUploadedEvent success = new ProductImageUploadedEvent(request.getUserId(),
-                        request.getProductId(), urls);
-                kafkaTemplate.send("product.upload.seccess", request.getProductId(), success);
+
+            List<String> uploadedUrls = new ArrayList<>();
+
+            try {
+
+                for (MultipartFile image : images) {
+
+                    String key = type + "/" + UUID.randomUUID();
+
+                    String contentType = tika.detect(image.getBytes());
+
+                    String url = r2.upload(
+                            key,
+                            contentType,
+                            image.getBytes());
+
+                    uploadedUrls.add(url);
+
+                    MediaEntity media = new MediaEntity();
+                    media.setOwnerId(request.getUserId());
+                    media.setProductId(request.getProductId());
+                    media.setType(type);
+                    media.setUrl(url);
+
+                    mediaRepository.save(media);
+                }
+
+                if ("Avatar".equals(type)) {
+
+                    kafkaTemplate.send(
+                            "avatar.upload.success",
+                            request.getUserId(),
+                            new AcceptedUpload(
+                                    request.getUserId(),
+                                    uploadedUrls));
+
+                } else {
+
+                    kafkaTemplate.send(
+                            "product.upload.success",
+                            request.getProductId(),
+                            new ProductImageUploadedEvent(
+                                    request.getUserId(),
+                                    request.getProductId(),
+                                    uploadedUrls));
+                }
+
+            } catch (Exception e) {
+                throw new InternalError("Upload failed: " + e.getMessage());
             }
-            List<MediaResponse> response = medias.stream().map(m -> Mappers.mapperToMEdiaResponse(m)).toList(); 
-            return response;
-        } catch (Exception e) {
-            throw new InternalError(e.getMessage());
         }
+
+        if ("Avatar".equals(type)) {
+
+            MediaEntity avatar = mediaRepository.findByOwnerIdAndType(
+                    request.getUserId(),
+                    "Avatar");
+
+            if (avatar == null) {
+                return Collections.emptyList();
+            }
+
+            return List.of(Mappers.mapperToMEdiaResponse(avatar));
+        }
+
+        return mediaRepository.findByProductId(request.getProductId())
+                .stream()
+                .map(Mappers::mapperToMEdiaResponse)
+                .toList();
+
     }
 
     private boolean CanUploadToR2(MultipartFile[] pics) throws RuntimeException {
@@ -208,6 +258,7 @@ public class MediaService {
         if (!userId.equals(media.getOwnerId())) {
             throw new MyForbiden("you are not the owner of this media");
         }
+        r2.delete(media.getUrl());
         if (media.getType().equals("Avatar")) {
             AvatarDeleted event = new AvatarDeleted(userId);
             kafkaTemplate.send("avatar.deleted", media.getOwnerId(), event);

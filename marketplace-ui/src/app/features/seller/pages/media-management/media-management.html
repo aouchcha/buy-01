@@ -7,10 +7,10 @@
       <h1>Your images</h1>
       <p class="media-page__sub">All photos attached to your products.</p>
     </div>
-    <button type="button" class="btn btn--primary" (click)="openUploadModal()">
+    <!-- <button type="button" class="btn btn--primary" (click)="openUploadModal()">
       <span class="btn__icon">+</span>
       Upload images
-    </button>
+    </button> -->
   </header>
 
   <div class="stats">
@@ -42,8 +42,8 @@
     } @else if (allMedia().length === 0) {
     <div class="empty-state">
       <p class="empty-state__title">No images yet</p>
-      <p class="empty-state__sub">Upload images to your products to see them here.</p>
-      <button type="button" class="btn btn--primary" (click)="openUploadModal()">Upload images</button>
+      <!-- <p class="empty-state__sub">Upload images to your products to see them here.</p>
+      <button type="button" class="btn btn--primary" (click)="openUploadModal()">Upload images</button> -->
     </div>
     } @else {
     <div class="media-grid">
@@ -77,8 +77,8 @@
   <div class="modal-backdrop" (click)="closeUploadModal()">
     <div class="modal" (click)="$event.stopPropagation()">
       <header class="modal__header">
-        <h2>Upload images</h2>
-        <button type="button" class="modal__close" (click)="closeUploadModal()" aria-label="Close">✕</button>
+        <!-- <h2>Upload images</h2>
+        <button type="button" class="modal__close" (click)="closeUploadModal()" aria-label="Close">✕</button> -->
       </header>
 
       <div class="modal__body">

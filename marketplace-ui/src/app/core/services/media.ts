@@ -52,6 +52,8 @@ export class Media {
       formData.append('deletedUrls', url);
     }
 
+    // if (formData['deletedUrls'])
+
     for (const file of newImages) {
       formData.append('newImages', file);
     }

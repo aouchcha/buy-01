@@ -10,4 +10,6 @@ public interface MediaRepository extends MongoRepository<MediaEntity, String> {
     MediaEntity findByUrl(String url);
     List<MediaEntity> findByOwnerId(String ownerId);
     List<MediaEntity> findByProductId(String productId);
+
+    MediaEntity findByOwnerIdAndType(String ownerId, String type);
 }

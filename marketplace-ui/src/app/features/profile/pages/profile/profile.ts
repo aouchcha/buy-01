@@ -66,7 +66,7 @@ export class Profile implements OnInit {
     this.profileService.getMe().subscribe({
       next: (user) => {
         console.log(user);
-        
+
         this.profile.set(user);
         this.loading.set(false);
       },
@@ -123,7 +123,7 @@ export class Profile implements OnInit {
     this.profileService.updateMe(user).subscribe({
       next: (updatedUser) => {
         console.log(updatedUser);
-        
+
         this.profile.set(updatedUser);
         this.saving.set(false);
         this.isEditing.set(false);
@@ -154,15 +154,34 @@ export class Profile implements OnInit {
       return;
     }
 
+    const profilePictureUrl = this.profile()?.profilePictureUrl;
+
+    const deletedUrls: string[] = profilePictureUrl
+      ? [profilePictureUrl]
+      : [];
+
     const currentUser = this.profile();
     if (!currentUser) return;
 
-    this.mediaService.uploadImage(currentUser.id, null, [file], 'Avatar').subscribe({
+    this.mediaService.updateImages(
+      currentUser.id,
+      null,
+      deletedUrls,
+      [file],
+      'Avatar'
+    ).subscribe({
       next: (media) => {
         this.toast.success('Photo updated successfully.');
 
-        if (media?.urls[0]) {
-          this.profile.update((user) => (user ? { ...user, profilePictureUrl: media.urls[0] } : null));
+        if (media.length > 0 && media[0].urls.length > 0) {
+          this.profile.update(user =>
+            user
+              ? {
+                ...user,
+                profilePictureUrl: media[0].urls[0],
+              }
+              : null
+          );
         }
       },
       error: (err) => {
@@ -170,7 +189,6 @@ export class Profile implements OnInit {
         this.toast.error(err.error || 'Unable to upload photo.');
       },
     });
-
     input.value = '';
   }
 

@@ -65,7 +65,7 @@ export class MediaManagement implements OnInit {
   }
 
   private loadMedias(): void {
-    this.loading.set(true);
+    // this.loading.set(true);
     
   }
 
