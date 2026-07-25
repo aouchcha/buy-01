@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { ProfileService } from '../../../../core/services/profile';
 import { Media } from '../../../../core/services/media';
+import { Auth } from '../../../../core/services/auth';
 import { User, Role } from '../../../../core/models/user';
 import { Navbar } from '../../../../layout/navbar/navbar';
 import { ToastService } from '../../../../core/services/toast.service';
@@ -21,6 +22,7 @@ import { ProductDto } from '../../../../core/models/product';
 export class Profile implements OnInit {
   private readonly profileService = inject(ProfileService);
   private readonly mediaService = inject(Media);
+  private readonly auth = inject(Auth);
   private readonly toast = inject(ToastService);
   private readonly productService = inject(Product);
 
@@ -68,6 +70,7 @@ export class Profile implements OnInit {
         console.log(user);
 
         this.profile.set(user);
+        this.auth.updateCurrentUser(user);
         this.loading.set(false);
       },
       error: (err) => {
@@ -125,6 +128,7 @@ export class Profile implements OnInit {
         console.log(updatedUser);
 
         this.profile.set(updatedUser);
+        this.auth.updateCurrentUser(updatedUser);
         this.saving.set(false);
         this.isEditing.set(false);
         this.toast.success('Profile updated successfully.');
@@ -173,15 +177,17 @@ export class Profile implements OnInit {
       next: (media) => {
         this.toast.success('Photo updated successfully.');
 
-        if (media.length > 0 && media[0].urls.length > 0) {
+        if (media.length > 0 && media[0].url) {
           this.profile.update(user =>
             user
               ? {
                 ...user,
-                profilePictureUrl: media[0].urls[0],
+                profilePictureUrl: media[0].url,
               }
               : null
           );
+          const updated = this.profile();
+          if (updated) this.auth.updateCurrentUser(updated);
         }
       },
       error: (err) => {
