@@ -30,8 +30,8 @@ public class MediaController {
     }
 
     @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<List<String>> uploadMedia(@Valid @ModelAttribute UploadRequest pictures) {
-        List<String> dtos = mediaService.UploadPics(pictures);
+    public ResponseEntity<List<MediaResponse>> uploadMedia(@Valid @ModelAttribute UploadRequest pictures) {
+        List<MediaResponse> dtos = mediaService.UploadPics(pictures);
         return ResponseEntity.ok(dtos);
     }
 

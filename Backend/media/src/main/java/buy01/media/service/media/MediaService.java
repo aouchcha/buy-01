@@ -49,7 +49,7 @@ public class MediaService {
         this.checkRepository = checkRepository;
     }
 
-    public List<String> UploadPics(UploadRequest pictures) {
+    public List<MediaResponse> UploadPics(UploadRequest pictures) {
         if (!CanUploadToR2(pictures.getPictures())) {
             throw new MyBadRequest("One Of the images is not valid image");
         }
@@ -69,6 +69,7 @@ public class MediaService {
 
         try {
             List<String> urls = new ArrayList<>();
+            List<MediaEntity> medias = new ArrayList<>();
             for (MultipartFile pic : pictures.getPictures()) {
                 String fileName = pictures.getType() + "/" + UUID.randomUUID().toString();
                 String contenType = tika.detect(pic.getBytes());
@@ -80,7 +81,8 @@ public class MediaService {
                 media.setProductId(pictures.getProductId());
                 media.setType(pictures.getType());
                 media.setUrl(url);
-                mediaRepository.save(media);
+                media = mediaRepository.save(media);
+                medias.add(media);
             }
             if (pictures.getType().equals("Avatar")) {
                 AcceptedUpload success = new AcceptedUpload(pictures.getUserId(), urls);
@@ -91,7 +93,8 @@ public class MediaService {
                         pictures.getProductId(), urls);
                 kafkaTemplate.send("product.upload.seccess", pictures.getProductId(), success);
             }
-            return urls;
+            List<MediaResponse> response = medias.stream().map(m -> Mappers.mapperToMEdiaResponse(m)).toList();
+            return response;
         } catch (Exception e) {
             throw new InternalError(e.getMessage());
         }
