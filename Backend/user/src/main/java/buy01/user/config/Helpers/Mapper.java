@@ -11,6 +11,7 @@ public class Mapper {
         dto.setLastName(user.getLastName());
         dto.setEmail(user.getEmail());
         dto.setRole(user.getRole());
+        dto.setProfilePictureUrl(user.getProfilePictureUrl());
         return dto;
     }
 }

@@ -65,6 +65,8 @@ export class Profile implements OnInit {
 
     this.profileService.getMe().subscribe({
       next: (user) => {
+        console.log(user);
+        
         this.profile.set(user);
         this.loading.set(false);
       },
@@ -120,6 +122,8 @@ export class Profile implements OnInit {
 
     this.profileService.updateMe(user).subscribe({
       next: (updatedUser) => {
+        console.log(updatedUser);
+        
         this.profile.set(updatedUser);
         this.saving.set(false);
         this.isEditing.set(false);

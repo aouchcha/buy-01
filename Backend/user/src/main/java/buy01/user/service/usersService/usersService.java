@@ -6,6 +6,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import buy01.user.config.Exceptions.MyExeptions.Myforbiden;
 import buy01.user.config.Exceptions.MyExeptions.notFound;
 import buy01.user.config.Helpers.Mapper;
 import buy01.user.dto.User.UpdateMe;
@@ -43,16 +44,13 @@ public class usersService {
 
     public Userdto getProfile() {
         final String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        final userEntity user = userRepository.findById(userId).orElse(null);
-        if (user == null) {
-            throw new notFound("user not found");
-        }
+        final userEntity user = userRepository.findById(userId).orElseThrow(() -> new Myforbiden("profile doesn't exist"));
         final Userdto profile = Mapper.MappToUSerDto(user);
         return profile;
         // return null;
     }
 
-    public void updateProfile(UpdateMe request) {
+    public userEntity updateProfile(UpdateMe request) {
         final String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final userEntity user = userRepository.findById(userId).orElse(null);
         if (user == null) {
@@ -61,7 +59,8 @@ public class usersService {
         
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
-        userRepository.save(user);
+       userRepository.save(user);
+       return user;
     }
 
     public void remove(String userId) {

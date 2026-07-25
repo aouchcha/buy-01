@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { LoginRequest } from '../models/auth-request';
+import { LoginRequest, registerRequest } from '../models/auth-request';
 import { Observable, tap, BehaviorSubject } from 'rxjs';
 import { AuthResponse } from '../models/auth-response';
 import { Role, User } from '../models/user';
@@ -28,7 +28,7 @@ export class Auth {
     );
   }
 
-  register(data: FormData): Observable<AuthResponse> {
+  register(data: registerRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/signup`, data).pipe(
       tap((res) => {
         localStorage.setItem('token', res.token);

@@ -61,6 +61,12 @@ export class MediaManagement implements OnInit {
 
   ngOnInit(): void {
     this.loadProducts();
+    this.loadMedias();
+  }
+
+  private loadMedias(): void {
+    this.loading.set(true);
+    
   }
 
   private loadProducts(): void {

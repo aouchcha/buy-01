@@ -47,7 +47,7 @@ public class MediaController {
         return ResponseEntity.ok(dto);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/images/{id}")
     public ResponseEntity<String> deleteMedia(@PathVariable String id) {
         mediaService.deleteMedia(id);
         return ResponseEntity.ok("Media removed Successfully");
@@ -58,7 +58,7 @@ public class MediaController {
         return ResponseEntity.ok("media-service is running");
     }
 
-    @PutMapping
+    @PutMapping("/images")
     public ResponseEntity<List<MediaResponse>> updatePiture(@Valid @ModelAttribute UpdateMedia request) {
         List<MediaResponse> responses = mediaService.updateMedia(request);
         return ResponseEntity.ok(responses);

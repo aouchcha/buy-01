@@ -6,6 +6,7 @@ import { Auth } from '../../../../core/services/auth';
 import { Role } from '../../../../core/models/user';
 import { Media } from '../../../../core/services/media';
 import { ToastService } from '../../../../core/services/toast.service';
+import { registerRequest } from '../../../../core/models/auth-request';
 
 function passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
   const password = control.get('password')?.value;
@@ -27,7 +28,7 @@ export class Register {
   private readonly fb = inject(FormBuilder);
   private readonly mediaService = inject(Media);
   private readonly toast = inject(ToastService);
-  
+
   readonly Role = Role;
 
   readonly loading = signal(false);
@@ -102,19 +103,26 @@ export class Register {
 
     const { firstName, lastName, email, password, role } = this.registerForm.getRawValue();
 
-    const formData = new FormData();
-    formData.append('email', email!);
-    formData.append('password', password!);
-    formData.append('firstName', firstName!);
-    formData.append('lastName', lastName!);
-    formData.append('role', role!);
+    // const formData = new FormData();
+    // formData.append('email', email!);
+    // formData.append('password', password!);
+    // formData.append('firstName', firstName!);
+    // formData.append('lastName', lastName!);
+    // formData.append('role', role!);
+    const request: registerRequest = {
+      email: email!,
+      password: password!,
+      firstName: firstName!,
+      lastName: lastName!,
+      role: role!,
+    };
 
     // const picture = this.profilePicture();
     // if (picture) {
     //   formData.append('profilePicture', picture);
     // }
 
-    this.authService.register(formData).subscribe({
+    this.authService.register(request).subscribe({
       next: (response) => {
 
         const picture = this.profilePicture();

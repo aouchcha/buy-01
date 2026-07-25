@@ -200,7 +200,7 @@ export class Dashboard implements OnInit {
             },
             error: (err) => {
               console.log(err);
-              
+
               this.submitting.set(false);
               this.toast.error(err.error || 'Product created, but images failed to upload.');
               this.closeAddModal();
@@ -304,6 +304,9 @@ export class Dashboard implements OnInit {
         next: (updated) => {
           const files = this.selectedEditFiles();
           const existingUrls = this.existingImageUrls();
+          const deletedUrls = current.imageUrls.filter(
+            url => !existingUrls.includes(url)
+          );
           const localPreviews = this.selectedEditFilePreviews();
 
           if (!files.length) {
@@ -321,17 +324,26 @@ export class Dashboard implements OnInit {
             list.map((p) => (p.id === current.id ? { ...p, ...updated, imageUrls: optimisticUrls } : p))
           );
 
-          this.mediaService.uploadImage(current.userId, current.id, files, 'Product').subscribe({
+          this.mediaService.updateImages(current.userId, current.id, deletedUrls, files, 'Product').subscribe({
             next: () => {
               this.submittingEdit.set(false);
               this.closeEditModal();
             },
             error: (err) => {
-              this.products.update((list) =>
-                list.map((p) => (p.id === current.id ? { ...p, ...updated, imageUrls: existingUrls } : p))
+              console.log(err);
+              
+              this.products.update(list =>
+                list.map(p =>
+                  p.id === current.id
+                    ? { ...p, ...updated, imageUrls: existingUrls }
+                    : p
+                )
               );
+
               this.submittingEdit.set(false);
-              this.toast.error(err.error || 'Product updated, but images failed to upload.');
+              this.toast.error(
+                err.error || 'Product updated, but images failed to upload.'
+              );
               this.closeEditModal();
             },
           });

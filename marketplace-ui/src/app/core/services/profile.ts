@@ -2,6 +2,7 @@ import { HttpClient } from "@angular/common/http";
 import { User } from "../models/user";
 import { inject, Injectable } from "@angular/core";
 import { environment } from "../../../environments/environment";
+import { Observable } from "rxjs";
 
 @Injectable({
   providedIn: 'root',
@@ -10,14 +11,11 @@ export class ProfileService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/users/me`;
 
-  getMe() {
+  getMe(): Observable<User> {
     return this.http.get<User>(this.apiUrl);
   }
 
-  updateMe(data: User) {
-    const formData = new FormData();
-    formData.append('data', new Blob([JSON.stringify({ firstName: data.firstName, lastName: data.lastName })], { type: 'application/json' }));
-   
-    return this.http.put<User>(this.apiUrl, formData);
+  updateMe(data: User): Observable<User> {
+    return this.http.put<User>(this.apiUrl, data);
   }
 }

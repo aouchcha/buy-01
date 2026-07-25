@@ -24,7 +24,7 @@ export class Media {
     const formData = new FormData();
 
     for (const file of files) {
-      formData.append('pictures', file); 
+      formData.append('pictures', file);
     }
 
     formData.append('userId', userId);
@@ -37,12 +37,35 @@ export class Media {
     return this.http.post<MediaResponse>(this.apiUrl, formData);
   }
 
-  // uploadAvatar(file: File): Observable<MediaResponse> {
-  //   const formData = new FormData();
-  //   formData.append('file', file);
 
-  //   return this.http.post<MediaResponse>(`${this.apiUrl}/avatar`, formData);
-  // }
+  updateImages(
+    userId: string,
+    productId: string | null,
+    deletedUrls: string[],
+    newImages: File[],
+    type: string
+  ): Observable<MediaResponse[]> {
+
+    const formData = new FormData();
+
+    for (const url of deletedUrls) {
+      formData.append('deletedUrls', url);
+    }
+
+    for (const file of newImages) {
+      formData.append('newImages', file);
+    }
+
+    formData.append('userId', userId);
+    formData.append('type', type);
+
+    if (productId) {
+      formData.append('productId', productId);
+    }
+
+    return this.http.put<MediaResponse[]>(this.apiUrl, formData);
+  }
+
 
   getMyImages(userId: string): Observable<MediaResponse> {
     return this.http.get<MediaResponse>(`${this.apiUrl}?userId=${userId}`);

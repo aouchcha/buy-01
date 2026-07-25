@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import buy01.user.dto.User.UpdateMe;
 import buy01.user.dto.User.Userdto;
 import buy01.user.service.usersService.usersService;
+import buy01.user.model.userEntity;
 
 @RestController
 @RequestMapping("/api/users")
@@ -45,9 +46,9 @@ public class usersController {
     }
 
     @PutMapping("/me")
-    public ResponseEntity<String> updateAvatar(@RequestBody UpdateMe request) {
-        usersService.updateProfile(request);
-        return ResponseEntity.ok().body(null);
+    public ResponseEntity<userEntity> updateAvatar(@RequestBody UpdateMe request) {
+        userEntity user = usersService.updateProfile(request);
+        return ResponseEntity.ok().body(user);
     }
 
     @DeleteMapping("/{id}")
