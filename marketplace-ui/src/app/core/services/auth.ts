@@ -63,4 +63,8 @@ export class Auth {
   isLoggedIn(): boolean {
     return !!this.getToken();
   }
+
+  updateCurrentUser(user: User): void {
+    this.currentUserSubject.next(user);
+  }
 }
