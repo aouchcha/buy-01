@@ -12,14 +12,14 @@ export const MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB, matches backend lim
 })
 export class Media {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/media/images`;
+  private readonly apiUrl = `${environment.apiUrl}/media`;
 
   uploadImage(
     userId: string,
     productId: string | null,
     files: File[],
     type: string
-  ): Observable<MediaResponse> {
+  ): Observable<MediaResponse[]> {
 
     const formData = new FormData();
 
@@ -34,7 +34,7 @@ export class Media {
       formData.append('productId', productId);
     }
 
-    return this.http.post<MediaResponse>(this.apiUrl, formData);
+    return this.http.post<MediaResponse[]>(this.apiUrl, formData);
   }
 
 
@@ -69,8 +69,8 @@ export class Media {
   }
 
 
-  getMyImages(userId: string): Observable<MediaResponse> {
-    return this.http.get<MediaResponse>(`${this.apiUrl}?userId=${userId}`);
+  getMyImages(): Observable<MediaResponse[]> {
+    return this.http.get<MediaResponse[]>(this.apiUrl);
   }
 
   deleteImage(mediaId: string): Observable<void> {
