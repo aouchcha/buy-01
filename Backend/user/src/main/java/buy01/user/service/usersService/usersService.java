@@ -43,7 +43,7 @@ public class usersService {
     }
 
     public Userdto getProfile() {
-        final String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        final String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         final userEntity user = userRepository.findById(userId).orElseThrow(() -> new Myforbiden("profile doesn't exist"));
         final Userdto profile = Mapper.MappToUSerDto(user);
         return profile;
@@ -51,7 +51,7 @@ public class usersService {
     }
 
     public userEntity updateProfile(UpdateMe request) {
-        final String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        final String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         final userEntity user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             throw new notFound("user not found");

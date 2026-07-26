@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.tika.Tika;
-import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -24,7 +23,6 @@ import buy01.media.dto.kafka.ProductImageUploadedEvent;
 import buy01.media.dto.media.MediaResponse;
 import buy01.media.dto.media.UpdateMedia;
 import buy01.media.dto.media.UploadRequest;
-import buy01.media.model.CheckEntity;
 import buy01.media.model.MediaEntity;
 import buy01.media.repository.CheckRepository;
 import buy01.media.repository.MediaRepository;

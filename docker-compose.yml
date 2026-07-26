@@ -1,9 +1,9 @@
+version: "3.9"
+
 services:
   users-mongodb:
     image: mongo:latest
     container_name: users-db
-    ports:
-      - "27017:27017"
     env_file:
       - .env
     environment:
@@ -12,6 +12,8 @@ services:
       MONGO_INITDB_DATABASE: ${USERS_DB_NAME}
     volumes:
       - users_mongo_data:/data/db
+    expose:
+      - "27017"
     healthcheck:
       test: >
         mongosh --quiet
@@ -29,8 +31,6 @@ services:
   products-mongodb:
     image: mongo:latest
     container_name: products-db
-    ports:
-      - "27018:27017"
     env_file:
       - .env
     environment:
@@ -39,6 +39,8 @@ services:
       MONGO_INITDB_DATABASE: ${PRODUCTS_DB_NAME}
     volumes:
       - products_mongo_data:/data/db
+    expose:
+      - "27017"
     healthcheck:
       test: >
         mongosh --quiet
@@ -56,16 +58,16 @@ services:
   media-mongodb:
     image: mongo:latest
     container_name: media-db
-    ports:
-      - "27019:27017"
     env_file:
       - .env
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MEDIA_DB_URI}
+      MONGO_INITDB_DATABASE: ${MEDIA_DB_NAME}
     volumes:
       - media_mongo_data:/data/db
+    expose:
+      - "27017"
     healthcheck:
       test: >
         mongosh --quiet
@@ -86,6 +88,8 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    expose:
+      - "2181"
     networks:
       - buy01-network
 
@@ -94,13 +98,13 @@ services:
     container_name: kafka
     depends_on:
       - zookeeper
-    ports:
-      - "9092:9092"
+    expose:
+      - "29092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
@@ -110,8 +114,8 @@ services:
     build: ./Backend/discovery
     container_name: discovery-service
     restart: unless-stopped
-    ports:
-      - "8761:8761"
+    expose:
+      - "8761"
     networks:
       - buy01-network
 
@@ -134,8 +138,8 @@ services:
     build: ./Backend/user
     container_name: user-service
     restart: unless-stopped
-    ports:
-      - "8081:8081"
+    expose:
+      - "8081"
     depends_on:
       users-mongodb:
         condition: service_healthy
@@ -156,10 +160,10 @@ services:
     build: ./Backend/media
     container_name: media-service
     restart: unless-stopped
-    ports:
-      - "8082:8082"
+    expose:
+      - "8082"
     depends_on:
-      users-mongodb:
+      media-mongodb:
         condition: service_healthy
       discovery-service:
         condition: service_started
@@ -173,6 +177,7 @@ services:
       R2_BUCKET: ${R2_BUCKET}
       R2_ENDPOINT: ${R2_ENDPOINT}
       R2_PUBLIC_URL: ${R2_PUBLIC_URL}
+      SPRING_MONGODB_URI: ${MEDIA_DB_URI}
     networks:
       - buy01-network
 
@@ -180,8 +185,8 @@ services:
     build: ./Backend/product
     container_name: product-service
     restart: unless-stopped
-    ports:
-      - "8083:8083"
+    expose:
+      - "8083"
     depends_on:
       products-mongodb:
         condition: service_healthy

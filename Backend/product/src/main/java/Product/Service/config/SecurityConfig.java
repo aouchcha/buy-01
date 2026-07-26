@@ -20,12 +20,13 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .addFilterBefore(headerAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/api/product/health").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/product", "/api/product/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/product").hasRole("SELLER")
-                        .requestMatchers(HttpMethod.PUT, "/api/product/**").hasRole("SELLER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/product/**").hasRole("SELLER")
-                        .anyRequest().authenticated());
+                    .requestMatchers(HttpMethod.GET, "/api/product/health").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/product", "/api/product/**").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/product").hasRole("SELLER")
+                    .requestMatchers(HttpMethod.PUT, "/api/product/**").hasRole("SELLER")
+                    .requestMatchers(HttpMethod.DELETE, "/api/product/**").hasRole("SELLER")
+                    .anyRequest().authenticated()
+                );
         return http.build();
     }
 }

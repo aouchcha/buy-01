@@ -22,7 +22,7 @@ export class Media {
     files: File[],
     type: string
   ): Observable<MediaResponse[]> {
-    this.sleep(1000)
+    this.sleep(2000)
     const formData = new FormData();
 
     for (const file of files) {
