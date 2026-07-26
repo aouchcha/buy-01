@@ -42,7 +42,7 @@ public class ConsumeProductEvents {
     //TODO: Create the Logic
     @KafkaListener(topics = "product.deleted")
     public void onProductDeletion(ProductDeleted event) {
-        List<MediaEntity> medias = mediaRepository.findByOwnerId(event.productId());
+        List<MediaEntity> medias = mediaRepository.findByProductId(event.productId());
         if (medias == null) {
             throw new MyNotFound("can't found media for the user");
         }
@@ -50,7 +50,7 @@ public class ConsumeProductEvents {
             r2.delete(media.getUrl());
             mediaRepository.delete(media);
         } 
-        List<CheckEntity> checks = checkRepository.findByOwnerId(event.productId());
+        List<CheckEntity> checks = checkRepository.findByProductId(event.productId());
         if (checks == null) {
             throw new MyNotFound("can't found media for the user");
         }

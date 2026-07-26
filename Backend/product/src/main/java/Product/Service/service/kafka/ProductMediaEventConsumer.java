@@ -18,7 +18,7 @@ public class ProductMediaEventConsumer {
 
     private final ProductService productService;
 
-    @KafkaListener(topics = "product.upload.seccess", groupId = "product-service")
+    @KafkaListener(topics = "product.upload.success", groupId = "product-service")
     public void onImageUploaded(ProductImageUploadedEvent event) {
         log.info("Image uploaded for product {}: {}", event.productId(), event.imageUrls());
         productService.addImageUrl(event.productId(), event.imageUrls());
@@ -26,6 +26,7 @@ public class ProductMediaEventConsumer {
 
     @KafkaListener(topics = "product.media.deleted")
     public void onImageDeleted(ProductImageDeletedEvent event) {
+        log.info("Image deleted for product {}: {}", event.productId(), event.url());
         productService.removeImageUrl(event.productId(), event.url());
     }
 

@@ -92,7 +92,7 @@ public class MediaService {
                 System.out.println("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP");
                 ProductImageUploadedEvent success = new ProductImageUploadedEvent(pictures.getUserId(),
                         pictures.getProductId(), urls);
-                kafkaTemplate.send("product.upload.seccess", pictures.getProductId(), success);
+                kafkaTemplate.send("product.upload.success", pictures.getProductId(), success);
             }
             List<MediaResponse> response = medias.stream().map(m -> Mappers.mapperToMEdiaResponse(m)).toList();
             return response;
@@ -124,7 +124,7 @@ public class MediaService {
         if (request.getDeletedUrls() != null) {
 
             for (String url : request.getDeletedUrls()) {
-
+                System.out.println("Deleting media with URL: " + url);
                 MediaEntity media = mediaRepository.findByUrl(url);
 
                 if (media == null) {
@@ -159,7 +159,7 @@ public class MediaService {
                             image.getBytes());
 
                     uploadedUrls.add(url);
-
+                    // System.out.println("Uploaded media with URL: " + url);
                     MediaEntity media = new MediaEntity();
                     media.setOwnerId(request.getUserId());
                     media.setProductId(request.getProductId());
@@ -168,6 +168,7 @@ public class MediaService {
 
                     mediaRepository.save(media);
                 }
+                System.out.println("Uploaded media URLs: " + uploadedUrls);
 
                 if ("Avatar".equals(type)) {
 
