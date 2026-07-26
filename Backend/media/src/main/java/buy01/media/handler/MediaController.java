@@ -35,7 +35,7 @@ public class MediaController {
         return ResponseEntity.ok(dtos);
     }
 
-    @GetMapping
+    @GetMapping("/images")
     public ResponseEntity<List<MediaResponse>> getAllMedia() {
         List<MediaResponse> medias = mediaService.getAll();
         return ResponseEntity.ok(medias);
@@ -58,8 +58,9 @@ public class MediaController {
         return ResponseEntity.ok("media-service is running");
     }
 
-    @PutMapping("/images")
+    @PutMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<List<MediaResponse>> updatePiture(@Valid @ModelAttribute UpdateMedia request) {
+        System.out.println("I am IN");
         List<MediaResponse> responses = mediaService.updateMedia(request);
         return ResponseEntity.ok(responses);
     }

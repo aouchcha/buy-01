@@ -1,6 +1,7 @@
 package buy01.media.service.media;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -120,7 +121,11 @@ public class MediaService {
                         request.getUserId())) {
             throw new MyForbiden("Product not found or you are not the owner.");
         }
-
+        System.out.println(request.getProductId());
+        System.out.println(request.getUserId());
+        System.out.println(request.getType());
+        System.out.println(request.getDeletedUrls());
+        System.out.println(request.getNewImages());
         if (request.getDeletedUrls() != null) {
 
             for (String url : request.getDeletedUrls()) {
@@ -143,7 +148,7 @@ public class MediaService {
                 throw new MyBadRequest("One or more uploaded files are invalid.");
             }
 
-            List<String> uploadedUrls = new ArrayList<>();
+            // List<String> uploadedUrls = new ArrayList<>();
 
             try {
 
@@ -158,7 +163,6 @@ public class MediaService {
                             contentType,
                             image.getBytes());
 
-                    uploadedUrls.add(url);
                     // System.out.println("Uploaded media with URL: " + url);
                     MediaEntity media = new MediaEntity();
                     media.setOwnerId(request.getUserId());
@@ -166,28 +170,33 @@ public class MediaService {
                     media.setType(type);
                     media.setUrl(url);
 
-                    mediaRepository.save(media);
+                    media = mediaRepository.save(media);
+                    // uploadedUrls.add(url);
                 }
-                System.out.println("Uploaded media URLs: " + uploadedUrls);
+                // System.out.println("Uploaded media URLs: " + uploadedUrls);
 
                 if ("Avatar".equals(type)) {
-
+                    MediaEntity media = mediaRepository.findByOwnerIdAndType(request.getUserId(), "Avatar");
                     kafkaTemplate.send(
                             "avatar.upload.success",
                             request.getUserId(),
                             new AcceptedUpload(
                                     request.getUserId(),
-                                    uploadedUrls));
+                                    Arrays.asList(media.getUrl())));
+                    return List.of(Mappers.mapperToMEdiaResponse(media));
 
                 } else {
-
+                    List<MediaEntity> medias = mediaRepository.findByProductId(request.getProductId());
                     kafkaTemplate.send(
                             "product.upload.success",
                             request.getProductId(),
                             new ProductImageUploadedEvent(
                                     request.getUserId(),
                                     request.getProductId(),
-                                    uploadedUrls));
+                                    medias.stream()
+                                            .map(m -> m.getUrl()).toList()));
+                    return medias.stream().map(Mappers::mapperToMEdiaResponse)
+                            .toList();
                 }
 
             } catch (Exception e) {
@@ -195,23 +204,24 @@ public class MediaService {
             }
         }
 
-        if ("Avatar".equals(type)) {
+        // if ("Avatar".equals(type)) {
 
-            MediaEntity avatar = mediaRepository.findByOwnerIdAndType(
-                    request.getUserId(),
-                    "Avatar");
+        //     MediaEntity avatar = mediaRepository.findByOwnerIdAndType(
+        //             request.getUserId(),
+        //             "Avatar");
 
-            if (avatar == null) {
-                return Collections.emptyList();
-            }
+        //     if (avatar == null) {
+        //         return Collections.emptyList();
+        //     }
 
-            return List.of(Mappers.mapperToMEdiaResponse(avatar));
-        }
+        //     return List.of(Mappers.mapperToMEdiaResponse(avatar));
+        // }
 
-        return mediaRepository.findByProductId(request.getProductId())
-                .stream()
-                .map(Mappers::mapperToMEdiaResponse)
-                .toList();
+        // return mediaRepository.findByProductId(request.getProductId())
+        //         .stream()
+        //         .map(Mappers::mapperToMEdiaResponse)
+        //         .toList();
+        return Collections.emptyList();
 
     }
 
@@ -264,6 +274,7 @@ public class MediaService {
             AvatarDeleted event = new AvatarDeleted(userId);
             kafkaTemplate.send("avatar.deleted", media.getOwnerId(), event);
         } else {
+            System.out.println("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM " + media.getUrl());
             DeleteEvent event = new DeleteEvent(media.getProductId(), media.getOwnerId(), media.getUrl());
             kafkaTemplate.send("product.media.deleted", media.getProductId(), event);
         }

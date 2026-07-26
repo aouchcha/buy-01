@@ -26,8 +26,8 @@ public class ProductMediaEventConsumer {
 
     @KafkaListener(topics = "product.media.deleted")
     public void onImageDeleted(ProductImageDeletedEvent event) {
-        log.info("Image deleted for product {}: {}", event.productId(), event.url());
-        productService.removeImageUrl(event.productId(), event.url());
+        log.info("Image deleted for product {}: {}", event.productId(), event.MediaUrl());
+        productService.removeImageUrl(event.productId(), event.MediaUrl());
     }
 
     // @KafkaListener(topics = "media.product.failed", groupId = "product-service")

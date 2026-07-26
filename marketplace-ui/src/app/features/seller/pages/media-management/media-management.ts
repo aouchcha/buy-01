@@ -113,6 +113,8 @@ export class MediaManagement implements OnInit {
             this.toast.success('Image deleted.');
           },
           error: (err) => {
+            console.log(err);
+            
             this.deletingUrl.set(null);
             this.toast.error(err.error || 'Unable to delete image.');
           },
