@@ -82,6 +82,7 @@ public class ProductService {
                 .orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND));
         List<String> urls = product.getImageUrls();
         urls.remove(url);
+        System.out.println("====================================\nurls = "+urls);
         product.setImageUrls(urls);
         productRepository.save(product);
     }
