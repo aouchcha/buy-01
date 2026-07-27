@@ -50,17 +50,18 @@ public class usersService {
         // return null;
     }
 
-    public userEntity updateProfile(UpdateMe request) {
+    public Userdto updateProfile(UpdateMe request) {
         final String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        final userEntity user = userRepository.findById(userId).orElse(null);
+        userEntity user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             throw new notFound("user not found");
         }
         
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
-       userRepository.save(user);
-       return user;
+        user = userRepository.save(user);
+        Userdto dto = Mapper.MappToUSerDto(user); 
+       return dto;
     }
 
     public void remove(String userId) {

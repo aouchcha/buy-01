@@ -114,7 +114,7 @@ export class MediaManagement implements OnInit {
           },
           error: (err) => {
             console.log(err);
-            
+
             this.deletingUrl.set(null);
             this.toast.error(err.error || 'Unable to delete image.');
           },
@@ -194,11 +194,17 @@ export class MediaManagement implements OnInit {
     if (!seller) return;
 
     this.uploading.set(true);
-    this.mediaService.uploadImage(seller.id, productId, files, 'Product').subscribe({
+    this.mediaService.updateImages(seller.id, productId, [], files, 'Product').subscribe({
       next: (res) => {
-        this.medias.update((list) =>
-          [...list, ...res]
-        );
+        // this.medias.update((list) =>
+        //   [...list, ...res]
+        // );
+        this.medias.update((list) => {
+          const existingIds = new Set(list.map((m) => m.id));
+          const newItems = res.filter((m) => !existingIds.has(m.id));
+          return [...list, ...newItems];
+        });
+
         this.uploading.set(false);
         this.closeUploadModal();
         this.toast.success('Images uploaded.');

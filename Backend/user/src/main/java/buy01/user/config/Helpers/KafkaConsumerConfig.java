@@ -31,7 +31,8 @@ public class KafkaConsumerConfig {
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         config.put(JacksonJsonDeserializer.TRUSTED_PACKAGES, "buy01.user.dto.kafka.*");
         config.put(JacksonJsonDeserializer.TYPE_MAPPINGS,
-            "acceptUpload:buy01.user.dto.kafka.AcceptedUpload"    
+            "acceptUpload:buy01.user.dto.kafka.AcceptedUpload,"
+            + "avatarDeleted:buy01.user.dto.kafka.AvatarDeleted"    
         );
         // config.put(JacksonJsonDeserializer.USE_TYPE_INFO_HEADERS, false);
         return new DefaultKafkaConsumerFactory<>(config);

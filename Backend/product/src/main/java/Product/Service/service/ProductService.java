@@ -48,6 +48,7 @@ public class ProductService {
         product = productRepository.save(product);
         ProductCreated event = new ProductCreated(product.getId(), userId);
         kafka.send("product.created", userId, event);
+        System.out.println("====================================\nProduct Created Event Lunched");
         return toResponse(product);
     }
 

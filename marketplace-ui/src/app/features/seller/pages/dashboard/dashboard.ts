@@ -194,20 +194,31 @@ export class Dashboard implements OnInit {
           // Optimistic update avec previews locaux
           this.products.update((list) => [{ ...product, imageUrls: localPreviews }, ...list]);
 
-          this.mediaService.uploadImage(product.userId, product.id, files, 'Product').subscribe({
-            next: () => {
-              this.submitting.set(false);
-              this.toast.success("picture upload with success")
-              this.closeAddModal();
-            },
-            error: (err) => {
-              console.log(err);
-
-              this.submitting.set(false);
-              this.toast.error(err.error || 'Product created, but images failed to upload.');
-              this.closeAddModal();
-            },
-          });
+          this.mediaService.uploadImage(product.userId, product.id, files, 'Product').then((observable) => {
+            observable.subscribe({
+              next: (images) => {
+                this.products.update((list) =>
+                  list.map((p) =>
+                    p.id === product.id ? { ...p, imageUrls: images.map((img) => img.url) } : p
+                  )
+                );
+                this.submitting.set(false);
+                this.toast.success("picture upload with success")
+                this.closeAddModal();
+              },
+              error: (err) => {
+                console.log(err);
+                // this.products.update((list) =>
+                //   list.map((p) =>
+                //     p.id === product.id ? { ...p, imageUrls: [] } : p
+                //   )
+                // );
+                this.submitting.set(false);
+                this.toast.error(err.error || 'Product created, but images failed to upload.');
+                this.closeAddModal();
+              },
+            });
+          })
         },
         error: (err) => {
           console.log(err);
@@ -332,7 +343,19 @@ export class Dashboard implements OnInit {
           );
 
           this.mediaService.updateImages(current.userId, current.id, deletedUrls, files, 'Product').subscribe({
-            next: () => {
+            next: (images) => {
+              this.products.update(list =>
+                list.map(p =>
+                  p.id === current.id
+                    ? {
+                      ...p,
+                      imageUrls: images.map(img => img.url),
+                    }
+                    : p
+                )
+              );
+
+
               this.toast.success("picture update with success")
               this.submittingEdit.set(false);
               this.closeEditModal();

@@ -50,6 +50,7 @@ public class MediaService {
     }
 
     public List<MediaResponse> UploadPics(UploadRequest pictures) {
+        System.out.println("=========================================================\nUploading Media");
         if (!CanUploadToR2(pictures.getPictures())) {
             throw new MyBadRequest("One Of the images is not valid image");
         }
@@ -119,11 +120,11 @@ public class MediaService {
                         request.getUserId())) {
             throw new MyForbiden("Product not found or you are not the owner.");
         }
-        System.out.println(request.getProductId());
-        System.out.println(request.getUserId());
-        System.out.println(request.getType());
-        System.out.println(request.getDeletedUrls());
-        System.out.println(request.getNewImages());
+        // System.out.println(request.getProductId());
+        // System.out.println(request.getUserId());
+        // System.out.println(request.getType());
+        // System.out.println(request.getDeletedUrls());
+        // System.out.println(request.getNewImages());
         if (request.getDeletedUrls() != null) {
 
             for (String url : request.getDeletedUrls()) {
@@ -142,9 +143,15 @@ public class MediaService {
 
         if (images != null && images.length > 0) {
 
+            List<MediaEntity> existingMedia = mediaRepository.findByProductId(request.getProductId());
+            if (existingMedia.size() + images.length > 3) {
+                throw new MyBadRequest("You can upload a maximum of 3 images for a product.");
+            }
+
             if (!CanUploadToR2(images)) {
                 throw new MyBadRequest("One or more uploaded files are invalid.");
             }
+
 
             // List<String> uploadedUrls = new ArrayList<>();
 

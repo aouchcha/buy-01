@@ -46,8 +46,8 @@ public class usersController {
     }
 
     @PutMapping("/me")
-    public ResponseEntity<userEntity> updateAvatar(@RequestBody UpdateMe request) {
-        userEntity user = usersService.updateProfile(request);
+    public ResponseEntity<Userdto> updateAvatar(@RequestBody UpdateMe request) {
+        Userdto user = usersService.updateProfile(request);
         return ResponseEntity.ok().body(user);
     }
 

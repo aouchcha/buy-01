@@ -8,7 +8,7 @@ import { Auth } from '../../../../core/services/auth';
 import { User, Role } from '../../../../core/models/user';
 import { Navbar } from '../../../../layout/navbar/navbar';
 import { ToastService } from '../../../../core/services/toast.service';
-import { Product } from '../../../../core/services/product'; // adjust path if needed
+import { Product } from '../../../../core/services/product';
 import { ProductDto } from '../../../../core/models/product';
 
 
@@ -20,6 +20,7 @@ import { ProductDto } from '../../../../core/models/product';
   styleUrl: './profile.scss',
 })
 export class Profile implements OnInit {
+
   private readonly profileService = inject(ProfileService);
   private readonly mediaService = inject(Media);
   private readonly auth = inject(Auth);
@@ -41,6 +42,9 @@ export class Profile implements OnInit {
 
   private snapshot: User | null = null;
 
+  readonly selectedEditFiles = signal<File | null>(null);
+
+
   readonly defaultAvatar =
     'data:image/svg+xml;utf8,' +
     encodeURIComponent(
@@ -51,15 +55,18 @@ export class Profile implements OnInit {
        </svg>`
     );
 
-  onAvatarError(event: Event): void {
-    const img = event.target as HTMLImageElement;
-    img.src = this.defaultAvatar;
-  }
 
   ngOnInit(): void {
     this.loadProfile();
     this.fetchProducts();
   }
+
+
+  onAvatarError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.src = this.defaultAvatar;
+  }
+
 
   loadProfile(): void {
     this.loading.set(true);
@@ -68,147 +75,348 @@ export class Profile implements OnInit {
     this.profileService.getMe().subscribe({
       next: (user) => {
         console.log(user);
-
+        
         this.profile.set(user);
         this.auth.updateCurrentUser(user);
         this.loading.set(false);
       },
+
       error: (err) => {
         console.error(err);
         this.error.set('Unable to load profile.');
         this.loading.set(false);
         this.toast.error('Unable to load profile.');
-      },
+      }
     });
   }
+
 
   startEditing(): void {
     this.snapshot = this.profile();
     this.isEditing.set(true);
   }
 
+
   cancelEditing(): void {
+
     if (this.snapshot) {
       this.profile.set(this.snapshot);
     }
+
+    // remove selected image if user cancels
+    this.selectedEditFiles.set(null);
+
     this.isEditing.set(false);
   }
 
+
   updateFirstName(firstName: string): void {
-    this.profile.update((user) => (user ? { ...user, firstName } : null));
+    this.profile.update(user =>
+      user
+        ? {
+            ...user,
+            firstName
+          }
+        : null
+    );
   }
+
 
   updateLastName(lastName: string): void {
-    this.profile.update((user) => (user ? { ...user, lastName } : null));
+    this.profile.update(user =>
+      user
+        ? {
+            ...user,
+            lastName
+          }
+        : null
+    );
   }
 
+
+
   saveProfile(): void {
+
     const user = this.profile();
     const original = this.snapshot;
+    const selectedFile = this.selectedEditFiles();
+
 
     if (!user) {
       return;
     }
+
 
     const nameChanged =
       !original ||
       user.firstName !== original.firstName ||
       user.lastName !== original.lastName;
 
-    if (!nameChanged) {
-      // Nothing to persist — just exit edit mode.
+
+    const avatarChanged = !!selectedFile;
+
+
+
+    // Nothing changed
+    if (!nameChanged && !avatarChanged) {
       this.isEditing.set(false);
       return;
     }
 
+
     this.saving.set(true);
 
-    this.profileService.updateMe(user).subscribe({
-      next: (updatedUser) => {
-        console.log(updatedUser);
+    if (nameChanged) {
 
-        this.profile.set(updatedUser);
-        this.auth.updateCurrentUser(updatedUser);
-        this.saving.set(false);
-        this.isEditing.set(false);
-        this.toast.success('Profile updated successfully.');
-      },
-      error: (err) => {
-        console.error(err);
-        this.error.set('Unable to save profile.');
-        this.saving.set(false);
-        this.toast.error('Unable to save profile. Please try again.');
-      },
-    });
+      this.profileService.updateMe(user).subscribe({
+
+        next: (updatedUser) => {
+
+          this.profile.set(updatedUser);
+          this.auth.updateCurrentUser(updatedUser);
+
+
+
+          if (avatarChanged) {
+
+            this.uploadAvatar();
+
+          } else {
+
+            this.finishSaving();
+            this.toast.success(
+              'Profile updated successfully.'
+            );
+
+          }
+
+        },
+
+
+        error: (err) => {
+
+          console.error(err);
+
+          this.error.set(
+            'Unable to save profile.'
+          );
+
+          this.saving.set(false);
+
+          this.toast.error(
+            'Unable to save profile. Please try again.'
+          );
+
+        }
+
+      });
+
+
+    } else {
+
+      // Only avatar changed
+      this.uploadAvatar();
+
+    }
+
   }
 
+
+
+
+
+  private uploadAvatar(): void {
+
+    const file = this.selectedEditFiles();
+    const user = this.profile();
+
+
+
+    if (!file || !user) {
+
+      this.finishSaving();
+
+      return;
+
+    }
+
+
+
+    const deletedUrls =
+      user.profilePictureUrl
+        ? [user.profilePictureUrl]
+        : [];
+
+
+
+
+    this.mediaService.updateImages(
+      user.id,
+      null,
+      deletedUrls,
+      [file],
+      'Avatar'
+
+    ).subscribe({
+
+      next: (media) => {
+
+
+        if (
+          media.length > 0 &&
+          media[0].url
+        ) {
+
+          const updatedUser: User = {
+
+            ...user,
+
+            profilePictureUrl:
+              media[0].url
+
+          };
+
+
+          this.profile.set(updatedUser);
+
+          this.auth.updateCurrentUser(
+            updatedUser
+          );
+
+        }
+
+
+
+        // clear selected file
+        this.selectedEditFiles.set(null);
+
+
+
+        this.finishSaving();
+
+
+
+        this.toast.success(
+          'Profile updated successfully.'
+        );
+
+      },
+
+
+      error: (err) => {
+
+        console.error(err);
+
+        this.saving.set(false);
+
+        this.toast.error(
+          err.error ||
+          'Unable to upload photo.'
+        );
+
+      }
+
+    });
+
+  }
+
+
+
+
+
+  private finishSaving(): void {
+
+    this.saving.set(false);
+
+    this.isEditing.set(false);
+
+    this.snapshot = this.profile();
+
+  }
+
+
+
+
+
   onAvatarSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
+
+    const input =
+      event.target as HTMLInputElement;
+
+
 
     if (!input.files?.length) {
       return;
     }
 
+
+
     const file = input.files[0];
 
-    const validationError = this.mediaService.validateImage(file);
+
+
+    const validationError =
+      this.mediaService.validateImage(file);
+
+
+
     if (validationError) {
-      this.toast.error(validationError);
+
+      this.toast.error(
+        validationError
+      );
+
       input.value = '';
+
       return;
+
     }
 
-    const profilePictureUrl = this.profile()?.profilePictureUrl;
 
-    const deletedUrls: string[] = profilePictureUrl
-      ? [profilePictureUrl]
-      : [];
 
-    const currentUser = this.profile();
-    if (!currentUser) return;
+    this.selectedEditFiles.set(file);
 
-    this.mediaService.updateImages(
-      currentUser.id,
-      null,
-      deletedUrls,
-      [file],
-      'Avatar'
-    ).subscribe({
-      next: (media) => {
-        this.toast.success('Photo updated successfully.');
 
-        if (media.length > 0 && media[0].url) {
-          this.profile.update(user =>
-            user
-              ? {
-                ...user,
-                profilePictureUrl: media[0].url,
-              }
-              : null
-          );
-          const updated = this.profile();
-          if (updated) this.auth.updateCurrentUser(updated);
-        }
-      },
-      error: (err) => {
-        console.error(err);
-        this.toast.error(err.error || 'Unable to upload photo.');
-      },
-    });
+
     input.value = '';
+
   }
+
+
+
+
 
   private fetchProducts(): void {
+
     this.productsLoading.set(true);
-    this.productService.getMyProducts().subscribe({
-      next: (products) => {
-        this.products.set(products);
-        this.productsLoading.set(false);
-      },
-      error: (err) => {
-        this.productsLoading.set(false);
-        this.toast.error(err.error || 'Unable to load your products.');
-      },
-    });
+
+
+
+    this.productService.getMyProducts()
+      .subscribe({
+
+        next: (products) => {
+
+          this.products.set(products);
+
+          this.productsLoading.set(false);
+
+        },
+
+
+        error: (err) => {
+
+          this.productsLoading.set(false);
+
+          this.toast.error(
+            err.error ||
+            'Unable to load your products.'
+          );
+
+        }
+
+      });
+
   }
+
 }

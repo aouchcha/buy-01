@@ -127,17 +127,19 @@ export class Register {
 
         const picture = this.profilePicture();
         if (picture) {
-          this.mediaService.uploadImage(response.user.id, null, [picture], 'Avatar').subscribe({
-            next: () => {
+          this.mediaService.uploadImage(response.user.id, null, [picture], 'Avatar').then((observable) => {
+            observable.subscribe({
+              next: () => {
 
-            },
-            error: (err) => {
-              this.toast.error(
-                err.error || 'image upload failed.'
-              );
-              // this.loading.set(false);
-            },
-          });
+              },
+              error: (err) => {
+                this.toast.error(
+                  err.error || 'image upload failed.'
+                );
+                // this.loading.set(false);
+              },
+            });
+          })
         }
 
         localStorage.setItem('token', response.token);

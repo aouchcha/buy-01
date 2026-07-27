@@ -35,16 +35,18 @@ public class ConsumeUserEvents {
     @Transactional
     public void onUserDelet(UserDeleted event) {
         List<MediaEntity> medias = mediaRepository.findByOwnerId(event.userId());
-        if (medias == null) {
-            throw new MyNotFound("can't found media for the user");
+        if (medias == null || medias.isEmpty()) {
+            // throw new MyNotFound("can't found media for the user");
+            return;
         }
         for (MediaEntity media : medias) {
             r2.delete(media.getUrl());
             mediaRepository.delete(media);
         } 
         List<CheckEntity> checks = checkRepository.findByOwnerId(event.userId());
-        if (checks == null) {
-            throw new MyNotFound("can't found media for the user");
+        if (checks == null || checks.isEmpty()) {
+            // throw new MyNotFound("can't found media for the user");
+            return;
         }
         for (CheckEntity check : checks) {
             checkRepository.delete(check);

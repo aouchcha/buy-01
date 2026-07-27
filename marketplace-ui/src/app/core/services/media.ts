@@ -16,13 +16,13 @@ export class Media {
   private sleep = (ms: number): Promise<void> => {
     return new Promise((resolve) => setTimeout(resolve, ms));
   };
-  uploadImage(
+  async uploadImage(
     userId: string,
     productId: string | null,
     files: File[],
     type: string
-  ): Observable<MediaResponse[]> {
-    this.sleep(2000)
+  ): Promise<Observable<MediaResponse[]>> {
+    await this.sleep(1000)
     const formData = new FormData();
 
     for (const file of files) {
@@ -44,7 +44,7 @@ export class Media {
     userId: string,
     productId: string | null,
     deletedUrls: string[],
-    newImages: File[],
+    newImages: File[] ,
     type: string
   ): Observable<MediaResponse[]> {
     console.log("I am here");
@@ -57,8 +57,10 @@ export class Media {
 
     // if (formData['deletedUrls'])
 
-    for (const file of newImages) {
-      formData.append('newImages', file);
+    if (newImages) {
+      for (const file of newImages) {
+        formData.append('newImages', file);
+      }
     }
 
     formData.append('userId', userId);
