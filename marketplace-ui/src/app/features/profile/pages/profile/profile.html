@@ -32,7 +32,7 @@
       @else if (profile(); as user) {
 
       <div class="avatar-section avatar-overlap">
-        <img [src]="user.profilePictureUrl || defaultAvatar" (error)="onAvatarError($event)" alt="Profile picture"
+        <img [src]="avatarPreviewUrl() || user.profilePictureUrl || defaultAvatar" (error)="onAvatarError($event)" alt="Profile picture"
           class="avatar" />
         @if (isEditing()) {
         <label class="upload-btn">
@@ -130,11 +130,16 @@
       <article class="product-card">
         <div class="product-card__media">
           @if (product.imageUrls.length) {
-          <div class="product-card__images">
-            @for (url of product.imageUrls; track url) {
-            <img [src]="url" [alt]="product.name" />
+          <img [src]="product.imageUrls[getImageIndex(product.id)]" [alt]="product.name" loading="lazy" />
+          @if (product.imageUrls.length > 1) {
+          <button class="carousel-btn carousel-btn--prev" (click)="prevImage(product, $event)" aria-label="Previous image">&#8249;</button>
+          <button class="carousel-btn carousel-btn--next" (click)="nextImage(product, $event)" aria-label="Next image">&#8250;</button>
+          <span class="carousel-dots">
+            @for (url of product.imageUrls; track url; let i = $index) {
+            <span class="carousel-dot" [class.active]="i === getImageIndex(product.id)"></span>
             }
-          </div>
+          </span>
+          }
           } @else {
           <div class="product-card__placeholder">No image</div>
           }

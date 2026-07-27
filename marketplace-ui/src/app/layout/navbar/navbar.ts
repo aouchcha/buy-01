@@ -1,9 +1,8 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../../core/services/auth'
 import { Role } from '../../core/models/user'
-import { Login } from '../../features/auth/pages/login/login';
 
 
 @Component({
@@ -15,7 +14,8 @@ import { Login } from '../../features/auth/pages/login/login';
 })
 export class Navbar implements OnInit {
 
-  private authService = inject(Auth);
+  private readonly authService = inject(Auth);
+  private readonly router = inject(Router);
   readonly Role = Role;
 
 
@@ -46,8 +46,9 @@ export class Navbar implements OnInit {
   }
 
   logout(): void {
-    localStorage.removeItem('token');
+    this.authService.logout();
     this.isLogin.set(false);
     this.closeMenu();
+    this.router.navigate(['/login']);
   }
 }
