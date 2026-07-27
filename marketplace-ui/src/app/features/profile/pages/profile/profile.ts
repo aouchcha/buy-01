@@ -43,6 +43,24 @@ export class Profile implements OnInit {
   private snapshot: User | null = null;
 
   readonly selectedEditFiles = signal<File | null>(null);
+  readonly avatarPreviewUrl = signal<string | null>(null);
+  readonly imageIndexes = signal<Record<string, number>>({});
+
+  getImageIndex(productId: string): number {
+    return this.imageIndexes()[productId] ?? 0;
+  }
+
+  nextImage(product: ProductDto, event: Event): void {
+    event.stopPropagation();
+    const current = this.getImageIndex(product.id);
+    this.imageIndexes.update(m => ({ ...m, [product.id]: (current + 1) % product.imageUrls.length }));
+  }
+
+  prevImage(product: ProductDto, event: Event): void {
+    event.stopPropagation();
+    const current = this.getImageIndex(product.id);
+    this.imageIndexes.update(m => ({ ...m, [product.id]: (current - 1 + product.imageUrls.length) % product.imageUrls.length }));
+  }
 
 
   readonly defaultAvatar =
@@ -375,8 +393,7 @@ export class Profile implements OnInit {
 
 
     this.selectedEditFiles.set(file);
-
-
+    this.avatarPreviewUrl.set(URL.createObjectURL(file));
 
     input.value = '';
 
