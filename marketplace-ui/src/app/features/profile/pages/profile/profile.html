@@ -94,6 +94,9 @@
       </div>
 
       @if (isEditing()) {
+      @if (saveError()) {
+      <p class="save-error">{{ saveError() }}</p>
+      }
       <button class="btn-save" [disabled]="saving()" (click)="saveProfile()">
         {{ saving() ? 'Saving...' : 'Save Changes' }}
       </button>
