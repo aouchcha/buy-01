@@ -277,6 +277,7 @@ public class MediaService {
         r2.delete(media.getUrl());
         if (media.getType().equals("Avatar")) {
             AvatarDeleted event = new AvatarDeleted(userId);
+            System.out.println("=============================================================\n avatar deleted published");
             kafkaTemplate.send("avatar.deleted", media.getOwnerId(), event);
         } else {
             System.out.println("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM " + media.getUrl());

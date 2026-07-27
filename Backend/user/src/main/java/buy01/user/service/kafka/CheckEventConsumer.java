@@ -11,8 +11,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import buy01.user.config.Exceptions.MyExeptions.notFound;
 import buy01.user.dto.kafka.AcceptedUpload;
+import buy01.user.dto.kafka.AvatarDeleted;
 // import buy01.user.dto.kafka.DeclinedUpload;
-import buy01.user.dto.kafka.DeleteEvent;
+// import buy01.user.dto.kafka.DeleteEvent;
 import buy01.user.model.userEntity;
 import buy01.user.repository.userRepository;
 
@@ -64,8 +65,12 @@ public class CheckEventConsumer {
     }
 
     @KafkaListener(topics = "avatar.deleted", groupId = "user-service")
-    public void deleteEvent(DeleteEvent event) {
-        userEntity user = userRepository.findById(event.userId()).orElseThrow(() -> new notFound("User not fond"));
+    public void deleteEvent(AvatarDeleted event) {
+        System.out.println("===========================================================\n avatar deleted event consumed");
+        userEntity user = userRepository.findById(event.userId()).orElse(null);
+        if (user == null) {
+            return;
+        }
         user.setProfilePictureUrl(null);
         log.info("Consume avater deleted in user service");
 
