@@ -178,8 +178,8 @@ export class Profile implements OnInit {
       this.saveError.set('Last name is required.');
       return;
     }
-    if (firstName.length < 2) {
-      this.saveError.set('First name must be at least 2 characters.');
+    if (firstName.length < 3) {
+      this.saveError.set('First name must be at least 3 characters.');
       return;
     }
     if (lastName.length < 2) {
