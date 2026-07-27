@@ -346,6 +346,15 @@
    BUTTON
 =========================== */
 
+.save-error {
+  color: #7a2318;
+  font-size: 13px;
+  margin: 0.75rem 0 0;
+  padding: 8px 12px;
+  background: rgba(163, 56, 42, 0.08);
+  border-radius: 8px;
+}
+
 .btn-save {
   width: 100%;
   margin-top: 1.25rem;

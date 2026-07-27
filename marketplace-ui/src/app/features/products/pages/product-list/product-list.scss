@@ -129,7 +129,7 @@
 }
 
 .btn-outline {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.28);
   border: 1px solid rgba(255, 255, 255, 0.6);
   color: white;
   backdrop-filter: blur(12px);
@@ -187,7 +187,7 @@
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 360px));
   gap: 2rem;
 }
 
@@ -198,7 +198,6 @@
   box-shadow: var(--shadow-soft);
   border: 1px solid rgba(29, 27, 25, 0.04);
 
-  // opacity: 0;
   transform: translateY(24px);
   transition-property: opacity, transform, box-shadow;
   transition-duration: 600ms, 600ms, 420ms;
