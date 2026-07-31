@@ -196,6 +196,19 @@ services:
     networks:
       - buy01-network
 
+  jenkins-server:
+    build: ./Backend/jenkins
+    container_name: jenkins-server
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+      - "5000:50000"
+    networks:
+      - buy01-network
+    volumes:
+      - jenkins_home:/var/jenkins_home   # Persistent Jenkins data
+      - /var/run/docker.sock.raw:/var/run/docker.sock # Mount Docker socket for Docker builds
+
 networks:
   buy01-network:
     driver: bridge
@@ -204,3 +217,4 @@ volumes:
   users_mongo_data:
   products_mongo_data:
   media_mongo_data:
+  jenkins_home:
