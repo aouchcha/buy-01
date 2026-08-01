@@ -31,6 +31,23 @@ export class Dashboard implements OnInit {
   readonly products = signal<ProductDto[]>([]);
   readonly loading = signal<boolean>(true);
   readonly deletingId = signal<string | null>(null);
+  readonly imageIndexes = signal<Record<string, number>>({});
+
+  getImageIndex(productId: string): number {
+    return this.imageIndexes()[productId] ?? 0;
+  }
+
+  nextImage(product: ProductDto, event: Event): void {
+    event.stopPropagation();
+    const current = this.getImageIndex(product.id);
+    this.imageIndexes.update(m => ({ ...m, [product.id]: (current + 1) % product.imageUrls.length }));
+  }
+
+  prevImage(product: ProductDto, event: Event): void {
+    event.stopPropagation();
+    const current = this.getImageIndex(product.id);
+    this.imageIndexes.update(m => ({ ...m, [product.id]: (current - 1 + product.imageUrls.length) % product.imageUrls.length }));
+  }
 
   // --- Add product modal state ---
   readonly showAddModal = signal(false);
@@ -158,8 +175,17 @@ export class Dashboard implements OnInit {
   }
 
   removeSelectedImage(index: number): void {
-    this.selectedFiles.update(list => list.filter((_, i) => i !== index));
-    this.imagePreviewUrls.update(list => list.filter((_, i) => i !== index));
+    this.confirmService.open({
+      title: 'Remove this image?',
+      message: 'This image will be removed from the upload list.',
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+      danger: true,
+    }).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.selectedFiles.update(list => list.filter((_, i) => i !== index));
+      this.imagePreviewUrls.update(list => list.filter((_, i) => i !== index));
+    });
   }
 
   submitAddProduct(): void {
@@ -286,12 +312,30 @@ export class Dashboard implements OnInit {
   }
 
   removeExistingImage(index: number): void {
-    this.existingImageUrls.update(list => list.filter((_, i) => i !== index));
+    this.confirmService.open({
+      title: 'Remove this image?',
+      message: 'This image will be deleted from the product.',
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+      danger: true,
+    }).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.existingImageUrls.update(list => list.filter((_, i) => i !== index));
+    });
   }
 
   removeEditFile(index: number): void {
-    this.selectedEditFiles.update(list => list.filter((_, i) => i !== index));
-    this.selectedEditFilePreviews.update(list => list.filter((_, i) => i !== index));
+    this.confirmService.open({
+      title: 'Remove this image?',
+      message: 'This image will be removed from the upload list.',
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+      danger: true,
+    }).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.selectedEditFiles.update(list => list.filter((_, i) => i !== index));
+      this.selectedEditFilePreviews.update(list => list.filter((_, i) => i !== index));
+    });
   }
 
   submitEditProduct(): void {

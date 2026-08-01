@@ -142,8 +142,11 @@ public class MediaService {
         MultipartFile[] images = request.getNewImages();
 
         if (images != null && images.length > 0) {
+            System.out.println("=============================================\n"+request.getProductId());
+            List<MediaEntity> existingMedia = mediaRepository.findByProductIdAndType(request.getProductId(), "Product");
+            System.out.println("=============================================\n"+existingMedia.size());
+            System.out.println("=============================================\n"+images.length);
 
-            List<MediaEntity> existingMedia = mediaRepository.findByProductId(request.getProductId());
             if (existingMedia.size() + images.length > 3) {
                 throw new MyBadRequest("You can upload a maximum of 3 images for a product.");
             }
@@ -277,6 +280,7 @@ public class MediaService {
         r2.delete(media.getUrl());
         if (media.getType().equals("Avatar")) {
             AvatarDeleted event = new AvatarDeleted(userId);
+            System.out.println("=============================================================\n avatar deleted published");
             kafkaTemplate.send("avatar.deleted", media.getOwnerId(), event);
         } else {
             System.out.println("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM " + media.getUrl());
