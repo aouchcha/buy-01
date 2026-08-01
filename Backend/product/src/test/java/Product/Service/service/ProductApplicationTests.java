@@ -259,4 +259,47 @@ class ProductApplicationTests {
 
         verify(productRepository).findByUserId("user1-77");
     }
+
+    // delete product edge cases
+
+    @Test
+    void shouldThrowForbiddenWhenDeletingOtherUserProduct() {
+
+        when(productRepository.findByIdAndUserId("1", "user2"))
+                .thenReturn(Optional.empty());
+
+        when(productRepository.existsById("1"))
+                .thenReturn(true);
+
+        assertThrows(
+                ForbiddenException.class,
+                () -> productService.deleteProduct("1", "user2"));
+    }
+
+    @Test
+    void shouldThrowProductNotFoundWhenDeletingNonExistentProduct() {
+
+        when(productRepository.findByIdAndUserId("999", "user1-77"))
+                .thenReturn(Optional.empty());
+
+        when(productRepository.existsById("999"))
+                .thenReturn(false);
+
+        assertThrows(
+                ProductNotFoundException.class,
+                () -> productService.deleteProduct("999", "user1-77"));
+    }
+
+    // removeImageUrl edge case
+
+    @Test
+    void shouldThrowWhenRemovingImageFromUnknownProduct() {
+
+        when(productRepository.findById("999"))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                ProductNotFoundException.class,
+                () -> productService.removeImageUrl("999", "https://a.jpg"));
+    }
 }
