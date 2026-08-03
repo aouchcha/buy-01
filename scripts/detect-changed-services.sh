@@ -70,6 +70,7 @@ for SERVICE_NAME in "${APPLICATION_SERVICE_NAMES[@]}"; do
     SERVICE_CONTEXT=$(
         docker compose \
         -f "$APPLICATION_COMPOSE_FILE" \
+        -f "$INFRASTRUCTURE_COMPOSE_FILE" \
         config | \
         awk "
         /^  ${SERVICE_NAME}:/ {found=1}
