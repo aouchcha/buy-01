@@ -28,6 +28,8 @@ COMPARE_TO_REFERENCE="${2:-HEAD}"
 # because those live in a different file that isn't passed in here.
 APPLICATION_SERVICE_NAMES=($(docker compose -f "$APPLICATION_COMPOSE_FILE" -f "$INFRASTRUCTURE_COMPOSE_FILE" config --services))
 
+echo "All service names:" >&2
+printf '%s\n' "${APPLICATION_SERVICE_NAMES[@]}" >&2
 echo "FROM: $COMPARE_FROM_REFERENCE" >&2
 echo "TO:   $COMPARE_TO_REFERENCE" >&2
 
