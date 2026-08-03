@@ -78,7 +78,7 @@ echo "" >&2
 for SERVICE_NAME in "${APPLICATION_SERVICE_NAMES[@]}"; do
     echo "Checking $SERVICE_NAME" >&2
 
-    if echo "$CHANGED_FILE_PATHS" | grep "${SERVICE_NAME}/"; then
+    if echo "$CHANGED_FILE_PATHS" | grep -q "${SERVICE_NAME}/"; then
         echo "MATCH -> $SERVICE_NAME" >&2
         echo "$SERVICE_NAME"
     else
