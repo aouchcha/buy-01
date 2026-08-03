@@ -1,0 +1,92 @@
+jenkins:
+  systemMessage: "Jenkins controller — configured entirely as code"
+  numExecutors: 0        # the controller does no building itself; all work goes to agents
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "${JENKINS_ADMIN_USERNAME}"
+          password: "${JENKINS_ADMIN_PASSWORD}"
+  authorizationStrategy:
+    globalMatrix:
+      permissions:
+        - "Overall/Administer:${JENKINS_ADMIN_USERNAME}"
+
+  nodes:
+    - permanent:
+        name: "backend-slave"
+        nodeDescription: "Backend build agent"
+        labelString: "backend"
+        numExecutors: 2
+        remoteFS: "/home/jenkins/agent"
+        mode: NORMAL
+        launcher:
+          inbound:
+            workDirSettings:
+              disabled: false
+
+    - permanent:
+        name: "frontend-slave"
+        nodeDescription: "Frontend build agent"
+        labelString: "frontend"
+        numExecutors: 2
+        remoteFS: "/home/jenkins/agent"
+        mode: NORMAL
+        launcher:
+          inbound:
+            workDirSettings:
+              disabled: false
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              scope: GLOBAL
+              id: "github-access-token"
+              username: "${GITHUB_USERNAME}"
+              password: "${GITHUB_TOKEN}"
+              description: "GitHub token used to check out code and report build status"
+          - usernamePassword:
+              scope: GLOBAL
+              id: "smtp-credentials"
+              username: "${SMTP_USERNAME}"
+              password: "${SMTP_PASSWORD}"
+              description: "SMTP login used by Jenkins to send build notification emails"
+
+unclassified:
+  mailer:
+    smtpHost: "${SMTP_HOST}"
+    smtpPort: "${SMTP_PORT}"
+    useSsl: false
+    charset: "UTF-8"
+    authentication:
+      username: "${SMTP_USERNAME}"
+      password: "${SMTP_PASSWORD}"
+
+  location:
+    url: "${JENKINS_URL}"
+    adminAddress: "${SMTP_USERNAME}"
+
+jobs:
+  - script: >
+      multibranchPipelineJob('buy01') {
+        branchSources {
+          github {
+            id('buy01-source')
+            repoOwner('aouchcha')
+            repository('buy-01')
+            scanCredentialsId('github-access-token')
+          }
+        }
+        orphanedItemStrategy {
+          discardOldItems {
+            numToKeep(20)
+          }
+        }
+        triggers {
+          periodicFolderTrigger {
+            interval('1440')   // once-a-day safety-net poll; the webhook handles real-time triggers
+          }
+        }
+      }

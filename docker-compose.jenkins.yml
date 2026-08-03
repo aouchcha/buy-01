@@ -1,0 +1,161 @@
+services:
+  users-mongodb:
+    image: mongo:latest
+    container_name: users-db
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${USERS_DB_NAME}
+    volumes:
+      - users_mongo_data:/data/db
+    expose:
+      - "27017"
+    healthcheck:
+      test: >
+        mongosh --quiet
+        -u $$MONGO_INITDB_ROOT_USERNAME
+        -p $$MONGO_INITDB_ROOT_PASSWORD
+        --authenticationDatabase admin
+        --eval "db.adminCommand('ping')"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - buy01-network
+
+  products-mongodb:
+    image: mongo:latest
+    container_name: products-db
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${PRODUCTS_DB_NAME}
+    volumes:
+      - products_mongo_data:/data/db
+    expose:
+      - "27017"
+    healthcheck:
+      test: >
+        mongosh --quiet
+        -u $$MONGO_INITDB_ROOT_USERNAME
+        -p $$MONGO_INITDB_ROOT_PASSWORD
+        --authenticationDatabase admin
+        --eval "db.adminCommand('ping')"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - buy01-network
+
+  media-mongodb:
+    image: mongo:latest
+    container_name: media-db
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MEDIA_DB_NAME}
+    volumes:
+      - media_mongo_data:/data/db
+    expose:
+      - "27017"
+    healthcheck:
+      test: >
+        mongosh --quiet
+        -u $$MONGO_INITDB_ROOT_USERNAME
+        -p $$MONGO_INITDB_ROOT_PASSWORD
+        --authenticationDatabase admin
+        --eval "db.adminCommand('ping')"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - buy01-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    expose:
+      - "2181"
+    networks:
+      - buy01-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    expose:
+      - "29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - buy01-network
+    
+  jenkins-master:
+    build: ./Backend/jenkins/master
+    container_name: jenkins-master
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+      - "50000"
+    networks:
+      - buy01-network
+    volumes:
+      - jenkins_home:/var/jenkins_home # Persistent Jenkins data
+      - /var/run/docker.sock:/var/run/docker.sock # Mount Docker socket for Docker builds
+
+  backend-slave:
+    build: ./Backend/jenkins/backend-slave
+    env_file:
+      - .env
+    environment:
+      JENKINS_URL: http://jenkins-master:8080
+      JENKINS_AGENT_NAME: backend-slave
+      JENKINS_SECRET: ${BACKEND_SLAVE_SECRET}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # Mount Docker socket for Docker builds
+      - ./.env:/home/jenkins/.env
+    depends_on:
+      jenkins-master:
+        condition: service_started
+    networks:
+      - buy01-network
+
+  frontend-slave:
+    build: ./Backend/jenkins/frontend-slave
+    env_file:
+      - .env
+    environment:
+      JENKINS_URL: http://jenkins-master:8080
+      JENKINS_AGENT_NAME: frontend-slave
+      JENKINS_SECRET: ${FRONTEND_SLAVE_SECRET}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # Mount Docker socket for Docker builds
+      - ./.env:/home/jenkins/.env
+    depends_on:
+      jenkins-master:
+        condition: service_started
+    networks:
+      - buy01-network
+

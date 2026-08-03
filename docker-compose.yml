@@ -1,128 +1,27 @@
 services:
-  users-mongodb:
-    image: mongo:latest
-    container_name: users-db
-    ports:
-      - "27017:27017"
-    env_file:
-      - .env
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
-      MONGO_INITDB_DATABASE: ${USERS_DB_NAME}
-    volumes:
-      - users_mongo_data:/data/db
-    healthcheck:
-      test: >
-        mongosh --quiet
-        -u $$MONGO_INITDB_ROOT_USERNAME
-        -p $$MONGO_INITDB_ROOT_PASSWORD
-        --authenticationDatabase admin
-        --eval "db.adminCommand('ping')"
-      interval: 5s
-      timeout: 5s
-      retries: 20
-      start_period: 30s
-    networks:
-      - buy01-network
-
-  products-mongodb:
-    image: mongo:latest
-    container_name: products-db
-    ports:
-      - "27018:27017"
-    env_file:
-      - .env
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
-      MONGO_INITDB_DATABASE: ${PRODUCTS_DB_NAME}
-    volumes:
-      - products_mongo_data:/data/db
-    healthcheck:
-      test: >
-        mongosh --quiet
-        -u $$MONGO_INITDB_ROOT_USERNAME
-        -p $$MONGO_INITDB_ROOT_PASSWORD
-        --authenticationDatabase admin
-        --eval "db.adminCommand('ping')"
-      interval: 5s
-      timeout: 5s
-      retries: 20
-      start_period: 30s
-    networks:
-      - buy01-network
-
-  media-mongodb:
-    image: mongo:latest
-    container_name: media-db
-    ports:
-      - "27019:27017"
-    env_file:
-      - .env
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MEDIA_DB_URI}
-    volumes:
-      - media_mongo_data:/data/db
-    healthcheck:
-      test: >
-        mongosh --quiet
-        -u $$MONGO_INITDB_ROOT_USERNAME
-        -p $$MONGO_INITDB_ROOT_PASSWORD
-        --authenticationDatabase admin
-        --eval "db.adminCommand('ping')"
-      interval: 5s
-      timeout: 5s
-      retries: 20
-      start_period: 30s
-    networks:
-      - buy01-network
-
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.4.0
-    container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    networks:
-      - buy01-network
-
-  kafka:
-    image: confluentinc/cp-kafka:7.4.0
-    container_name: kafka
-    depends_on:
-      - zookeeper
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    networks:
-      - buy01-network
-
-  discovery-service:
+  discovery:
     build: ./Backend/discovery
+    image: discovery:${IMAGE_TAG:-latest}
     container_name: discovery-service
     restart: unless-stopped
-    ports:
-      - "8761:8761"
+    expose:
+      - "8761"
+      - "9000"
     networks:
       - buy01-network
 
   gateway:
     build: ./Backend/gateway
+    image: gateway:${IMAGE_TAG:-latest}
     container_name: gateway
     restart: unless-stopped
     ports:
       - "8443:8443"
+    expose:
+      - "9000"
     depends_on:
-      - discovery-service
+      discovery:
+        condition: service_started
     env_file:
       - .env
     environment:
@@ -130,16 +29,18 @@ services:
     networks:
       - buy01-network
 
-  user-service:
+  user:
     build: ./Backend/user
+    image: user:${IMAGE_TAG:-latest}
     container_name: user-service
     restart: unless-stopped
-    ports:
-      - "8081:8081"
+    expose:
+      - "8081"
+      - "9000"
     depends_on:
       users-mongodb:
         condition: service_healthy
-      discovery-service:
+      discovery:
         condition: service_started
       kafka:
         condition: service_started
@@ -152,16 +53,18 @@ services:
     networks:
       - buy01-network
 
-  media-service:
+  media:
     build: ./Backend/media
+    image: media:${IMAGE_TAG:-latest}
     container_name: media-service
     restart: unless-stopped
-    ports:
-      - "8082:8082"
+    expose:
+      - "8082"
+      - "9000"
     depends_on:
-      users-mongodb:
+      media-mongodb:
         condition: service_healthy
-      discovery-service:
+      discovery:
         condition: service_started
       kafka:
         condition: service_started
@@ -173,19 +76,22 @@ services:
       R2_BUCKET: ${R2_BUCKET}
       R2_ENDPOINT: ${R2_ENDPOINT}
       R2_PUBLIC_URL: ${R2_PUBLIC_URL}
+      SPRING_MONGODB_URI: ${MEDIA_DB_URI}
     networks:
       - buy01-network
 
-  product-service:
+  product:
     build: ./Backend/product
+    image: product:${IMAGE_TAG:-latest}
     container_name: product-service
     restart: unless-stopped
-    ports:
-      - "8083:8083"
+    expose:
+      - "8083"
+      - "9000"
     depends_on:
       products-mongodb:
         condition: service_healthy
-      discovery-service:
+      discovery:
         condition: service_started
       kafka:
         condition: service_started
@@ -196,18 +102,6 @@ services:
     networks:
       - buy01-network
 
-  jenkins-server:
-    build: ./Backend/jenkins
-    container_name: jenkins-server
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
-      - "5000:50000"
-    networks:
-      - buy01-network
-    volumes:
-      - jenkins_home:/var/jenkins_home   # Persistent Jenkins data
-      - /var/run/docker.sock.raw:/var/run/docker.sock # Mount Docker socket for Docker builds
 
 networks:
   buy01-network:

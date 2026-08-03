@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ============================================================================
+# Figures out which microservices had code changes between two git commits,
+# so the Jenkins pipeline only builds, tests, and deploys what actually
+# changed.
+#
+# The list of valid service names is read directly from docker-compose.yml
+# (the file that contains ONLY real application services — Jenkins itself
+# lives in the separate docker-compose.jenkins.yml file), so this script
+# never needs to be edited by hand when a service is added or removed.
+# ============================================================================
+
+APPLICATION_COMPOSE_FILE="docker-compose.yml"
+
+# The commit/branch to compare FROM. Defaults to the previous commit.
+COMPARE_FROM_REFERENCE="${1:-HEAD~1}"
+
+# The commit/branch to compare TO. Defaults to the current commit.
+COMPARE_TO_REFERENCE="${2:-HEAD}"
+
+# ---- Step 1: get the list of real application service names ----
+# "docker compose config --services" reads docker-compose.yml and prints the
+# service names defined in it (order-service, payment-service, frontend).
+# It never sees jenkins-controller, backend-agent, or frontend-agent,
+# because those live in a different file that isn't passed in here.
+APPLICATION_SERVICE_NAMES=($(docker compose -f "$APPLICATION_COMPOSE_FILE" config --services))
+
+# ---- Step 2: get every file path that changed between the two commits ----
+if ! git rev-parse "$COMPARE_FROM_REFERENCE" >/dev/null 2>&1; then
+  # There is no earlier commit to compare against (first commit ever, or a
+  # shallow clone with no history). Safest choice: treat every service as
+  # changed so nothing is silently skipped.
+  echo "No previous commit found to compare against — treating all services as changed."
+  printf '%s\n' "${APPLICATION_SERVICE_NAMES[@]}"
+  exit 0
+fi
+
+CHANGED_FILE_PATHS=$(git diff --name-only "$COMPARE_FROM_REFERENCE" "$COMPARE_TO_REFERENCE")
+
+# ---- Step 3: for each real service, check whether any changed file lives inside its folder ----
+for SERVICE_NAME in "${APPLICATION_SERVICE_NAMES[@]}"; do
+  if echo "$CHANGED_FILE_PATHS" | grep -q "^${SERVICE_NAME}/"; then
+    echo "$SERVICE_NAME"
+  fi
+done
