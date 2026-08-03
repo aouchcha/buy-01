@@ -142,26 +142,19 @@ pipeline {
 
         stage('Deploy To Main Environment') {
             agent { label 'backend' }
-            when { branch 'main' }
+            when {
+                allOf {
+                    branch 'main'
+                    expression { env.CHANGED_SERVICE_NAMES?.trim() }
+                }
+            }
             steps {
-                // steps {
-                //     withCredentials([
-                //         file(
-                //             credentialsId: 'buy01-env',
-                //             variable: 'ENV_FILE'
-                //         )
-                //     ]) {
-                //         sh '''
-                //             cp "$ENV_FILE" .env
-                //         '''
-                //     }
-                // }
+                unstash 'source-code'
+                sh 'cp /home/jenkins/.env .env'
                 script {
-                    def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
+                    def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it.trim() }
 
                     allChangedServiceNames.each { serviceName ->
-                        // No -f flag needed: docker-compose.yml is the default
-                        // file, and it only contains application services.
                         sh """
                             IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
                             docker compose -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env up -d ${serviceName}
