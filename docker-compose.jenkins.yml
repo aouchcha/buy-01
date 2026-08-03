@@ -136,6 +136,8 @@ services:
     volumes:
       - /run/user/1043/docker.sock:/var/run/docker.sock
       - ./.env:/home/jenkins/.env
+    group_add:
+      - "999"
     depends_on:
       jenkins-master:
         condition: service_started
@@ -153,6 +155,8 @@ services:
     volumes:
       - /run/user/1043/docker.sock:/var/run/docker.sock
       - ./.env:/home/jenkins/.env
+    group_add:
+      - "999"
     depends_on:
       jenkins-master:
         condition: service_started
