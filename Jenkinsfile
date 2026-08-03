@@ -4,7 +4,7 @@ pipeline {
     environment {
         // Who receives build status emails. Edit this directly — it's the
         // one line to change if the team's contact address changes.
-        NOTIFICATION_EMAIL_RECIPIENT = 'ouchchatea@gmail.com'
+        NOTIFICATION_EMAIL_RECIPIENT = 'ouchchatea@gmail.com, yahyakhaldy2@gmail.com'
     }
 
     stages {
