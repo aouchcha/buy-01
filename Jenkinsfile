@@ -117,7 +117,7 @@ pipeline {
                         sh """
                             docker build \
                             -t ${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH} \
-                            ./Backend/${serviceName}
+                            ${serviceName}
                         """
                     }
                 }

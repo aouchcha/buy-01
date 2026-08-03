@@ -1,9 +1,12 @@
 services:
   discovery:
-    build: ./Backend/discovery
+    build:
+      context: ./Backend/discovery
     image: discovery:${IMAGE_TAG:-latest}
     container_name: discovery-service
     restart: unless-stopped
+    labels:
+      - "ci.path=Backend/discovery"
     expose:
       - "8761"
       - "9000"
@@ -11,10 +14,13 @@ services:
       - buy01-network
 
   gateway:
-    build: ./Backend/gateway
+    build:
+      context: ./Backend/gateway
     image: gateway:${IMAGE_TAG:-latest}
     container_name: gateway
     restart: unless-stopped
+    labels:
+      - "ci.path=Backend/gateway"
     ports:
       - "8443:8443"
     expose:
@@ -30,10 +36,13 @@ services:
       - buy01-network
 
   user:
-    build: ./Backend/user
+    build:
+      context: ./Backend/user
     image: user:${IMAGE_TAG:-latest}
     container_name: user-service
     restart: unless-stopped
+    labels:
+      - "ci.path=Backend/user"
     expose:
       - "8081"
       - "9000"
@@ -54,10 +63,13 @@ services:
       - buy01-network
 
   media:
-    build: ./Backend/media
+    build:
+      context: ./Backend/media
     image: media:${IMAGE_TAG:-latest}
     container_name: media-service
     restart: unless-stopped
+    labels:
+      - "ci.path=Backend/media"
     expose:
       - "8082"
       - "9000"
@@ -81,10 +93,13 @@ services:
       - buy01-network
 
   product:
-    build: ./Backend/product
+    build:
+      context: ./Backend/product
     image: product:${IMAGE_TAG:-latest}
     container_name: product-service
     restart: unless-stopped
+    labels:
+      - "ci.path=Backend/product"
     expose:
       - "8083"
       - "9000"
