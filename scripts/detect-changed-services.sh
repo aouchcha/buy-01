@@ -13,6 +13,7 @@ set -euo pipefail
 # ============================================================================
 
 APPLICATION_COMPOSE_FILE="docker-compose.yml"
+INFRASTRUCTURE_COMPOSE_FILE="docker-compose.jenkins.yml"
 
 # The commit/branch to compare FROM. Defaults to the previous commit.
 COMPARE_FROM_REFERENCE="${1:-HEAD~1}"
@@ -25,7 +26,21 @@ COMPARE_TO_REFERENCE="${2:-HEAD}"
 # service names defined in it (order-service, payment-service, frontend).
 # It never sees jenkins-controller, backend-agent, or frontend-agent,
 # because those live in a different file that isn't passed in here.
-APPLICATION_SERVICE_NAMES=($(docker compose -f "$APPLICATION_COMPOSE_FILE" config --services))
+APPLICATION_SERVICE_NAMES=($(docker compose -f "$APPLICATION_COMPOSE_FILE" -f "$INFRASTRUCTURE_COMPOSE_FILE" config --services))
+
+APPLICATION_SERVICE_NAMES=()
+for SERVICE_NAME in "${ALL_SERVICE_NAMES[@]}"; do
+  IS_INFRASTRUCTURE=false
+  for INFRA_NAME in "${INFRASTRUCTURE_SERVICE_NAMES[@]}"; do
+    if [[ "$SERVICE_NAME" == "$INFRA_NAME" ]]; then
+      IS_INFRASTRUCTURE=true
+      break
+    fi
+  done
+  if [[ "$IS_INFRASTRUCTURE" == false ]]; then
+    APPLICATION_SERVICE_NAMES+=("$SERVICE_NAME")
+  fi
+done
 
 # ---- Step 2: get every file path that changed between the two commits ----
 if ! git rev-parse "$COMPARE_FROM_REFERENCE" >/dev/null 2>&1; then

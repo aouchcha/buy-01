@@ -22,6 +22,7 @@ pipeline {
                 // DIFFERENT agent (frontend-agent) can reuse it without
                 // cloning the repository a second time.
                 stash name: 'source-code', includes: '**'
+                echo "${NOTIFICATION_EMAIL_RECIPIENT}"
             }
         }
 
