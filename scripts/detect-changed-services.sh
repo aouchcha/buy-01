@@ -28,26 +28,26 @@ COMPARE_TO_REFERENCE="${2:-HEAD}"
 # because those live in a different file that isn't passed in here.
 APPLICATION_SERVICE_NAMES=($(docker compose -f "$APPLICATION_COMPOSE_FILE" -f "$INFRASTRUCTURE_COMPOSE_FILE" config --services))
 
-echo "FROM: $COMPARE_FROM_REFERENCE"
-echo "TO:   $COMPARE_TO_REFERENCE"
+echo "FROM: $COMPARE_FROM_REFERENCE" >&2
+echo "TO:   $COMPARE_TO_REFERENCE" >&2
 
 echo
-echo "Changed files:"
-git diff --name-only "$COMPARE_FROM_REFERENCE" "$COMPARE_TO_REFERENCE"
+echo "Changed files:" >&2
+git diff --name-only "$COMPARE_FROM_REFERENCE" "$COMPARE_TO_REFERENCE" >&2
 
-APPLICATION_SERVICE_NAMES=()
-for SERVICE_NAME in "${ALL_SERVICE_NAMES[@]}"; do
-  IS_INFRASTRUCTURE=false
-  for INFRA_NAME in "${INFRASTRUCTURE_SERVICE_NAMES[@]}"; do
-    if [[ "$SERVICE_NAME" == "$INFRA_NAME" ]]; then
-      IS_INFRASTRUCTURE=true
-      break
-    fi
-  done
-  if [[ "$IS_INFRASTRUCTURE" == false ]]; then
-    APPLICATION_SERVICE_NAMES+=("$SERVICE_NAME")
-  fi
-done
+# APPLICATION_SERVICE_NAMES=()
+# for SERVICE_NAME in "${ALL_SERVICE_NAMES[@]}"; do
+#   IS_INFRASTRUCTURE=false
+#   for INFRA_NAME in "${INFRASTRUCTURE_SERVICE_NAMES[@]}"; do
+#     if [[ "$SERVICE_NAME" == "$INFRA_NAME" ]]; then
+#       IS_INFRASTRUCTURE=true
+#       break
+#     fi
+#   done
+#   if [[ "$IS_INFRASTRUCTURE" == false ]]; then
+#     APPLICATION_SERVICE_NAMES+=("$SERVICE_NAME")
+#   fi
+# done
 
 # ---- Step 2: get every file path that changed between the two commits ----
 if ! git rev-parse "$COMPARE_FROM_REFERENCE" >/dev/null 2>&1; then
@@ -71,7 +71,7 @@ echo "$CHANGED_FILE_PATHS"
 
 echo
 for SERVICE_NAME in "${APPLICATION_SERVICE_NAMES[@]}"; do
-    echo "Checking $SERVICE_NAME"
+    echo "Checking $SERVICE_NAME" >&2
 
     if echo "$CHANGED_FILE_PATHS" | grep -q "^${SERVICE_NAME}/"; then
         echo "MATCH -> $SERVICE_NAME"

@@ -8,7 +8,6 @@ pipeline {
     }
 
     stages {
-
         stage('Checkout Source Code') {
             agent { label 'backend' }
             steps {
@@ -16,7 +15,7 @@ pipeline {
                 script {
                     // Short git commit hash — used to tag Docker images so every build
                     // produces a uniquely identifiable image, e.g. order-service:a1b2c3d
-                    CURRENT_COMMIT_SHORT_HASH = "${env.GIT_COMMIT.take(7)}"
+                    env.CURRENT_COMMIT_SHORT_HASH = env.GIT_COMMIT.take(7)
                 }
                 // Save the checked-out code so later stages running on a
                 // DIFFERENT agent (frontend-agent) can reuse it without
@@ -33,7 +32,7 @@ pipeline {
                 script {
                     // For a pull request, compare against its target branch.
                     // Otherwise compare against the previous commit on this branch.
-                    def commitToCompareAgainst = env.CHANGE_TARGET ? "origin/${env.CHANGE_TARGET}" : "HEAD~1"
+                    def commitToCompareAgainst = env.CHANGE_TARGET ? "origin/${env.CHANGE_TARGET}" : 'HEAD~1'
                     sh '''
                         echo "Current commit:"
                         git rev-parse HEAD
@@ -50,7 +49,7 @@ pipeline {
                     // Store the result as a comma-separated string so later
                     // stages — which may run on a different agent — can read
                     // it back from the environment.
-                    env.CHANGED_SERVICE_NAMES = detectionScriptOutput.replaceAll("\n", ",")
+                    env.CHANGED_SERVICE_NAMES = detectionScriptOutput.replaceAll('\n', ',')
                     echo "Services changed in this commit: ${env.CHANGED_SERVICE_NAMES}"
                 }
             }
@@ -58,7 +57,6 @@ pipeline {
 
         stage('Build And Test') {
             parallel {
-
                 stage('Backend Services') {
                     agent { label 'backend' }
                     when {
@@ -196,29 +194,51 @@ pipeline {
 
     post {
         success {
-            mail(
-                to: "${NOTIFICATION_EMAIL_RECIPIENT}",
-                subject: "SUCCESS: ${env.JOB_NAME} build #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME}",
-                body: "Services affected: ${env.CHANGED_SERVICE_NAMES ?: 'none'}\n\nFull build log: ${env.BUILD_URL}"
-            )
+            withCredentials([
+                string(
+                    credentialsId: 'notification-email',
+                    variable: 'EMAIL'
+                )
+            ]) {
+                    mail(
+                    to: "${EMAIL}",
+                    subject: "SUCCESS: ${env.JOB_NAME} build #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME}",
+                    body: "Services affected: ${env.CHANGED_SERVICE_NAMES ?: 'none'}\n\nFull build log: ${env.BUILD_URL}"
+                )
+            }
         }
-        failure {
-            mail(
-                to: "${NOTIFICATION_EMAIL_RECIPIENT}",
-                subject: "FAILED: ${env.JOB_NAME} build #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME}",
-                body: "Check the console output for details: ${env.BUILD_URL}console"
-            )
-            script {
-                def deploymentAlreadyHappenedOnThisRun = (env.BRANCH_NAME == 'main' && env.CHANGED_SERVICE_NAMES?.trim())
-                if (deploymentAlreadyHappenedOnThisRun) {
-                    echo "Rolling back to the last known-good image for each affected service..."
-                    def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
 
-                    allChangedServiceNames.each { serviceName ->
-                        sh """IMAGE_TAG=previous-good docker compose --env-file /home/jenkins/.env up -d ${serviceName} || true"""
+        failure {
+                withCredentials([
+                string(
+                    credentialsId: 'notification-email',
+                    variable: 'EMAIL'
+                )
+            ]) {
+                    mail(
+                    to: "${EMAIL}",
+                    subject: "FAILED: ${env.JOB_NAME} build #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME}",
+                    body: "Check the console output for details: ${env.BUILD_URL}console"
+                )
+            }
+
+                script {
+                    def deploymentAlreadyHappenedOnThisRun =
+                    (env.BRANCH_NAME == 'main' && env.CHANGED_SERVICE_NAMES?.trim())
+
+                    if (deploymentAlreadyHappenedOnThisRun) {
+                        echo 'Rolling back to the last known-good image for each affected service...'
+
+                        def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
+
+                        allChangedServiceNames.each { serviceName ->
+                            sh """
+                            IMAGE_TAG=previous-good \
+                            docker compose --env-file /home/jenkins/.env up -d ${serviceName} || true
+                        """
+                        }
                     }
                 }
-            }
         }
     }
 }
