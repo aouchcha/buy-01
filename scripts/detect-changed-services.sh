@@ -26,16 +26,18 @@ COMPARE_TO_REFERENCE="${2:-HEAD}"
 # service names defined in it (order-service, payment-service, frontend).
 # It never sees jenkins-controller, backend-agent, or frontend-agent,
 # because those live in a different file that isn't passed in here.
-APPLICATION_SERVICE_NAMES=($(docker compose -f "$APPLICATION_COMPOSE_FILE" -f "$INFRASTRUCTURE_COMPOSE_FILE" config --services))
+ALL_SERVICE_NAMES=($(docker compose -f "$APPLICATION_COMPOSE_FILE" -f "$INFRASTRUCTURE_COMPOSE_FILE" config --services))
+INFRASTRUCTURE_SERVICE_NAMES=($(docker compose -f "$INFRASTRUCTURE_COMPOSE_FILE" config --services))
 
 echo "All service names:" >&2
-printf '%s\n' "${APPLICATION_SERVICE_NAMES[@]}" >&2
+printf '%s\n' "${ALL_SERVICE_NAMES[@]}" >&2
+
+echo "Infrastructure service names:" >&2
+printf '%s\n' "${INFRASTRUCTURE_SERVICE_NAMES[@]}" >&2
+
 echo "FROM: $COMPARE_FROM_REFERENCE" >&2
 echo "TO:   $COMPARE_TO_REFERENCE" >&2
 
-echo
-echo "Changed files:" >&2
-git diff --name-only "$COMPARE_FROM_REFERENCE" "$COMPARE_TO_REFERENCE" >&2
 
 APPLICATION_SERVICE_NAMES=()
 for SERVICE_NAME in "${ALL_SERVICE_NAMES[@]}"; do
@@ -75,7 +77,7 @@ echo
 for SERVICE_NAME in "${APPLICATION_SERVICE_NAMES[@]}"; do
     echo "Checking $SERVICE_NAME" >&2
 
-    if echo "$CHANGED_FILE_PATHS" | grep -q "^${SERVICE_NAME}/"; then
+    if echo "$CHANGED_FILE_PATHS" | grep "${SERVICE_NAME}/"; then
         echo "MATCH -> $SERVICE_NAME" >&2
         echo "$SERVICE_NAME"
     else

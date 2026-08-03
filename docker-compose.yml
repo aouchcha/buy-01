@@ -101,14 +101,3 @@ services:
       SPRING_MONGODB_URI: ${PRODUCT_DB_URI}
     networks:
       - buy01-network
-
-
-networks:
-  buy01-network:
-    driver: bridge
-
-volumes:
-  users_mongo_data:
-  products_mongo_data:
-  media_mongo_data:
-  jenkins_home:
