@@ -206,7 +206,7 @@ pipeline {
                 )
             ]) {
                     mail(
-                    to: "${EMAIL}",
+                    to: " ${env.NOTIFICATION_EMAIL_RECIPIENT}",
                     subject: "SUCCESS: ${env.JOB_NAME} build #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME}",
                     body: "Services affected: ${env.CHANGED_SERVICE_NAMES ?: 'none'}\n\nFull build log: ${env.BUILD_URL}"
                 )
@@ -221,7 +221,7 @@ pipeline {
                 )
             ]) {
                     mail(
-                    to: "${EMAIL}",
+                    to: " ${env.NOTIFICATION_EMAIL_RECIPIENT}",
                     subject: "FAILED: ${env.JOB_NAME} build #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME}",
                     body: "Check the console output for details: ${env.BUILD_URL}console"
                 )
