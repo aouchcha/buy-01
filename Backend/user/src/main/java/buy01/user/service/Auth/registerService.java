@@ -12,6 +12,7 @@ import buy01.user.config.Jwt.Jwt;
 import buy01.user.dto.Auth.authResponse;
 import buy01.user.dto.Auth.registerRequest;
 import buy01.user.dto.User.Userdto;
+import buy01.user.model.Roles;
 // import buy01.user.dto.kafka.MediaUploadEvent;
 import buy01.user.model.userEntity;
 import buy01.user.repository.userRepository;
@@ -31,6 +32,9 @@ public class registerService {
     }
 
     public authResponse signUp(registerRequest request) {
+        if (Roles.ADMIN.toString().equals(request.getRole())) {
+            throw new badRequest("Admin role is not allowed for registration");
+        }
         try {
             userEntity user = new userEntity();
             user.setFirstName(request.getFirstName());

@@ -43,24 +43,25 @@ public class usersService {
     }
 
     public Userdto getProfile() {
-        final String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        final String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         final userEntity user = userRepository.findById(userId).orElseThrow(() -> new Myforbiden("profile doesn't exist"));
         final Userdto profile = Mapper.MappToUSerDto(user);
         return profile;
         // return null;
     }
 
-    public userEntity updateProfile(UpdateMe request) {
-        final String userId = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        final userEntity user = userRepository.findById(userId).orElse(null);
+    public Userdto updateProfile(UpdateMe request) {
+        final String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        userEntity user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             throw new notFound("user not found");
         }
         
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
-       userRepository.save(user);
-       return user;
+        user = userRepository.save(user);
+        Userdto dto = Mapper.MappToUSerDto(user); 
+       return dto;
     }
 
     public void remove(String userId) {

@@ -40,7 +40,7 @@ public class Jwt {
             Jwts.parser()
                     .verifyWith(secretKey)
                     .build()
-                    .parse(token);
+                    .parseSignedClaims(token);
             return true;
 
         } catch (Exception e) {

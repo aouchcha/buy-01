@@ -13,14 +13,16 @@ export const MAX_IMAGE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB, matches backend lim
 export class Media {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/media/images`;
-
-  uploadImage(
+  private sleep = (ms: number): Promise<void> => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  };
+  async uploadImage(
     userId: string,
     productId: string | null,
     files: File[],
     type: string
-  ): Observable<MediaResponse[]> {
-
+  ): Promise<Observable<MediaResponse[]>> {
+    await this.sleep(1000)
     const formData = new FormData();
 
     for (const file of files) {
@@ -42,9 +44,10 @@ export class Media {
     userId: string,
     productId: string | null,
     deletedUrls: string[],
-    newImages: File[],
+    newImages: File[] ,
     type: string
   ): Observable<MediaResponse[]> {
+    console.log("I am here");
 
     const formData = new FormData();
 
@@ -54,8 +57,10 @@ export class Media {
 
     // if (formData['deletedUrls'])
 
-    for (const file of newImages) {
-      formData.append('newImages', file);
+    if (newImages) {
+      for (const file of newImages) {
+        formData.append('newImages', file);
+      }
     }
 
     formData.append('userId', userId);
@@ -73,8 +78,13 @@ export class Media {
     return this.http.get<MediaResponse[]>(this.apiUrl);
   }
 
-  deleteImage(mediaId: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${mediaId}`);
+  deleteImage(mediaId: string): Observable<string> {
+    return this.http.delete(
+      `${this.apiUrl}/${mediaId}`,
+      {
+        responseType: 'text'
+      }
+    );
   }
 
   validateImage(file: File): string | null {

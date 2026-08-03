@@ -48,6 +48,7 @@ public class ProductService {
         product = productRepository.save(product);
         ProductCreated event = new ProductCreated(product.getId(), userId);
         kafka.send("product.created", userId, event);
+        System.out.println("====================================\nProduct Created Event Lunched");
         return toResponse(product);
     }
 
@@ -82,6 +83,7 @@ public class ProductService {
                 .orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND));
         List<String> urls = product.getImageUrls();
         urls.remove(url);
+        System.out.println("====================================\nurls = "+urls);
         product.setImageUrls(urls);
         productRepository.save(product);
     }
