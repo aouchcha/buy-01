@@ -4,7 +4,7 @@ pipeline {
     environment {
         // Who receives build status emails. Edit this directly — it's the
         // one line to change if the team's contact address changes.
-        NOTIFICATION_EMAIL_RECIPIENT = "${env.SMTP_USERNAME}"
+        NOTIFICATION_EMAIL_RECIPIENT = 'ouchchatea@gmail.com'
     }
 
     stages {
@@ -34,7 +34,14 @@ pipeline {
                     // For a pull request, compare against its target branch.
                     // Otherwise compare against the previous commit on this branch.
                     def commitToCompareAgainst = env.CHANGE_TARGET ? "origin/${env.CHANGE_TARGET}" : "HEAD~1"
+                    sh '''
+                        echo "Current commit:"
+                        git rev-parse HEAD
 
+                        echo
+                        echo "Script contents:"
+                        cat scripts/detect-changed-services.sh
+                    '''
                     def detectionScriptOutput = sh(
                         script: "chmod +x scripts/detect-changed-services.sh && ./scripts/detect-changed-services.sh ${commitToCompareAgainst} HEAD",
                         returnStdout: true

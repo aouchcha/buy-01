@@ -28,6 +28,13 @@ COMPARE_TO_REFERENCE="${2:-HEAD}"
 # because those live in a different file that isn't passed in here.
 APPLICATION_SERVICE_NAMES=($(docker compose -f "$APPLICATION_COMPOSE_FILE" -f "$INFRASTRUCTURE_COMPOSE_FILE" config --services))
 
+echo "FROM: $COMPARE_FROM_REFERENCE"
+echo "TO:   $COMPARE_TO_REFERENCE"
+
+echo
+echo "Changed files:"
+git diff --name-only "$COMPARE_FROM_REFERENCE" "$COMPARE_TO_REFERENCE"
+
 APPLICATION_SERVICE_NAMES=()
 for SERVICE_NAME in "${ALL_SERVICE_NAMES[@]}"; do
   IS_INFRASTRUCTURE=false
@@ -55,8 +62,21 @@ fi
 CHANGED_FILE_PATHS=$(git diff --name-only "$COMPARE_FROM_REFERENCE" "$COMPARE_TO_REFERENCE")
 
 # ---- Step 3: for each real service, check whether any changed file lives inside its folder ----
+echo "Detected services:"
+printf '%s\n' "${APPLICATION_SERVICE_NAMES[@]}"
+
+echo
+echo "Changed files:"
+echo "$CHANGED_FILE_PATHS"
+
+echo
 for SERVICE_NAME in "${APPLICATION_SERVICE_NAMES[@]}"; do
-  if echo "$CHANGED_FILE_PATHS" | grep -q "^${SERVICE_NAME}/"; then
-    echo "$SERVICE_NAME"
-  fi
+    echo "Checking $SERVICE_NAME"
+
+    if echo "$CHANGED_FILE_PATHS" | grep -q "^${SERVICE_NAME}/"; then
+        echo "MATCH -> $SERVICE_NAME"
+        echo "$SERVICE_NAME"
+    else
+        echo "NO MATCH"
+    fi
 done
