@@ -116,7 +116,7 @@ pipeline {
                     allChangedServiceNames.each { serviceName ->
                         sh """
                             IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                            docker compose -f docker-compose.yml --env-file /home/jenkins/.env build ${serviceName}
+                            docker compose -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env build ${serviceName}
                         """
                     }
                 }
@@ -164,7 +164,7 @@ pipeline {
                         // file, and it only contains application services.
                         sh """
                             IMAGE_TAG=${CURRENT_COMMIT_SHORT_HASH} \
-                            docker compose -f docker-compose.yml --env-file /home/jenkins/.env up -d ${serviceName}
+                            docker compose -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env up -d ${serviceName}
                         """
                     }
                 }
