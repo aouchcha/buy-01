@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:lts-jdk17
+FROM jenkins/jenkins:lts-jdk21
 
 # Skip the interactive setup wizard — JCasC (below) configures everything it would have asked for
 ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
