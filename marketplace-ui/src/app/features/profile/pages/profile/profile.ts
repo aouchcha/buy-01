@@ -36,6 +36,7 @@ export class Profile implements OnInit {
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
+  readonly saveError = signal<string | null>(null);
   readonly isEditing = signal(false);
 
   readonly profile = signal<User | null>(null);
@@ -43,6 +44,24 @@ export class Profile implements OnInit {
   private snapshot: User | null = null;
 
   readonly selectedEditFiles = signal<File | null>(null);
+  readonly avatarPreviewUrl = signal<string | null>(null);
+  readonly imageIndexes = signal<Record<string, number>>({});
+
+  getImageIndex(productId: string): number {
+    return this.imageIndexes()[productId] ?? 0;
+  }
+
+  nextImage(product: ProductDto, event: Event): void {
+    event.stopPropagation();
+    const current = this.getImageIndex(product.id);
+    this.imageIndexes.update(m => ({ ...m, [product.id]: (current + 1) % product.imageUrls.length }));
+  }
+
+  prevImage(product: ProductDto, event: Event): void {
+    event.stopPropagation();
+    const current = this.getImageIndex(product.id);
+    this.imageIndexes.update(m => ({ ...m, [product.id]: (current - 1 + product.imageUrls.length) % product.imageUrls.length }));
+  }
 
 
   readonly defaultAvatar =
@@ -146,6 +165,27 @@ export class Profile implements OnInit {
       return;
     }
 
+    this.saveError.set(null);
+
+    const firstName = user.firstName?.trim() ?? '';
+    const lastName = user.lastName?.trim() ?? '';
+
+    if (!firstName) {
+      this.saveError.set('First name is required.');
+      return;
+    }
+    if (!lastName) {
+      this.saveError.set('Last name is required.');
+      return;
+    }
+    if (firstName.length < 3) {
+      this.saveError.set('First name must be at least 3 characters.');
+      return;
+    }
+    if (lastName.length < 2) {
+      this.saveError.set('Last name must be at least 2 characters.');
+      return;
+    }
 
     const nameChanged =
       !original ||
@@ -197,14 +237,14 @@ export class Profile implements OnInit {
 
           console.error(err);
 
-          this.error.set(
-            'Unable to save profile.'
+          this.saveError.set(
+            err?.error?.message || err?.error || 'Unable to save profile.'
           );
 
           this.saving.set(false);
 
           this.toast.error(
-            'Unable to save profile. Please try again.'
+            err?.error?.message || err?.error || 'Unable to save profile. Please try again.'
           );
 
         }
@@ -327,6 +367,8 @@ export class Profile implements OnInit {
   private finishSaving(): void {
 
     this.saving.set(false);
+    this.saveError.set(null);
+    this.avatarPreviewUrl.set(null);
 
     this.isEditing.set(false);
 
@@ -375,8 +417,7 @@ export class Profile implements OnInit {
 
 
     this.selectedEditFiles.set(file);
-
-
+    this.avatarPreviewUrl.set(URL.createObjectURL(file));
 
     input.value = '';
 

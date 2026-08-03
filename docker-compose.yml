@@ -200,6 +200,25 @@ services:
       SPRING_MONGODB_URI: ${PRODUCT_DB_URI}
     networks:
       - buy01-network
+  
+  product-tests:
+    build:
+      context: ./Backend/product
+      target: test
+    container_name: product-tests
+    depends_on:
+      products-mongodb:
+        condition: service_healthy
+      discovery-service:
+        condition: service_started
+      kafka:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      SPRING_MONGODB_URI: ${PRODUCT_DB_URI}
+    networks:
+      - buy01-network
 
 networks:
   buy01-network:
