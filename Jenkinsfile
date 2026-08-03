@@ -81,7 +81,7 @@ pipeline {
                             changedBackendServiceNames.each { serviceName ->
                                 dir("Backend/${serviceName}") {
                                     sh 'mvn clean package'
-                                    junit 'target/surefire-reports/*.xml'
+                                    junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
                                 }
                             }
                         }
@@ -163,7 +163,7 @@ pipeline {
                         // No -f flag needed: docker-compose.yml is the default
                         // file, and it only contains application services.
                         sh """
-                            IMAGE_TAG=${CURRENT_COMMIT_SHORT_HASH} \
+                            IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
                             docker compose -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env up -d ${serviceName}
                         """
                     }
@@ -206,7 +206,7 @@ pipeline {
                 )
             ]) {
                     mail(
-                    to: " ${env.NOTIFICATION_EMAIL_RECIPIENT}",
+                    to: "${env.NOTIFICATION_EMAIL_RECIPIENT}",
                     subject: "SUCCESS: ${env.JOB_NAME} build #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME}",
                     body: "Services affected: ${env.CHANGED_SERVICE_NAMES ?: 'none'}\n\nFull build log: ${env.BUILD_URL}"
                 )
@@ -221,7 +221,7 @@ pipeline {
                 )
             ]) {
                     mail(
-                    to: " ${env.NOTIFICATION_EMAIL_RECIPIENT}",
+                    to: "${env.NOTIFICATION_EMAIL_RECIPIENT}",
                     subject: "FAILED: ${env.JOB_NAME} build #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME}",
                     body: "Check the console output for details: ${env.BUILD_URL}console"
                 )
@@ -239,7 +239,7 @@ pipeline {
                         allChangedServiceNames.each { serviceName ->
                             sh """
                             IMAGE_TAG=previous-good \
-                            docker compose --env-file /home/jenkins/.env up -d ${serviceName} || true
+                            docker compose -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env up -d ${serviceName} || true
                         """
                         }
                     }
