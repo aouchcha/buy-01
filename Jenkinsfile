@@ -2,10 +2,6 @@ pipeline {
     agent none
 
     environment {
-        // Short git commit hash — used to tag Docker images so every build
-        // produces a uniquely identifiable image, e.g. order-service:a1b2c3d
-        CURRENT_COMMIT_SHORT_HASH = "${env.GIT_COMMIT.take(7)}"
-
         // Who receives build status emails. Edit this directly — it's the
         // one line to change if the team's contact address changes.
         NOTIFICATION_EMAIL_RECIPIENT = "${env.SMTP_USERNAME}"
@@ -17,6 +13,11 @@ pipeline {
             agent { label 'backend' }
             steps {
                 checkout scm
+                script {
+                    // Short git commit hash — used to tag Docker images so every build
+                    // produces a uniquely identifiable image, e.g. order-service:a1b2c3d
+                    CURRENT_COMMIT_SHORT_HASH = "${env.GIT_COMMIT.take(7)}"
+                }
                 // Save the checked-out code so later stages running on a
                 // DIFFERENT agent (frontend-agent) can reuse it without
                 // cloning the repository a second time.
