@@ -46,6 +46,8 @@ pipeline {
                         returnStdout: true
                     ).trim()
 
+                    
+
                     // Store the result as a comma-separated string so later
                     // stages — which may run on a different agent — can read
                     // it back from the environment.
@@ -77,7 +79,7 @@ pipeline {
                             }
 
                             changedBackendServiceNames.each { serviceName ->
-                                dir(serviceName) {
+                                dir("Backend/${serviceName}") {
                                     sh 'mvn clean package'
                                     junit 'target/surefire-reports/*.xml'
                                 }
@@ -93,10 +95,10 @@ pipeline {
                     }
                     steps {
                         unstash 'source-code'
-                        dir('frontend') {
+                        dir('marketplace-ui') {
                             sh 'npm ci'
-                            sh 'ng test --watch=false --browsers=ChromeHeadless'
-                            sh 'ng build --configuration production'
+                            sh 'npm test -- --watch=false --browsers=ChromeHeadless'
+                            sh 'npm run build -- --configuration production'
                         }
                     }
                 }
@@ -112,7 +114,11 @@ pipeline {
                     def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
 
                     allChangedServiceNames.each { serviceName ->
-                        sh "docker build -t ${serviceName}:${CURRENT_COMMIT_SHORT_HASH} ./${serviceName}"
+                        sh """
+                            docker build \
+                            -t ${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH} \
+                            ./Backend/${serviceName}
+                        """
                     }
                 }
             }

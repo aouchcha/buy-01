@@ -62,21 +62,21 @@ fi
 CHANGED_FILE_PATHS=$(git diff --name-only "$COMPARE_FROM_REFERENCE" "$COMPARE_TO_REFERENCE")
 
 # ---- Step 3: for each real service, check whether any changed file lives inside its folder ----
-echo "Detected services:"
-printf '%s\n' "${APPLICATION_SERVICE_NAMES[@]}"
+echo "Detected services:" >&2
+printf '%s\n' "${APPLICATION_SERVICE_NAMES[@]}" >&2
 
-echo
-echo "Changed files:"
-echo "$CHANGED_FILE_PATHS"
+echo "" >&2
+echo "Changed files:" >&2
+echo "$CHANGED_FILE_PATHS" >&2
 
 echo
 for SERVICE_NAME in "${APPLICATION_SERVICE_NAMES[@]}"; do
     echo "Checking $SERVICE_NAME" >&2
 
     if echo "$CHANGED_FILE_PATHS" | grep -q "^${SERVICE_NAME}/"; then
-        echo "MATCH -> $SERVICE_NAME"
+        echo "MATCH -> $SERVICE_NAME" >&2
         echo "$SERVICE_NAME"
     else
-        echo "NO MATCH"
+        echo "NO MATCH" >&2
     fi
 done
