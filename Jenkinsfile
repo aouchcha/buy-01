@@ -98,7 +98,7 @@ pipeline {
                         unstash 'source-code'
                         dir('marketplace-ui') {
                             sh 'npm ci'
-                            sh 'npm test -- --watch=false --browsers=ChromeHeadless'
+                            sh 'npm test -- --watch=false --no-progress'
                             sh 'npm run build -- --configuration production'
                         }
                     }
