@@ -3,7 +3,6 @@ services:
     build:
       context: ./Backend/discovery
     image: discovery:${IMAGE_TAG:-latest}
-    container_name: discovery-service
     restart: unless-stopped
     labels:
       - "ci.path=Backend/discovery"
@@ -17,7 +16,6 @@ services:
     build:
       context: ./Backend/gateway
     image: gateway:${IMAGE_TAG:-latest}
-    container_name: gateway
     restart: unless-stopped
     labels:
       - "ci.path=Backend/gateway"
@@ -39,7 +37,6 @@ services:
     build:
       context: ./Backend/user
     image: user:${IMAGE_TAG:-latest}
-    container_name: user-service
     restart: unless-stopped
     labels:
       - "ci.path=Backend/user"
@@ -66,7 +63,6 @@ services:
     build:
       context: ./Backend/media
     image: media:${IMAGE_TAG:-latest}
-    container_name: media-service
     restart: unless-stopped
     labels:
       - "ci.path=Backend/media"
@@ -96,7 +92,6 @@ services:
     build:
       context: ./Backend/product
     image: product:${IMAGE_TAG:-latest}
-    container_name: product-service
     restart: unless-stopped
     labels:
       - "ci.path=Backend/product"

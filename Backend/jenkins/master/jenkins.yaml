@@ -53,10 +53,10 @@ credentials:
               username: "${SMTP_USERNAME}"
               password: "${SMTP_PASSWORD}"
               description: "SMTP login used by Jenkins to send build notification emails"
-          - string:
-              scope: GLOBAL
-              id: "notification-email"
-              secret: "${SMTP_USERNAME}"
+          # - string:
+          #     scope: GLOBAL
+          #     id: "notification-email"
+          #     secret: "${SMTP_USERNAME}"
 
 unclassified:
   mailer:

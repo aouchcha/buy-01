@@ -5,6 +5,7 @@ pipeline {
         // Who receives build status emails. Edit this directly — it's the
         // one line to change if the team's contact address changes.
         NOTIFICATION_EMAIL_RECIPIENT = 'yahyakhaldy2@gmail.com, ouchchatea@gmail.com'
+        COMPOSE_PROJECT_NAME = "buy01"
     }
 
     stages {
@@ -173,7 +174,7 @@ pipeline {
                 
                 script {
                     def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it?.trim() }
-                    
+
 
                     allChangedServiceNames.each { serviceName ->
                         def healthCheckExitCode = sh(
@@ -196,51 +197,31 @@ pipeline {
 
     post {
         success {
-            withCredentials([
-                string(
-                    credentialsId: 'notification-email',
-                    variable: 'EMAIL'
-                )
-            ]) {
-                    mail(
+                mail(
                     to: "${env.NOTIFICATION_EMAIL_RECIPIENT}",
                     subject: "SUCCESS: ${env.JOB_NAME} build #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME}",
                     body: "Services affected: ${env.CHANGED_SERVICE_NAMES ?: 'none'}\n\nFull build log: ${env.BUILD_URL}"
                 )
-            }
         }
 
         failure {
-                withCredentials([
-                string(
-                    credentialsId: 'notification-email',
-                    variable: 'EMAIL'
-                )
-            ]) {
-                    mail(
-                    to: "${env.NOTIFICATION_EMAIL_RECIPIENT}",
-                    subject: "FAILED: ${env.JOB_NAME} build #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME}",
-                    body: "Check the console output for details: ${env.BUILD_URL}console"
-                )
-            }
-
-                script {
-                    def deploymentAlreadyHappenedOnThisRun =
-                    (env.BRANCH_NAME == 'main' && env.CHANGED_SERVICE_NAMES?.trim())
-
-                    if (deploymentAlreadyHappenedOnThisRun) {
-                        echo 'Rolling back to the last known-good image for each affected service...'
-
-                        def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
-
+            mail(
+                to: "${NOTIFICATION_EMAIL_RECIPIENT}",
+                subject: "FAILED: ${env.JOB_NAME} build #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME}",
+                body: "Check the console output for details: ${env.BUILD_URL}console"
+            )
+            script {
+                def deploymentAlreadyHappenedOnThisRun = (env.BRANCH_NAME == 'main' && env.CHANGED_SERVICE_NAMES?.trim())
+                if (deploymentAlreadyHappenedOnThisRun) {
+                    node('backend') {
+                        echo "Rolling back to the last known-good image for each affected service..."
+                        def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it?.trim() }
                         allChangedServiceNames.each { serviceName ->
-                            sh """
-                            IMAGE_TAG=previous-good \
-                            docker compose -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env up -d ${serviceName} || true
-                        """
+                            sh "IMAGE_TAG=previous-good docker compose up -d ${serviceName} || true"
                         }
                     }
                 }
+            }
         }
     }
 }
