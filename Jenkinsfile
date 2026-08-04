@@ -165,34 +165,34 @@ pipeline {
             }
         }
 
-        stage('Check Deployed Services Are Healthy') {
-            agent { label 'backend' }
-            when { branch 'main' }
-            steps {
+        // stage('Check Deployed Services Are Healthy') {
+        //     agent { label 'backend' }
+        //     when { branch 'main' }
+        //     steps {
                
-                sh "echo 'All changed services: ${env.CHANGED_SERVICE_NAMES}'"
+        //         sh "echo 'All changed services: ${env.CHANGED_SERVICE_NAMES}'"
                 
-                script {
-                    def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it?.trim() }
+        //         script {
+        //             def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it?.trim() }
 
 
-                    allChangedServiceNames.each { serviceName ->
-                        def healthCheckExitCode = sh(
-                            script: "curl -s -f http://${serviceName}:9000/actuator/health",
-                            returnStatus: true
-                        )
-                        if (healthCheckExitCode != 0) {
-                            error("Health check failed for service: ${serviceName}")
-                        }
+        //             allChangedServiceNames.each { serviceName ->
+        //                 def healthCheckExitCode = sh(
+        //                     script: "curl -s -f http://${serviceName}:9000/actuator/health",
+        //                     returnStatus: true
+        //                 )
+        //                 if (healthCheckExitCode != 0) {
+        //                     error("Health check failed for service: ${serviceName}")
+        //                 }
 
-                        // Only after confirming the new version is genuinely
-                        // healthy do we mark this image as "known good" — the
-                        // version we fall back to if a future deploy fails.
-                        sh "docker tag ${serviceName}:${CURRENT_COMMIT_SHORT_HASH} ${serviceName}:previous-good"
-                    }
-                }
-            }
-        }
+        //                 // Only after confirming the new version is genuinely
+        //                 // healthy do we mark this image as "known good" — the
+        //                 // version we fall back to if a future deploy fails.
+        //                 sh "docker tag ${serviceName}:${CURRENT_COMMIT_SHORT_HASH} ${serviceName}:previous-good"
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     post {

@@ -256,6 +256,7 @@ RUN apt-get update && apt-get install -y curl ca-certificates gnupg && \
 USER jenkins
 ```
 
+
 Both connect **outbound** to the controller — no inbound port, no exposure needed for either
 agent.
 
