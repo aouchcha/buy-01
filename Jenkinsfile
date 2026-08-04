@@ -217,7 +217,7 @@ pipeline {
                         echo "Rolling back to the last known-good image for each affected service..."
                         def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it?.trim() }
                         allChangedServiceNames.each { serviceName ->
-                            sh "IMAGE_TAG=previous-good docker compose up -d ${serviceName} || true"
+                            sh "IMAGE_TAG=previous-good docker compose -f docker-compose.yml -f docker-compose.jenkins.yml up -d ${serviceName} || true"
                         }
                     }
                 }
