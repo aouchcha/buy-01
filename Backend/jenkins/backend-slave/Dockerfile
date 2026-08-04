@@ -12,4 +12,5 @@ RUN apt-get update && apt-get install -y \
     groupmod -g 1043 jenkins && \
     usermod -u 1043 jenkins && \
     chown -R jenkins:jenkins /home/jenkins
+    
 USER jenkins

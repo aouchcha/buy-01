@@ -168,8 +168,11 @@ pipeline {
             agent { label 'backend' }
             when { branch 'main' }
             steps {
+               
+                sh "echo 'All changed services: ${env.CHANGED_SERVICE_NAMES}'"
+                
                 script {
-                    def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
+                    def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it?.trim() }
 
                     allChangedServiceNames.each { serviceName ->
                         def healthCheckExitCode = sh(
