@@ -2,3 +2,5 @@
 .env
 .github/
 tree.txt
+# Claude Code local tooling (agent worktrees, not part of the app)
+.claude/
