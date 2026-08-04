@@ -5,7 +5,7 @@ pipeline {
         // Who receives build status emails. Edit this directly — it's the
         // one line to change if the team's contact address changes.
         NOTIFICATION_EMAIL_RECIPIENT = 'yahyakhaldy2@gmail.com, ouchchatea@gmail.com'
-        COMPOSE_PROJECT_NAME = "buy01"
+        COMPOSE_PROJECT_NAME = "buy-01"
     }
 
     stages {
@@ -178,7 +178,7 @@ pipeline {
 
                     allChangedServiceNames.each { serviceName ->
                         def healthCheckExitCode = sh(
-                            script: "curl -s http://${serviceName}:9000/actuator/health",
+                            script: "curl -s -f http://${serviceName}:9000/actuator/health",
                             returnStatus: true
                         )
                         if (healthCheckExitCode != 0) {
