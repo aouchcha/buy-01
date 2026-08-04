@@ -152,16 +152,20 @@ pipeline {
             steps {
                 unstash 'source-code'
                 sh 'cp /home/jenkins/.env .env'
-                script {
-                    def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it.trim() }
+                // script {
+                //     def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it.trim() }
 
-                    allChangedServiceNames.each { serviceName ->
-                        sh """
-                            IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                            docker compose -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env up -d ${serviceName}
-                        """
-                    }
-                }
+                //     allChangedServiceNames.each { serviceName ->
+                //         sh """
+                //             IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
+                //             docker compose -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env up -d ${serviceName}
+                //         """
+                //     }
+                // }
+                sh """
+                    IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
+                    docker compose -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env up -d
+                """
             }
         }
 
