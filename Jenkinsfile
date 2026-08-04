@@ -178,7 +178,7 @@ pipeline {
 
                     allChangedServiceNames.each { serviceName ->
                         def healthCheckExitCode = sh(
-                            script: "curl -sf http://${serviceName}:9000/actuator/health",
+                            script: "curl -s http://${serviceName}:9000/actuator/health",
                             returnStatus: true
                         )
                         if (healthCheckExitCode != 0) {

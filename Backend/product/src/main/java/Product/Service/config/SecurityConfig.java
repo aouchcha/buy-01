@@ -1,5 +1,6 @@
 package Product.Service.config;
 
+import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,6 +26,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/api/product").hasRole("SELLER")
                     .requestMatchers(HttpMethod.PUT, "/api/product/**").hasRole("SELLER")
                     .requestMatchers(HttpMethod.DELETE, "/api/product/**").hasRole("SELLER")
+                    .requestMatchers(EndpointRequest.to("health")).permitAll()
                     .anyRequest().authenticated()
                 );
         return http.build();

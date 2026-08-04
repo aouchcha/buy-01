@@ -1,6 +1,7 @@
 package buy01.gateway.Security;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.security.autoconfigure.actuate.web.reactive.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -26,6 +27,7 @@ public class SecurityConfig {
             .csrf(ServerHttpSecurity.CsrfSpec::disable)
             .cors(Customizer.withDefaults())
             .authorizeExchange(exchanges -> exchanges
+                    .matchers(EndpointRequest.to("health")).permitAll()
                     .anyExchange().permitAll()
             )
             .build();

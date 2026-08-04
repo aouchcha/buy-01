@@ -1,5 +1,6 @@
 package buy01.user.config.Security;
 
+import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -39,6 +40,7 @@ public class FilterChainConfig {
                     .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.GET, "/api/users/all").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.GET, "/api/users/{id}").permitAll()
+                    .requestMatchers(EndpointRequest.to("health")).permitAll()
                     .anyRequest().authenticated());
         return http.build();
     }
