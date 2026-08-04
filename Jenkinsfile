@@ -92,7 +92,7 @@ pipeline {
                 stage('Frontend Application') {
                     agent { label 'frontend' }
                     when {
-                        expression { env.CHANGED_SERVICE_NAMES.contains('frontend') }
+                        expression { env.CHANGED_SERVICE_NAMES.contains('marketplace-ui') }
                     }
                     steps {
                         unstash 'source-code'
