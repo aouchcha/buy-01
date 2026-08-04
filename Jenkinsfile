@@ -173,6 +173,7 @@ pipeline {
                 
                 script {
                     def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it?.trim() }
+                    
 
                     allChangedServiceNames.each { serviceName ->
                         def healthCheckExitCode = sh(
