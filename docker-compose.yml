@@ -111,3 +111,17 @@ services:
       SPRING_MONGODB_URI: ${PRODUCT_DB_URI}
     networks:
       - buy01-network
+  marketplace-ui:
+    build:
+      context: ./marketplace-ui
+    image: marketplace-ui:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    labels:
+      - "ci.path=marketplace-ui"
+    ports:
+      - "4200:80"
+    depends_on:
+      gateway:
+        condition: service_started
+    networks:
+      - buy01-network
