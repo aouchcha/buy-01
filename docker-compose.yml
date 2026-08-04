@@ -111,6 +111,7 @@ services:
       SPRING_MONGODB_URI: ${PRODUCT_DB_URI}
     networks:
       - buy01-network
+
   marketplace-ui:
     build:
       context: ./marketplace-ui
