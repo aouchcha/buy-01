@@ -35,12 +35,24 @@ public class JwtFilter implements GlobalFilter, Ordered {
 
         String path = exchange.getRequest().getPath().value();
         System.out.println("Request path: " + path);
+
+        String host = exchange.getRequest().getHeaders().getFirst(HttpHeaders.HOST);
+        String port = exchange.getRequest().getURI().getPort() != -1 ? String.valueOf(exchange.getRequest().getURI().getPort()) : "default";
+        String forwardedHost = exchange.getRequest().getHeaders().getFirst("X-Forwarded-Host");
+        String originalHost = exchange.getRequest().getHeaders().getFirst("X-Original-Host");
+        String origine = exchange.getRequest().getHeaders().getFirst("Origin");
+
+        System.out.println("Request host: " + host);
+        System.out.println("Request port: " + port);
+        System.out.println("Forwarded host: " + forwardedHost);
+        System.out.println("Original host: " + originalHost);
+        System.out.println("Origin: " + origine);
         // Public endpoints
         if (path.startsWith("/api/auth/")) {
             System.out.println(">>>>>>>>>>>>>>> skip 0");
             return chain.filter(exchange);
         }
-        
+
         if (HttpMethod.GET.equals(exchange.getRequest().getMethod())) {
             if (path.startsWith("/api/users") && !path.equals("/api/users/me")) {
                 System.out.println(">>>>>>>>>>>>>>> skip 0");
