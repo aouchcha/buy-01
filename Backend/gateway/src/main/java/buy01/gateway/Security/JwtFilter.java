@@ -34,7 +34,7 @@ public class JwtFilter implements GlobalFilter, Ordered {
         System.out.println("========== JWT FILTER ==========");
 
         String path = exchange.getRequest().getPath().value();
-
+        System.out.println("Request path: " + path);
         // Public endpoints
         if (path.startsWith("/api/auth/")) {
             System.out.println(">>>>>>>>>>>>>>> skip 0");
