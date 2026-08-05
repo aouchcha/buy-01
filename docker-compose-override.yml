@@ -1,0 +1,32 @@
+services:
+  users-mongodb:
+    profiles:
+      - disabled
+
+  products-mongodb:
+    profiles:
+      - disabled
+
+  media-mongodb:
+    profiles:
+      - disabled
+
+  zookeeper:
+    profiles:
+      - disabled
+
+  kafka:
+    profiles:
+      - disabled
+
+  jenkins-master:
+    profiles:
+      - disabled
+
+  backend-slave:
+    profiles:
+      - disabled
+
+  frontend-slave:
+    profiles:
+      - disabled

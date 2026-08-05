@@ -120,7 +120,10 @@ services:
     labels:
       - "ci.path=marketplace-ui"
     ports:
-      - "4200:80"
+      - "4200:80"     # HTTP (redirects to HTTPS)
+      - "443:443"     # HTTPS
+    volumes:
+      - ./ssl:/etc/nginx/ssl:ro
     depends_on:
       gateway:
         condition: service_started
