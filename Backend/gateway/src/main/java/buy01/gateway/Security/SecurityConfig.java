@@ -25,7 +25,7 @@ public class SecurityConfig {
     SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http
             .csrf(ServerHttpSecurity.CsrfSpec::disable)
-            .cors(Customizer.withDefaults())
+            .cors(cros -> cros.disable())
             .authorizeExchange(exchanges -> exchanges
                     .matchers(EndpointRequest.to("health")).permitAll()
                     .anyExchange().permitAll()
