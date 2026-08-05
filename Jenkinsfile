@@ -152,6 +152,11 @@ pipeline {
             steps {
                 unstash 'source-code'
                 sh 'cp /home/jenkins/.env .env'
+
+                // sh '''
+                //     mkdir -p ssl
+                //     cp -r /home/jenkins/ssl/* ssl/ || true
+                // '''
                 // script {
                 //     def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it.trim() }
 
