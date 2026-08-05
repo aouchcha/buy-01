@@ -117,7 +117,7 @@ pipeline {
                     allChangedServiceNames.each { serviceName ->
                         sh """
                             IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                            docker compose -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env build ${serviceName}
+                            docker compose --profile infra -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env build ${serviceName}
                         """
                     }
                 }
