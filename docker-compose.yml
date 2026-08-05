@@ -122,7 +122,6 @@ services:
     ports:
       - "4200:80"     # HTTP (redirects to HTTPS)
       - "4443:443"     # HTTPS
-
     depends_on:
       gateway:
         condition: service_started
