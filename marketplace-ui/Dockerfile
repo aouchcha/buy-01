@@ -8,4 +8,6 @@ RUN npm run build -- --configuration production
 FROM nginx:alpine
 COPY --from=build /app/dist/marketplace-ui/browser /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+COPY ssl/ /etc/nginx/ssl/
 EXPOSE 80 443

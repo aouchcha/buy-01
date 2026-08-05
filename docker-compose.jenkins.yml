@@ -182,4 +182,3 @@ volumes:
   products_mongo_data:
   media_mongo_data:
   jenkins_home:
-  marketplace_ssl:
