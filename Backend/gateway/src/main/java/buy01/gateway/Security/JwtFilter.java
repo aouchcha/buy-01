@@ -40,6 +40,7 @@ public class JwtFilter implements GlobalFilter, Ordered {
             System.out.println(">>>>>>>>>>>>>>> skip 0");
             return chain.filter(exchange);
         }
+        
         if (HttpMethod.GET.equals(exchange.getRequest().getMethod())) {
             if (path.startsWith("/api/users") && !path.equals("/api/users/me")) {
                 System.out.println(">>>>>>>>>>>>>>> skip 0");

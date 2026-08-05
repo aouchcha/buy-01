@@ -25,7 +25,7 @@ public class SecurityConfig {
     SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http
             .csrf(ServerHttpSecurity.CsrfSpec::disable)
-            .cors(Customizer.withDefaults())
+            .cors(cors -> cors.disable())
             .authorizeExchange(exchanges -> exchanges
                     .matchers(EndpointRequest.to("health")).permitAll()
                     .anyExchange().permitAll()
@@ -41,7 +41,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(allowedOrigin));
+        // config.setAllowedOrigins(List.of("*"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
