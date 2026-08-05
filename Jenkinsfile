@@ -169,7 +169,7 @@ pipeline {
                       -f docker-compose.yml \
                       -f docker-compose.jenkins.yml \
                       --env-file /home/jenkins/.env \
-                      up -d --no-recreate discovery gateway product user media marketplace-ui
+                      up -d --no-deps discovery gateway product user media marketplace-ui
                 """
                 // sh "echo ' I am in the deploy stage  '"
             }
