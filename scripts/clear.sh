@@ -1,6 +1,7 @@
 # Stop all running containers
 docker stop $(docker ps -aq) 2>/dev/null
 
+
 # Remove all containers
 docker rm -f $(docker ps -aq) 2>/dev/null
 

@@ -170,6 +170,7 @@ echo
 info "Waiting for Spring Boot..."
 sleep 25
 
+
 echo
 wait_for_http "Discovery" "http://localhost:8761/eureka/apps" 200
 wait_for_http "Gateway" "https://localhost:8443/api/product" 200

@@ -21,6 +21,7 @@ COMPARE_FROM_REFERENCE="${1:-HEAD~1}"
 # The commit/branch to compare TO. Defaults to the current commit.
 COMPARE_TO_REFERENCE="${2:-HEAD}"
 
+
 # ---- Step 1: get the list of real application service names ----
 # "docker compose config --services" reads docker-compose.yml and prints the
 # service names defined in it (order-service, payment-service, frontend).

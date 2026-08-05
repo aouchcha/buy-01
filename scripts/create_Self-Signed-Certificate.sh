@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
+
 KEYSTORE_DIR="Backend/gateway/src/main/resources"
 KEYSTORE_PATH="${KEYSTORE_DIR}/keystore.p12"
 
