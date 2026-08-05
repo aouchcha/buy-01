@@ -93,6 +93,7 @@ services:
       context: ./Backend/product
     image: product:${IMAGE_TAG:-latest}
     restart: unless-stopped
+    
     labels:
       - "ci.path=Backend/product"
     expose:
