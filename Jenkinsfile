@@ -164,7 +164,12 @@ pipeline {
                 // }
                 sh """
                     IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                    docker compose -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env up -d
+                    docker compose \
+                      --profile infra \
+                      -f docker-compose.yml \
+                      -f docker-compose.jenkins.yml \
+                      --env-file /home/jenkins/.env \
+                      up -d discovery gateway product user media marketplace-ui
                 """
                 // sh "echo ' I am in the deploy stage  '"
             }
