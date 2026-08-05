@@ -27,7 +27,7 @@ COMPARE_TO_REFERENCE="${2:-HEAD}"
 # It never sees jenkins-controller, backend-agent, or frontend-agent,
 # because those live in a different file that isn't passed in here.
 ALL_SERVICE_NAMES=($(docker compose -f "$APPLICATION_COMPOSE_FILE" -f "$INFRASTRUCTURE_COMPOSE_FILE" config --services))
-INFRASTRUCTURE_SERVICE_NAMES=($(docker compose -f "$INFRASTRUCTURE_COMPOSE_FILE" config --services))
+INFRASTRUCTURE_SERVICE_NAMES=($(docker compose --profile infra -f "$INFRASTRUCTURE_COMPOSE_FILE" config --services))
 
 echo "All service names:" >&2
 printf '%s\n' "${ALL_SERVICE_NAMES[@]}" >&2
