@@ -129,7 +129,7 @@ services:
       - buy01-network
     volumes:
       - jenkins_home:/var/jenkins_home # Persistent Jenkins data
-      - /run/user/1043/docker.sock:/var/run/docker.sock
+      - /run/user/${USER_ID}/docker.sock:/var/run/docker.sock
 
   backend-slave:
     build: ./Backend/jenkins/backend-slave
@@ -142,7 +142,7 @@ services:
       JENKINS_AGENT_NAME: backend-slave
       JENKINS_SECRET: ${BACKEND_SLAVE_SECRET}
     volumes:
-      - /run/user/1043/docker.sock:/var/run/docker.sock
+      - /run/user/${USER_ID}/docker.sock:/var/run/docker.sock
       - ./.env:/home/jenkins/.env
     group_add:
       - "999"
@@ -163,7 +163,7 @@ services:
       JENKINS_AGENT_NAME: frontend-slave
       JENKINS_SECRET: ${FRONTEND_SLAVE_SECRET}
     volumes:
-      - /run/user/1043/docker.sock:/var/run/docker.sock
+      - /run/user/${USER_ID}/docker.sock:/var/run/docker.sock
       - ./.env:/home/jenkins/.env
     group_add:
       - "999"

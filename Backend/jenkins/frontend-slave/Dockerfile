@@ -11,8 +11,6 @@ RUN apt-get update && apt-get install -y curl ca-certificates gnupg && \
     > /etc/apt/sources.list.d/docker.list && \
     apt-get update && apt-get install -y docker-ce-cli docker-compose-plugin && \
     rm -rf /var/lib/apt/lists/* && \
-    groupmod -g 1043 jenkins && \
-    usermod -u 1043 jenkins && \
     chown -R jenkins:jenkins /home/jenkins
     
 USER jenkins
