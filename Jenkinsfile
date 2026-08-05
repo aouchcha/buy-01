@@ -215,18 +215,18 @@ pipeline {
                 subject: "FAILED: ${env.JOB_NAME} build #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME}",
                 body: "Check the console output for details: ${env.BUILD_URL}console"
             )
-            script {
-                def deploymentAlreadyHappenedOnThisRun = (env.BRANCH_NAME == 'main' && env.CHANGED_SERVICE_NAMES?.trim())
-                if (deploymentAlreadyHappenedOnThisRun) {
-                    node('backend') {
-                        echo "Rolling back to the last known-good image for each affected service..."
-                        def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it?.trim() }
-                        allChangedServiceNames.each { serviceName ->
-                            sh "IMAGE_TAG=previous-good docker compose -f docker-compose.yml -f docker-compose.jenkins.yml up -d ${serviceName} || true"
-                        }
-                    }
-                }
-            }
+            // script {
+            //     def deploymentAlreadyHappenedOnThisRun = (env.BRANCH_NAME == 'main' && env.CHANGED_SERVICE_NAMES?.trim())
+            //     if (deploymentAlreadyHappenedOnThisRun) {
+            //         node('backend') {
+            //             echo "Rolling back to the last known-good image for each affected service..."
+            //             def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it?.trim() }
+            //             allChangedServiceNames.each { serviceName ->
+            //                 sh "IMAGE_TAG=previous-good docker compose -f docker-compose.yml -f docker-compose.jenkins.yml up -d ${serviceName} || true"
+            //             }
+            //         }
+            //     }
+            // }
         }
     }
 }

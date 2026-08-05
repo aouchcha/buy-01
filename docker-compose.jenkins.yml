@@ -105,6 +105,8 @@ services:
     
   jenkins-master:
     build: ./Backend/jenkins/master
+    profiles:
+      - jenkins
     restart: unless-stopped
     env_file:
       - .env
@@ -121,6 +123,8 @@ services:
 
   backend-slave:
     build: ./Backend/jenkins/backend-slave
+    profiles:
+      - jenkins
     env_file:
       - .env
     environment:
@@ -140,6 +144,8 @@ services:
 
   frontend-slave:
     build: ./Backend/jenkins/frontend-slave
+    profiles:
+      - jenkins
     env_file:
       - .env
     environment:
