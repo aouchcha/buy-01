@@ -1,6 +1,8 @@
 services:
   users-mongodb:
     image: mongo:latest
+    profiles:
+      - infra
     env_file:
       - .env
     environment:
@@ -27,6 +29,8 @@ services:
 
   products-mongodb:
     image: mongo:latest
+    profiles:
+      - infra
     env_file:
       - .env
     environment:
@@ -53,6 +57,8 @@ services:
 
   media-mongodb:
     image: mongo:latest
+    profiles:
+      - infra
     env_file:
       - .env
     environment:
@@ -79,6 +85,8 @@ services:
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
+    profiles:
+      - infra
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -89,6 +97,8 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
+    profiles:
+      - infra
     depends_on:
       - zookeeper
     expose:
@@ -106,7 +116,7 @@ services:
   jenkins-master:
     build: ./Backend/jenkins/master
     profiles:
-      - jenkins
+      - infra
     restart: unless-stopped
     env_file:
       - .env
@@ -124,7 +134,7 @@ services:
   backend-slave:
     build: ./Backend/jenkins/backend-slave
     profiles:
-      - jenkins
+      - infra
     env_file:
       - .env
     environment:
@@ -145,7 +155,7 @@ services:
   frontend-slave:
     build: ./Backend/jenkins/frontend-slave
     profiles:
-      - jenkins
+      - infra
     env_file:
       - .env
     environment:
