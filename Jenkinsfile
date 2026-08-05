@@ -146,7 +146,7 @@ pipeline {
             when {
                 allOf {
                     branch 'main'
-                    expression { env.CHANGED_SERVICE_NAMES?.trim() }
+                    // expression { env.CHANGED_SERVICE_NAMES?.trim() }
                 }
             }
             steps {
