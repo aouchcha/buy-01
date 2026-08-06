@@ -60,6 +60,8 @@ public class ProductService {
         product.setPrice(productRequest.price());
         product.setQuantity(productRequest.quantity());
         productRepository.save(product);
+        system.out.println("====================================\nProduct Updated Event Lunched");
+        system.out.println("====================================\n", product.getImageUrls());
         return toResponse(product);
     }
 

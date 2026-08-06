@@ -385,7 +385,9 @@ export class Dashboard implements OnInit {
           this.products.update((list) =>
             list.map((p) => (p.id === current.id ? { ...p, ...updated, imageUrls: optimisticUrls } : p))
           );
-
+          if (!files.length && !deletedUrls.length) {
+            return this.closeEditModal();
+          }
           this.mediaService.updateImages(current.userId, current.id, deletedUrls, files, 'Product').subscribe({
             next: (images) => {
               this.products.update(list =>
