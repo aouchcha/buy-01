@@ -23,6 +23,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import buy01.user.config.Exceptions.MyExeptions.Conflict;
 import buy01.user.config.Exceptions.MyExeptions.Myforbiden;
 import buy01.user.config.Exceptions.MyExeptions.notFound;
 import buy01.user.dto.User.UpdateMe;
@@ -88,7 +89,7 @@ class UsersServiceTest {
         when(userRepository.findById(CURRENT_USER_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> usersService.getProfile())
-                .isInstanceOf(Myforbiden.class);
+                .isInstanceOf(Conflict.class);
     }
 
     @Test
