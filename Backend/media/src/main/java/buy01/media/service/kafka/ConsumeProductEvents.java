@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-import buy01.media.config.Exceptions.MyExeptions.MyNotFound;
 import buy01.media.dto.kafka.ProductCreated;
 import buy01.media.dto.kafka.ProductDeleted;
 import buy01.media.model.CheckEntity;

@@ -6,7 +6,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import buy01.media.config.Exceptions.MyExeptions.MyNotFound;
 import buy01.media.dto.kafka.UserDeleted;
 import buy01.media.model.CheckEntity;
 import buy01.media.model.MediaEntity;

@@ -1,6 +1,5 @@
 package Product.Service.service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.kafka.core.KafkaTemplate;
