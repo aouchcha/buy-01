@@ -55,7 +55,7 @@ class ProductApplicationTests {
 				.description("dajaja bldya dyl bayd")
 				.price(30)
 				.quantity(500)
-				.userId("user1-77")
+				.userId("user1")
 				.build();
 
 		request = new ProductRequest(
