@@ -73,7 +73,7 @@ class ProductApplicationTests {
 
 		ProductResponse response = productService.getProduct("1");
 
-		assertNotNull(null);
+		assertNotNull(response);
 		assertEquals("1", response.id());
 		assertEquals("dajaja", response.name());
 
