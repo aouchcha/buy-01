@@ -146,36 +146,36 @@ pipeline {
             when {
                 allOf {
                     branch 'main'
-                    // expression { env.CHANGED_SERVICE_NAMES?.trim() }
+                    expression { env.CHANGED_SERVICE_NAMES?.trim() }
                 }
             }
             steps {
                 unstash 'source-code'
                 sh 'cp /home/jenkins/.env .env'
 
-                // sh '''
-                //     mkdir -p ssl
-                //     cp -r /home/jenkins/ssl/* ssl/ || true
-                // '''
-                // script {
-                //     def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it.trim() }
+                sh '''
+                    mkdir -p ssl
+                    cp -r /home/jenkins/ssl/* ssl/ || true
+                '''
+                script {
+                    def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it.trim() }
 
-                //     allChangedServiceNames.each { serviceName ->
-                //         sh """
-                //             IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                //             docker compose -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env up -d ${serviceName}
-                //         """
-                //     }
-                // }
-                sh """
-                    IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                    docker compose \
-                      --profile infra \
-                      -f docker-compose.yml \
-                      -f docker-compose.jenkins.yml \
-                      --env-file /home/jenkins/.env \
-                      up -d --no-deps discovery gateway product user media marketplace-ui
-                """
+                    allChangedServiceNames.each { serviceName ->
+                        // sh """
+                        //     IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
+                        //     docker compose -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env up -d ${serviceName}
+                        // """
+                        sh """
+                            IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
+                            docker compose \
+                            --profile infra \
+                            -f docker-compose.yml \
+                            -f docker-compose.jenkins.yml \
+                            --env-file /home/jenkins/.env \
+                            up -d --no-deps ${serviceName}
+                        """
+                    }
+                }
                 // sh "echo ' I am in the deploy stage  '"
             }
         }
@@ -203,11 +203,39 @@ pipeline {
         //                 // Only after confirming the new version is genuinely
         //                 // healthy do we mark this image as "known good" — the
         //                 // version we fall back to if a future deploy fails.
-        //                 sh "docker tag ${serviceName}:${CURRENT_COMMIT_SHORT_HASH} ${serviceName}:previous-good"
+        //                 sh "docker tag ${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH} ${serviceName}:previous-good"
         //             }
         //         }
         //     }
         // }
+
+        stage('Check Deployed Services Are Healthy') {
+            agent { label 'backend' }
+            when { branch 'main' }
+            steps {
+                sh "echo 'All changed services: ${env.CHANGED_SERVICE_NAMES}'"
+
+                script {
+                    def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it?.trim() }
+
+                    allChangedServiceNames.each { serviceName ->
+                        def healthCheckCommand = (serviceName == 'marketplace-ui')
+                            ? "curl -s -f http://${serviceName}:80/health"
+                            : "curl -s -f http://${serviceName}:9000/actuator/health"
+
+                        def healthCheckExitCode = sh(
+                            script: healthCheckCommand,
+                            returnStatus: true
+                        )
+                        if (healthCheckExitCode != 0) {
+                            error("Health check failed for service: ${serviceName}")
+                        }
+
+                        sh "docker tag ${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH} ${serviceName}:previous-good"
+                    }
+                }
+            }
+        }
     }
 
     post {
@@ -221,22 +249,29 @@ pipeline {
 
         failure {
             mail(
-                to: "${NOTIFICATION_EMAIL_RECIPIENT}",
+                to: "${env.NOTIFICATION_EMAIL_RECIPIENT}",
                 subject: "FAILED: ${env.JOB_NAME} build #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME}",
                 body: "Check the console output for details: ${env.BUILD_URL}console"
             )
-            // script {
-            //     def deploymentAlreadyHappenedOnThisRun = (env.BRANCH_NAME == 'main' && env.CHANGED_SERVICE_NAMES?.trim())
-            //     if (deploymentAlreadyHappenedOnThisRun) {
-            //         node('backend') {
-            //             echo "Rolling back to the last known-good image for each affected service..."
-            //             def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it?.trim() }
-            //             allChangedServiceNames.each { serviceName ->
-            //                 sh "IMAGE_TAG=previous-good docker compose -f docker-compose.yml -f docker-compose.jenkins.yml up -d ${serviceName} || true"
-            //             }
-            //         }
-            //     }
-            // }
+            script {
+                def deploymentAlreadyHappenedOnThisRun = (env.BRANCH_NAME == 'main' && env.CHANGED_SERVICE_NAMES?.trim())
+                if (deploymentAlreadyHappenedOnThisRun) {
+                    node('backend') {
+                        echo "Rolling back to the last known-good image for each affected service..."
+                        def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it?.trim() }
+                        allChangedServiceNames.each { serviceName ->
+                            sh """
+                                IMAGE_TAG=previous-good docker compose \
+                                --profile infra \
+                                -f docker-compose.yml \
+                                -f docker-compose.jenkins.yml \
+                                --env-file /home/jenkins/.env \
+                                up -d --no-deps ${serviceName} || true
+                            """
+                        }
+                    }
+                }
+            }
         }
     }
 }
