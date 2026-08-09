@@ -5,7 +5,7 @@ pipeline {
         // Who receives build status emails. Edit this directly — it's the
         // one line to change if the team's contact address changes.
         NOTIFICATION_EMAIL_RECIPIENT = 'yahyakhaldy2@gmail.com, ouchchatea@gmail.com'
-        COMPOSE_PROJECT_NAME = "mr-jenk"
+        COMPOSE_PROJECT_NAME = "buy-01"
     }
 
     stages {
