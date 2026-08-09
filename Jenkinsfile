@@ -124,22 +124,22 @@ pipeline {
             }
         }
 
-        stage('Load Environment') {
-            agent { label 'backend' }
+        // stage('Load Environment') {
+        //     agent { label 'backend' }
 
-            steps {
-                withCredentials([
-                    file(
-                        credentialsId: 'buy01-env',
-                        variable: 'ENV_FILE'
-                    )
-                ]) {
-                    sh '''
-                        cp "$ENV_FILE" .env
-                    '''
-                }
-            }
-        }
+        //     steps {
+        //         withCredentials([
+        //             file(
+        //                 credentialsId: 'buy01-env',
+        //                 variable: 'ENV_FILE'
+        //             )
+        //         ]) {
+        //             sh '''
+        //                 cp "$ENV_FILE" .env
+        //             '''
+        //         }
+        //     }
+        // }
 
         stage('Deploy To Main Environment') {
             agent { label 'backend' }
@@ -208,6 +208,7 @@ pipeline {
         //         }
         //     }
         // }
+
         stage('Check Deployed Services Are Healthy') {
             agent { label 'backend' }
             when { branch 'main' }
