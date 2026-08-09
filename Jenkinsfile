@@ -18,6 +18,7 @@ pipeline {
                 // DIFFERENT agent (frontend-agent) can reuse it without
                 // cloning the repository a second time.
                 stash name: 'source-code', includes: '**'
+                echo "${NOTIFICATION_EMAIL_RECIPIENT}"
             }
         }
 
@@ -26,13 +27,19 @@ pipeline {
             steps {
                 unstash 'source-code'
                 script {
-
                     def commitToCompareAgainst = env.CHANGE_TARGET ? "origin/${env.CHANGE_TARGET}" : 'HEAD~1'
+                    sh '''
+                        echo "Current commit:"
+                        git rev-parse HEAD
+
+                        echo
+                        echo "Script contents:"
+                        cat scripts/detect-changed-services.sh
+                    '''
                     def detectionScriptOutput = sh(
                         script: "chmod +x scripts/detect-changed-services.sh && ./scripts/detect-changed-services.sh ${commitToCompareAgainst} HEAD",
                         returnStdout: true
                     ).trim()
-
                     env.CHANGED_SERVICE_NAMES = detectionScriptOutput.replaceAll('\n', ',')
                     echo "Services changed in this commit: ${env.CHANGED_SERVICE_NAMES}"
                 }
@@ -110,11 +117,27 @@ pipeline {
             when {
                 allOf {
                     branch 'main'
+                    // expression { env.CHANGED_SERVICE_NAMES?.trim() }
                 }
             }
             steps {
                 unstash 'source-code'
                 sh 'cp /home/jenkins/.env .env'
+
+                // sh '''
+                //     mkdir -p ssl
+                //     cp -r /home/jenkins/ssl/* ssl/ || true
+                // '''
+                // script {
+                //     def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it.trim() }
+
+                //     allChangedServiceNames.each { serviceName ->
+                //         sh """
+                //             IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
+                //             docker compose -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env up -d ${serviceName}
+                //         """
+                //     }
+                // }
                 sh """
                     IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
                     docker compose \
