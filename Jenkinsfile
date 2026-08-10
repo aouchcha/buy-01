@@ -117,9 +117,13 @@ pipeline {
                                         sh 'mvn clean package'
 
                                         junit(
-                                            allowEmptyResults: true,
                                             testResults:
                                                 'target/surefire-reports/*.xml'
+                                        )
+
+                                        stash(
+                                            name: "backend-target-${serviceName}",
+                                            includes: 'target/**'
                                         )
                                     }
                                 }
@@ -149,6 +153,11 @@ pipeline {
                                   -- --watch=false --no-progress
                             '''
 
+                            stash(
+                                name: 'frontend-coverage',
+                                includes: 'coverage/**'
+                            )
+
                             sh '''
                                 npm run build \
                                   -- --configuration production
@@ -161,7 +170,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
 
-            stages {
+            parallel {
 
                 stage('Backend SonarQube Analysis') {
                     agent { label 'backend' }
@@ -205,13 +214,16 @@ pipeline {
 
                                     dir("Backend/${serviceName}") {
 
+                                        unstash "backend-target-${serviceName}"
+
                                         withSonarQubeEnv(
                                             'My SonarQube Server'
                                         ) {
 
                                             sh """
-                                                mvn verify sonar:sonar \
-                                                  -Dsonar.projectKey=buy01-${serviceName}
+                                                mvn sonar:sonar \
+                                                  -Dsonar.projectKey=buy01-${serviceName} \
+                                                  -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
                                             """
                                         }
 
@@ -246,6 +258,8 @@ pipeline {
                         unstash 'source-code'
 
                         dir('marketplace-ui') {
+
+                            unstash 'frontend-coverage'
 
                             withSonarQubeEnv(
                                 'My SonarQube Server'
@@ -315,7 +329,10 @@ pipeline {
             agent { label 'backend' }
 
             when {
-                branch 'main'
+                allOf {
+                    branch 'main'
+                    expression { (env.CHANGED_SERVICE_NAMES ?: '').trim() }
+                }
             }
 
             steps {
@@ -324,21 +341,25 @@ pipeline {
 
                 sh 'cp /home/jenkins/.env .env'
 
-                sh """
-                    IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                    docker compose \
-                      --profile infra \
-                      -f docker-compose.yml \
-                      -f docker-compose.jenkins.yml \
-                      --env-file /home/jenkins/.env \
-                      up -d --no-deps \
-                      discovery \
-                      gateway \
-                      product \
-                      user \
-                      media \
-                      marketplace-ui
-                """
+                script {
+                    def changedServices =
+                        (env.CHANGED_SERVICE_NAMES ?: '')
+                            .split(',')
+                            .collect { it.trim() }
+                            .findAll { it }
+                            .join(' ')
+
+                    sh """
+                        IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
+                        docker compose \
+                          --profile infra \
+                          -f docker-compose.yml \
+                          -f docker-compose.jenkins.yml \
+                          --env-file /home/jenkins/.env \
+                          up -d --no-deps \
+                          ${changedServices}
+                    """
+                }
             }
         }
     }

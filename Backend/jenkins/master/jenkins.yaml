@@ -85,6 +85,14 @@ unclassified:
     url: "${JENKINS_URL}"
     adminAddress: "${SMTP_USERNAME}"
 
+  gitHubPluginConfig:
+    hookUrl: "${JENKINS_URL}github-webhook/"
+    configs:
+      - name: "GitHub"
+        apiUrl: "https://api.github.com"
+        credentialsId: "github-access-token"
+        manageHooks: true
+
   sonarglobalconfiguration:
     buildWrapperEnabled: true
     installations:
