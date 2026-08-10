@@ -73,15 +73,41 @@ unclassified:
     url: "${JENKINS_URL}"
     adminAddress: "${SMTP_USERNAME}"
 
+
 jobs:
-  - script: >
+  - script: |
       multibranchPipelineJob('buy01') {
         branchSources {
-          github {
-            id('buy01-source')
-            repoOwner('aouchcha')
-            repository('buy-01')
-            scanCredentialsId('github-access-token')
+          branchSource {
+            source {
+              github {
+                id('buy01-source')
+                repoOwner('aouchcha')
+                repository('buy-01')
+                // repositoryUrl + configuredByUrl are BOTH required: they are
+                // parameters of GitHubSCMSource's @DataBoundConstructor, so Job DSL
+                // refuses to build the source without them. configuredByUrl(false)
+                // means "use repoOwner/repository above", not the URL.
+                repositoryUrl('https://github.com/aouchcha/buy-01')
+                configuredByUrl(false)
+                credentialsId('github-access-token')
+                traits {
+                  // Discover all branches, then narrow down to just "main" below.
+                  gitHubBranchDiscovery {
+                    strategyId(3)
+                  }
+                  // Build PRs by merging the PR head with the current target branch.
+                  gitHubPullRequestDiscovery {
+                    strategyId(1)
+                  }
+                  // Keep only the "main" branch and PR heads (e.g. "PR-42");
+                  // all other feature branches are excluded from indexing/build.
+                  headRegexFilter {
+                    regex('^(main|PR-\\d+)$')
+                  }
+                }
+              }
+            }
           }
         }
         orphanedItemStrategy {
