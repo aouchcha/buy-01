@@ -8,7 +8,12 @@ set -eu
 # every `docker compose up` (see docker-compose.jenkins.yml); safe to run
 # repeatedly since it checks for the webhook before creating it.
 # ============================================================================
-c
+
+: "${SONAR_HOST_URL:?SONAR_HOST_URL is required}"
+: "${SONARQUBE_ADMIN_TOKEN:?SONARQUBE_ADMIN_TOKEN is required}"
+: "${JENKINS_URL:?JENKINS_URL is required}"
+: "${SONARQUBE_WEBHOOK_SECRET:?SONARQUBE_WEBHOOK_SECRET is required}"
+
 WEBHOOK_NAME="jenkins-buy01"
 WEBHOOK_URL="${JENKINS_URL%/}/sonarqube-webhook/"
 

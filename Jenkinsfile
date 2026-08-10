@@ -112,7 +112,11 @@ pipeline {
 
                                     dir("Backend/${serviceName}") {
 
-                                        sh 'mvn clean package'
+                                        // 'verify' (not 'package') so the JaCoCo report
+                                        // execution — bound to its default 'verify' phase —
+                                        // actually runs and target/site/jacoco/jacoco.xml
+                                        // exists before it gets stashed below.
+                                        sh 'mvn clean verify'
 
                                         junit(
                                             testResults:
@@ -148,7 +152,7 @@ pipeline {
 
                             sh '''
                                 npm test \
-                                  -- --watch=false --no-progress
+                                  -- --no-watch --no-progress
                             '''
 
                             stash(

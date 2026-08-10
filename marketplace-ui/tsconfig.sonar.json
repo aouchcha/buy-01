@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "es2022",
+    "moduleResolution": "bundler",
+    "outDir": "./out-tsc/sonar",
+    "types": ["vitest/globals"]
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}
