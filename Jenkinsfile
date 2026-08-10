@@ -120,6 +120,7 @@ pipeline {
                     // expression { env.CHANGED_SERVICE_NAMES?.trim() }
                 }
             }
+            
             steps {
                 unstash 'source-code'
                 sh 'cp /home/jenkins/.env .env'
