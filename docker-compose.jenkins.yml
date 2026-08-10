@@ -114,7 +114,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
       - buy01-network
-    
+
   jenkins-master:
     build: ./Backend/jenkins/master
     profiles:
@@ -130,7 +130,7 @@ services:
     networks:
       - buy01-network
     volumes:
-      - jenkins_home:/var/jenkins_home # Persistent Jenkins data
+      - jenkins_home:/var/jenkins_home
       - /run/user/${USER_ID}/docker.sock:/var/run/docker.sock
 
   backend-slave:
@@ -175,6 +175,53 @@ services:
     networks:
       - buy01-network
 
+  sonarqube-db:
+    image: postgres:17
+    profiles:
+      - infra
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${SONARQUBE_DB_NAME}
+      POSTGRES_USER: ${SONARQUBE_DB_USERNAME}
+      POSTGRES_PASSWORD: ${SONARQUBE_DB_PASSWORD}
+    volumes:
+      - sonarqube_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - buy01-network
+
+  sonarqube:
+    image: sonarqube:lts-community
+    profiles:
+      - infra
+    restart: unless-stopped
+    depends_on:
+      sonarqube-db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+      SONAR_JDBC_URL: jdbc:postgresql://sonarqube-db:5432/${SONARQUBE_DB_NAME}
+      SONAR_JDBC_USERNAME: ${SONARQUBE_DB_USERNAME}
+      SONAR_JDBC_PASSWORD: ${SONARQUBE_DB_PASSWORD}
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    networks:
+      - buy01-network
+
 networks:
   buy01-network:
     driver: bridge
@@ -184,3 +231,7 @@ volumes:
   products_mongo_data:
   media_mongo_data:
   jenkins_home:
+  sonarqube_db_data:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:

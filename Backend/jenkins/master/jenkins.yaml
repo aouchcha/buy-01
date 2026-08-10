@@ -1,12 +1,14 @@
 jenkins:
   systemMessage: "Jenkins controller — configured entirely as code"
-  numExecutors: 0        # the controller does no building itself; all work goes to agents
+  numExecutors: 0
+
   securityRealm:
     local:
       allowsSignup: false
       users:
         - id: "${JENKINS_ADMIN_USERNAME}"
           password: "${JENKINS_ADMIN_PASSWORD}"
+
   authorizationStrategy:
     globalMatrix:
       permissions:
@@ -41,22 +43,32 @@ credentials:
   system:
     domainCredentials:
       - credentials:
+
           - usernamePassword:
               scope: GLOBAL
               id: "github-access-token"
               username: "${GITHUB_USERNAME}"
               password: "${GITHUB_TOKEN}"
               description: "GitHub token used to check out code and report build status"
+
           - usernamePassword:
               scope: GLOBAL
               id: "smtp-credentials"
               username: "${SMTP_USERNAME}"
               password: "${SMTP_PASSWORD}"
               description: "SMTP login used by Jenkins to send build notification emails"
-          # - string:
-          #     scope: GLOBAL
-          #     id: "notification-email"
-          #     secret: "${SMTP_USERNAME}"
+
+          - string:
+              scope: GLOBAL
+              id: "sonarqube-token"
+              secret: "${SONARQUBE_TOKEN}"
+              description: "SonarQube authentication token"
+
+          - string:
+              scope: GLOBAL
+              id: "sonarqube-webhook-secret"
+              secret: "${SONARQUBE_WEBHOOK_SECRET}"
+              description: "SonarQube webhook verification secret"
 
 unclassified:
   mailer:
@@ -72,6 +84,14 @@ unclassified:
   location:
     url: "${JENKINS_URL}"
     adminAddress: "${SMTP_USERNAME}"
+
+  sonarglobalconfiguration:
+    buildWrapperEnabled: true
+    installations:
+      - name: "My SonarQube Server"
+        serverUrl: "http://sonarqube:9000"
+        credentialsId: "sonarqube-token"
+        webhookSecretId: "sonarqube-webhook-secret"
 
 jobs:
   - script: >
@@ -91,7 +111,7 @@ jobs:
         }
         triggers {
           periodicFolderTrigger {
-            interval('1440')   // once-a-day safety-net poll; the webhook handles real-time triggers
+            interval('1440')
           }
         }
       }
