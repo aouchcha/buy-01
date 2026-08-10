@@ -61,9 +61,7 @@ pipeline {
                             .findAll { it }
                             .join(',')
 
-                    echo "Changed services: ${
-                        env.CHANGED_SERVICE_NAMES ?: 'none'
-                    }"
+                    echo "Changed services: ${env.CHANGED_SERVICE_NAMES ?: 'none'}"
                 }
             }
         }
