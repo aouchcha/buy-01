@@ -14,7 +14,7 @@ cd "$(dirname "$0")/.."
 # scriptText API, and only recycles the stack if something actually changed.
 # ============================================================================
 
-COMPOSE=(docker compose --profile infra -f docker-compose.yml -f docker-compose.jenkins.yml)
+COMPOSE=(docker compose --profile infra  -f docker-compose.jenkins.yml)
 ENV_FILE=".env"
 
 echo "==> Starting the infra stack..."
