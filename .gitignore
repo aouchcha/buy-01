@@ -1,5 +1,9 @@
 .vscode/
-.env
+# Every .env variant (.env, .env.bak, .env.local, ...) — only the committed
+# template is allowed through, so a stray backup of the real secrets cannot be
+# added by accident.
+.env*
+!.env.example
 .github/
 tree.txt
 # Claude Code local tooling (agent worktrees, not part of the app)

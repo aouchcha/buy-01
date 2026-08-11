@@ -62,25 +62,50 @@ restarts the stack if a secret actually changed.
 | Jenkins   | `${JENKINS_URL}` (default http://localhost:8080) | `JENKINS_ADMIN_USERNAME` / `JENKINS_ADMIN_PASSWORD` from `.env` |
 | SonarQube | http://localhost:9000      | `admin` / `admin` on first boot (forces a password change) |
 
-## 5. First-time SonarQube bootstrap (one-off, manual)
+## 5. First-time SonarQube bootstrap (one-off)
 
-SonarQube can't be fully bootstrapped from code — two tokens have to be
-generated from its UI the first time:
+SonarQube can't be fully bootstrapped from code: its admin password is set
+interactively on first login, and the two tokens the pipeline needs can only be
+minted once that password exists.
 
-1. Log into http://localhost:9000, change the default admin password.
-2. **Admin token** (Administration → Security → Users → Tokens, user needs
-   "Administer System"): paste it into `.env` as `SONARQUBE_ADMIN_TOKEN`.
-   Used only by `scripts/provision-sonar-webhook.sh`, which then runs
-   automatically on every `docker compose up` to register the Jenkins
-   webhook — no manual webhook setup needed after this.
-3. **Analysis token** (same Tokens page, can be a more restricted user):
-   paste it into `.env` as `SONARQUBE_TOKEN`. Used by the Jenkinsfile to run
-   the actual scans. This token's user needs "Execute Analysis" rights (and
-   "Create Projects" the first time a project like `buy01-frontend` is
-   scanned) — if a build fails with `You're not authorized to run analysis`,
-   this is the token/permission to check first.
-4. Re-run `./scripts/run.sh` (or restart just the provisioner:
+1. Log into http://localhost:9000 and change the default admin password. Put it
+   in `.env` as `SONARQUBE_ADMIN_PASSWORD`.
+2. Run `./scripts/provision-sonar-tokens.sh`. It mints both tokens with the
+   correct **Type** and writes them into `.env`, keeping the previous values in
+   `.env.bak`. If `SONARQUBE_ADMIN_PASSWORD` is blank it prompts instead.
+3. Re-run `./scripts/run.sh` (or restart just the provisioner:
    `docker compose --profile infra -f docker-compose.yml -f docker-compose.jenkins.yml up -d sonarqube-webhook-provisioner`).
+
+### Why the token Type matters
+
+The Type of each token matters more than its permissions, and getting it wrong
+is the most common way to break this pipeline:
+
+| `.env` key | Type | Why that Type |
+|---|---|---|
+| `SONARQUBE_TOKEN` | **Global Analysis Token** | The pipeline analyses one project per service (`buy01-discovery`, `buy01-gateway`, `buy01-media`, `buy01-product`, `buy01-user`, `buy01-frontend`) and auto-provisions them on first scan. A *Project* Analysis Token is bound to a single key, so every other key fails with `You're not authorized to run analysis`. |
+| `SONARQUBE_ADMIN_TOKEN` | **User Token** on an admin | `scripts/provision-sonar-webhook.sh` calls `/api/webhooks/*`, which rejects *any* analysis token with `403 Insufficient privileges`. |
+
+> Do **not** use the token from the project dashboard's "Provide a token /
+> Run analysis" wizard for `SONARQUBE_TOKEN`. That wizard issues a *Project*
+> Analysis Token scoped to the one project you opened it from.
+
+To mint them by hand instead: Administration → Security → Users → (admin) →
+Tokens, and pick the Type from the dropdown.
+
+Two more things this stack needs, both easy to lose:
+
+- **`.env` must be mode `0644`**, not `0600`. Docker runs rootless here, so the
+  host uid owning `.env` maps to uid 0 inside the agents while the agent process
+  is uid 1000 — it matches only the "other" permission bits. At `0600` the build
+  and deploy stages die with `open /home/jenkins/.env: permission denied`.
+  Confidentiality still comes from `/home/<user>` being `0700`.
+- **Exactly one SonarQube webhook.** `provision-sonar-webhook.sh` owns the one
+  named `jenkins-buy01` and keeps its secret in step with
+  `SONARQUBE_WEBHOOK_SECRET`. A second webhook hitting the same Jenkins URL with
+  a different secret aborts the build outright — the Sonar plugin treats a failed
+  HMAC check as fatal, not as something to skip: `Pipeline aborted due to failed
+  webhook verification`. Delete any webhook you added by hand.
 
 ## 6. Stop everything
 

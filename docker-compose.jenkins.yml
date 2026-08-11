@@ -147,8 +147,21 @@ services:
       JENKINS_URL: http://jenkins-master:8080
       JENKINS_AGENT_NAME: backend-slave
       JENKINS_SECRET: ${BACKEND_SLAVE_SECRET}
+      # Overrides the host-oriented SONAR_HOST_URL that env_file pulls in from .env.
+      # That value (localhost:9000) is only correct from the Docker host; inside this
+      # container SonarQube is reachable as `sonarqube`. withSonarQubeEnv() masks the
+      # difference inside its own block, so a wrong value here fails only the sonar
+      # commands that run outside it — set it correctly rather than rely on that.
+      SONAR_HOST_URL: http://sonarqube:9000
     volumes:
       - /run/user/${USER_ID}/docker.sock:/var/run/docker.sock
+      # .env must be mode 0644 on the host, not 0600. Docker here is rootless,
+      # so the host uid owning .env maps to uid 0 inside the container while the
+      # agent runs as uid 1000 — it therefore matches only the "other" bits, and
+      # 0600 makes this file unreadable. The pipeline needs it for
+      # `docker compose --env-file` and for the deploy stage's workspace copy,
+      # which fail with "open /home/jenkins/.env: permission denied".
+      # Confidentiality still rests on /home/<user> being 0700, not on this mode.
       - ./.env:/home/jenkins/.env
     group_add:
       - "999"
@@ -168,8 +181,12 @@ services:
       JENKINS_URL: http://jenkins-master:8080
       JENKINS_AGENT_NAME: frontend-slave
       JENKINS_SECRET: ${FRONTEND_SLAVE_SECRET}
+      # See the note on backend-slave: .env's SONAR_HOST_URL points at localhost,
+      # which resolves to this container rather than to SonarQube.
+      SONAR_HOST_URL: http://sonarqube:9000
     volumes:
       - /run/user/${USER_ID}/docker.sock:/var/run/docker.sock
+      # Same 0644 requirement as backend-slave — see the note there.
       - ./.env:/home/jenkins/.env
     group_add:
       - "999"
@@ -248,6 +265,12 @@ services:
       - .env
     environment:
       SONAR_HOST_URL: http://sonarqube:9000
+      # The webhook URL is the address SonarQube itself will POST to, so it must be
+      # resolvable from the sonarqube container — not the browser-facing JENKINS_URL
+      # in .env, whose `localhost` would point SonarQube back at itself. Overridden
+      # here rather than in .env because JENKINS_URL is also consumed by the JCasC
+      # `location.url` and the GitHub hookUrl, which do need the external address.
+      JENKINS_URL: http://jenkins-master:8080/
     volumes:
       - ./scripts/provision-sonar-webhook.sh:/provision.sh:ro
     entrypoint: ["/bin/sh", "/provision.sh"]

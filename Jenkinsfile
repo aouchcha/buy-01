@@ -222,8 +222,24 @@ pipeline {
                                             'My SonarQube Server'
                                         ) {
 
+                                            // Fully-qualified plugin coordinate rather than the
+                                            // `sonar:sonar` prefix: that prefix resolves through
+                                            // the org.sonarsource.scanner.maven plugin group,
+                                            // which Maven does not search unless a settings.xml
+                                            // declares it in <pluginGroups> — so the short form
+                                            // dies with "No plugin found for prefix 'sonar'".
+                                            //
+                                            // Pinned to the last 3.x on purpose: 5.x bootstraps
+                                            // the new Scanner Engine, which requires a SonarQube
+                                            // newer than the 9.9 LTS this project runs.
+                                            //
+                                            // sonar.login, not sonar.token: sonar.token makes the
+                                            // scanner authenticate with a Bearer header, which
+                                            // SonarQube 9.9 rejects with "Not authorized".
                                             sh """
-                                                mvn sonar:sonar \
+                                                mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.11.0.3922:sonar \
+                                                  -Dsonar.host.url=\$SONAR_HOST_URL \
+                                                  -Dsonar.login=\$SONAR_AUTH_TOKEN \
                                                   -Dsonar.projectKey=buy01-${serviceName} \
                                                   -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
                                             """
@@ -267,10 +283,15 @@ pipeline {
                                 'My SonarQube Server'
                             ) {
 
+                                // sonar.login, not sonar.token: the scanner CLI this wrapper
+                                // provisions sends sonar.token as an `Authorization: Bearer`
+                                // header, which the 9.9 LTS server answers with 401
+                                // "Not authorized". sonar.login sends it as basic auth, which
+                                // 9.9 does accept.
                                 sh '''
                                     npx --yes @sonar/scan@4.3.8 \
                                       -Dsonar.host.url="$SONAR_HOST_URL" \
-                                      -Dsonar.token="$SONAR_AUTH_TOKEN" \
+                                      -Dsonar.login="$SONAR_AUTH_TOKEN" \
                                       -Dsonar.projectKey=buy01-frontend
                                 '''
                             }
