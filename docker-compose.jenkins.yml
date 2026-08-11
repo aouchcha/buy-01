@@ -191,7 +191,7 @@ services:
       - buy01-network
 
   sonarqube:
-    image: sonarqube:lts-community
+    image: sonarqube:latest
     profiles:
       - infra
     depends_on:

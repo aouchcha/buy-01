@@ -1,5 +1,7 @@
 .vscode/
 .env
+.env.bak
+tree.md
 .github/
 tree.txt
 # Claude Code local tooling (agent worktrees, not part of the app)

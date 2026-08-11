@@ -52,7 +52,7 @@ export class MediaManagement implements OnInit {
       id: m.id,
       url: m.url,
       productId: m.productId ?? '',
-      productName: productMap.get(m.productId ?? '') ?? 'Unknown product',
+      productName: productMap.get(m.productId ?? '') ?? 'Profile Image',
     }));
   });
 

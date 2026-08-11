@@ -1,8 +1,6 @@
 package buy01.gateway.Config;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
-import java.util.UUID;
-
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
