@@ -1,0 +1,7 @@
+// marketplace-ui/tsconfig.sonar.json
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "esnext"
+  }
+}

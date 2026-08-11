@@ -116,10 +116,19 @@ pipeline {
                             def changedBackendServiceNames = allChangedServiceNames.findAll {
                                 it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user'
                             }
-
-                            changedBackendServiceNames.each { serviceName ->
-                                dir("Backend/${serviceName}") {
-                                    sh 'mvn sonar:sonar'
+                            withSonarQubeEnv('sonarqube-server') {
+                                // sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar -Dsonar.projectKey=buy01-backend'
+                                changedBackendServiceNames.each { serviceName ->
+                                    dir("Backend/${serviceName}") {
+                                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                                            sh """
+                                                   mvn clean verify sonar:sonar \
+                                                   -Dsonar.projectKey=buy01 \
+                                                   -Dsonar.host.url=${env.SONAR_HOST_URL ?: 'http://localhost:9001'} \
+                                                   -Dsonar.login=${SONAR_TOKEN}
+                                            """
+                                        }
+                                    }
                                 }
                             }
                         }
