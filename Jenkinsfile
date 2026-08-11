@@ -94,6 +94,98 @@ pipeline {
             }
         }
 
+        stage('Static Code Analysis') {
+            when { expression { env.CHANGED_SERVICE_NAMES?.trim() } }
+
+            parallel {
+                stage('Backend SonarQube Analysis') {
+                    agent { label 'backend' }
+                    when {
+                        expression {
+                            env.CHANGED_SERVICE_NAMES.contains('discovery') ||
+                            env.CHANGED_SERVICE_NAMES.contains('gateway') ||
+                            env.CHANGED_SERVICE_NAMES.contains('media') ||
+                            env.CHANGED_SERVICE_NAMES.contains('product') ||
+                            env.CHANGED_SERVICE_NAMES.contains('user')
+                        }
+                    }
+                    steps {
+                        unstash 'source-code'
+                        script {
+                            def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
+                            def changedBackendServiceNames = allChangedServiceNames.findAll {
+                                it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user'
+                            }
+
+                            changedBackendServiceNames.each { serviceName ->
+                                dir("Backend/${serviceName}") {
+                                    sh 'mvn sonar:sonar'
+                                }
+                            }
+                        }
+                    }
+                }
+
+                stage('Frontend SonarQube Analysis') {
+                    agent { label 'frontend' }
+                    when {
+                        expression { env.CHANGED_SERVICE_NAMES.contains('marketplace-ui') }
+                    }
+                    steps {
+                        unstash 'source-code'
+                        withSonarQubeEnv('sonarqube-server') {
+                            dir('marketplace-ui') {
+                                sh 'sonar-scanner'
+                            }
+                        }
+                    }
+                }
+            }
+
+            // steps {
+            //     script {
+            //         def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it?.trim() }
+            //         def backendServiceNames = allChangedServiceNames.findAll {
+            //             it == 'discovery' || it == 'gateway' || it == 'user' || it == 'media' || it == 'product'
+            //         }
+            //         def frontendChanged = allChangedServiceNames.contains('marketplace-ui')
+                    
+            //         if (backendServiceNames) {
+            //             node('backend') {
+            //                 unstash 'source-code'
+            //                 withSonarQubeEnv('sonarqube-server') {
+            //                     backendServiceNames.each { serviceName ->
+            //                         dir("Backend/${serviceName}") {
+            //                             sh 'mvn sonar:sonar'
+            //                         }
+            //                     }
+            //                 }
+            //             }
+            //         }
+
+            //         if (frontendChanged) {
+            //             node('frontend') {
+            //                 unstash 'source-code'
+            //                 withSonarQubeEnv('sonarqube-server') {
+            //                     dir('marketplace-ui') {
+            //                         sh 'sonar-scanner'
+            //                     }
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
+        }
+
+        stage('Quality Gate') {
+            when { expression { env.CHANGED_SERVICE_NAMES?.trim() } }
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
         stage('Build Docker Images') {
             agent { label 'backend' }
             when { expression { env.CHANGED_SERVICE_NAMES?.trim() } }
@@ -120,7 +212,7 @@ pipeline {
                     // expression { env.CHANGED_SERVICE_NAMES?.trim() }
                 }
             }
-            
+
             steps {
                 unstash 'source-code'
                 sh 'cp /home/jenkins/.env .env'

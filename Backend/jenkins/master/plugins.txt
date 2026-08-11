@@ -9,3 +9,4 @@ junit:latest
 mailer:latest
 matrix-auth:latest
 job-dsl:latest
+sonar:latest

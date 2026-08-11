@@ -53,6 +53,11 @@ credentials:
               username: "${SMTP_USERNAME}"
               password: "${SMTP_PASSWORD}"
               description: "SMTP login used by Jenkins to send build notification emails"
+          - string:
+              scope: GLOBAL
+              id: "sonarqube-token"
+              secret: "${SONARQUBE_TOKEN}"
+              description: "SonarQube analysis token"
           # - string:
           #     scope: GLOBAL
           #     id: "notification-email"
@@ -73,6 +78,12 @@ unclassified:
     url: "${JENKINS_URL}"
     adminAddress: "${SMTP_USERNAME}"
 
+  sonarGlobalConfiguration:
+    buildWrapperEnabled: false
+    installations:
+      - name: "sonarqube-server"
+        serverUrl: "http://sonarqube:9000"
+        credentialsId: "sonarqube-token"
 
 jobs:
   - script: |

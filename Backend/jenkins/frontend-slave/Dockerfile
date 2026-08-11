@@ -12,5 +12,6 @@ RUN apt-get update && apt-get install -y curl ca-certificates gnupg && \
     apt-get update && apt-get install -y docker-ce-cli docker-compose-plugin && \
     rm -rf /var/lib/apt/lists/* && \
     chown -R jenkins:jenkins /home/jenkins
+RUN npm install -g sonar-scanner
     
 USER jenkins
