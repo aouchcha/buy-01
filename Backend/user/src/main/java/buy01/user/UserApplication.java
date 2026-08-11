@@ -1,5 +1,6 @@
 package buy01.user;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -16,9 +17,11 @@ import buy01.user.repository.userRepository;
 public class UserApplication {
 
 	private final userRepository userRepository;
+	private final String adminPass;
 
-	public UserApplication(userRepository userRepository) {
+	public UserApplication(userRepository userRepository, @Value("${adminPassword}") String adminPass) {
 		this.userRepository = userRepository;
+		this.adminPass = adminPass;
 	}
 
 	public static void main(String[] args) {
@@ -33,7 +36,7 @@ public class UserApplication {
 			admin.setEmail("admin@gmail.com");
 			admin.setFirstName("admin");
 			admin.setLastName("admin");
-			admin.setPassword(BCrypt.hashpw("Admin123", BCrypt.gensalt(12)));
+			admin.setPassword(BCrypt.hashpw(adminPass, BCrypt.gensalt(12)));
 			admin.setRole(Roles.ADMIN.toString());
 			admin.setProfilePictureUrl(null);
 			userRepository.save(admin);
