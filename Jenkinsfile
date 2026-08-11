@@ -120,7 +120,7 @@ pipeline {
                                 // sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar -Dsonar.projectKey=buy01-backend'
                                 changedBackendServiceNames.each { serviceName ->
                                     dir("Backend/${serviceName}") {
-                                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                                        withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
                                             sh """
                                                    mvn clean verify sonar:sonar \
                                                    -Dsonar.projectKey=buy01 \
