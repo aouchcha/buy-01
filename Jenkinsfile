@@ -122,9 +122,10 @@ pipeline {
                                     dir("Backend/${serviceName}") {
                                         withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
                                             sh """
-                                                   mvn clean verify sonar:sonar \
-                                                   -Dsonar.projectKey=buy01 \
-                                                   -Dsonar.host.url=${env.SONAR_HOST_URL ?: 'http://localhost:9001'} \
+                            
+                                                   echo "Running SonarQube analysis for service: ${serviceName}"
+                                                   mvn sonar:sonar \
+                                                   -Dsonar.projectKey=buy01-${serviceName} \
                                                    -Dsonar.login=${SONAR_TOKEN}
                                             """
                                         }
