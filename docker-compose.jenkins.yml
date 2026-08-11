@@ -175,6 +175,42 @@ services:
     networks:
       - buy01-network
 
+  sonarqube-db:
+    image: postgres:17
+    profiles:
+      - infra
+    environment:
+      - POSTGRES_USER=${SONARQUBE_DB_USERNAME}
+      - POSTGRES_PASSWORD=${SONARQUBE_DB_PASSWORD}
+      - POSTGRES_DB=${SONARQUBE_DB_NAME}
+    volumes:
+      - sonarqube_db_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    networks:
+      - buy01-network
+
+  sonarqube:
+    image: sonarqube:lts-community
+    profiles:
+      - infra
+    depends_on:
+      - sonarqube-db
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+      - SONAR_JDBC_URL=${SONARQUBE_DB_URI}
+      - SONAR_JDBC_USERNAME=${SONARQUBE_DB_USERNAME}
+      - SONAR_JDBC_PASSWORD=${SONARQUBE_DB_PASSWORD}
+    restart: unless-stopped
+    ports:
+      - "9001:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_extensions:/opt/sonarqube/extensions
+    networks:
+      - buy01-network
+
 networks:
   buy01-network:
     driver: bridge
@@ -184,3 +220,7 @@ volumes:
   products_mongo_data:
   media_mongo_data:
   jenkins_home:
+  sonarqube_db_data:
+  sonarqube_data:
+  sonarqube_logs:
+  sonarqube_extensions:

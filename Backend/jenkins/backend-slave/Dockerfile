@@ -1,5 +1,5 @@
 FROM jenkins/inbound-agent:latest-jdk21
-
+ 
 USER root
 RUN apt-get update && apt-get install -y \
     maven ca-certificates curl gnupg lsb-release && \
@@ -9,6 +9,10 @@ RUN apt-get update && apt-get install -y \
     > /etc/apt/sources.list.d/docker.list && \
     apt-get update && apt-get install -y docker-ce-cli docker-compose-plugin && \
     rm -rf /var/lib/apt/lists/* && \
-    chown -R jenkins:jenkins /home/jenkins
-    
+    mkdir -p /home/jenkins/.m2
+ 
+COPY --chown=jenkins:jenkins settings.xml /home/jenkins/.m2/settings.xml
+ 
+RUN chown -R jenkins:jenkins /home/jenkins
+ 
 USER jenkins
