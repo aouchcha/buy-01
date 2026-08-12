@@ -1,745 +1,317 @@
-# buy-01
-# 🛒 Buy01 — E-Commerce Microservices Platform
+# buy-01 — E-Commerce Microservices Platform
 
-> A full-stack marketplace built with **Spring Boot microservices** on the backend and **Angular** on the frontend. Sellers manage their product catalog and media; clients browse and discover products.
+An end-to-end e-commerce marketplace built with **Spring Boot microservices** on the backend and **Angular** on the frontend. Clients browse products; sellers manage their own catalog and product images. The platform is fully containerized and ships with a **Jenkins CI/CD pipeline** and **SonarQube** static analysis integration.
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents
 
-- [Overview](#overview)
 - [Architecture](#architecture)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
-- [Microservices & API Reference](#microservices--api-reference)
-  - [API Gateway](#api-gateway)
-  - [User Service](#user-service)
-  - [Product Service](#product-service)
-  - [Media Service](#media-service)
-- [Frontend — Angular SPA](#frontend--angular-spa)
-- [Authentication & Authorization](#authentication--authorization)
-- [Database Design](#database-design)
-- [Security Measures](#security-measures)
-- [Error Handling](#error-handling)
-- [Kafka Events (Optional)](#kafka-events-optional)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Running with Docker Compose](#running-with-docker-compose)
-  - [Running Services Individually](#running-services-individually)
+- [Prerequisites](#prerequisites)
 - [Environment Variables](#environment-variables)
-- [Health Checks](#health-checks)
-- [Folder Structure](#folder-structure)
-
----
-
-## Overview
-
-**Buy01** is an end-to-end e-commerce platform composed of independently deployable services. Users register as either **Clients** (browse products) or **Sellers** (manage their catalog and media). The platform enforces strict ownership, role-based access control, and secure file handling throughout.
-
-### User Roles
-
-| Role | Capabilities |
-|------|-------------|
-| `CLIENT` | Browse and view products |
-| `SELLER` | Create, update, delete own products; upload/manage images; update profile/avatar |
-| `ADMIN` *(optional)* | Moderation and platform-level oversight |
+- [Running Locally](#running-locally)
+- [API Overview](#api-overview)
+- [Security](#security)
+- [Testing](#testing)
+- [CI/CD Pipeline (Jenkins)](#cicd-pipeline-jenkins)
+- [Static Code Analysis (SonarQube)](#static-code-analysis-sonarqube)
+- [Deployment & Rollback](#deployment--rollback)
+- [Notifications](#notifications)
+- [Scripts](#scripts)
 
 ---
 
 ## Architecture
 
+The system is composed of independently deployable Spring Boot services fronted by a gateway, plus an Angular single-page application:
+
 ```
-                        ┌─────────────────────────────────┐
-                        │         Angular Frontend         │
-                        │  (SPA — Auth, Dashboard, Store)  │
-                        └────────────────┬────────────────┘
-                                         │ HTTPS
-                        ┌────────────────▼────────────────┐
-                        │           API Gateway            │
-                        │  (CORS, Auth Propagation,        │
-                        │   Rate Limiting, Routing)        │
-                        └──┬──────────┬──────────┬────────┘
-                           │          │           │
-              ┌────────────▼──┐  ┌────▼──────┐  ┌▼────────────┐
-              │  User Service  │  │ Product   │  │   Media     │
-              │  (Auth/Profile)│  │ Service   │  │  Service    │
-              └───────┬────────┘  └────┬──────┘  └──────┬──────┘
-                      │               │                  │
-              ┌───────▼───────────────▼──────────────────▼──────┐
-              │                   MongoDB                         │
-              │       (users / products / media metadata)        │
-              └──────────────────────────────────────────────────┘
-                      │               │                  │
-              ┌───────▼───────────────▼──────────────────▼──────┐
-              │               Kafka (optional)                    │
-              │    PRODUCT_CREATED | IMAGE_UPLOADED events        │
-              └──────────────────────────────────────────────────┘
+                        ┌───────────────────┐
+                        │   marketplace-ui   │  (Angular SPA, Nginx, HTTPS)
+                        └─────────┬──────────┘
+                                  │
+                        ┌─────────▼──────────┐
+                        │      gateway        │  (Spring Cloud Gateway, JWT, CORS)
+                        └─────────┬──────────┘
+                                  │
+              ┌───────────────────┼───────────────────┐
+              │                   │                   │
+        ┌─────▼─────┐      ┌──────▼──────┐      ┌─────▼─────┐
+        │   user    │      │   product    │      │   media    │
+        │  service  │      │   service    │      │  service   │
+        └─────┬─────┘      └──────┬──────┘      └─────┬─────┘
+              │                   │                   │
+        ┌─────▼─────┐      ┌──────▼──────┐      ┌─────▼─────┐
+        │users-mongo│      │products-mongo│      │media-mongo │
+        └───────────┘      └─────────────┘      └───────────┘
+
+                   ┌───────────────────────┐
+                   │      discovery         │  (Eureka service registry)
+                   └───────────────────────┘
+
+                   ┌───────────────────────┐
+                   │  Kafka + Zookeeper     │  (async events between services)
+                   └───────────────────────┘
 ```
 
-**Service Discovery** (Eureka or similar) registers all services; the Gateway resolves routes dynamically.
+- **discovery** — Eureka server for service registration and discovery.
+- **gateway** — Single entry point; routes external traffic, applies CORS, JWT propagation, and cross-cutting filters.
+- **user** — Authentication (register/login), profiles, roles (`CLIENT`, `SELLER`).
+- **product** — Product CRUD, ownership enforcement, consumes media events to attach `imageUrls`.
+- **media** — Image upload/download via Cloudflare R2 object storage, MIME/size validation (≤ 2 MB).
+- **marketplace-ui** — Angular SPA with route guards, HTTP interceptors, and reactive forms.
+- **Kafka** — Backbone for asynchronous events (e.g. product/media/user lifecycle events) so services stay decoupled.
+- Each service maintains its **own MongoDB database** (database-per-service), and exposes `/actuator/health` for observability.
 
 ---
 
 ## Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
-| Backend | Spring Boot 3.x, Spring Security, Spring Cloud Gateway |
-| Auth | JWT (or OAuth2) |
-| Database | MongoDB |
-| Messaging | Apache Kafka *(optional)* |
-| Service Discovery | Eureka (Spring Cloud Netflix) |
-| Frontend | Angular 17+, Angular Material / Bootstrap |
-| File Storage | Object storage (e.g., MinIO, AWS S3, or local disk) |
+|---|---|
+| Backend | Java, Spring Boot, Spring Cloud Gateway, Spring Security, Spring Data MongoDB |
+| Service Discovery | Netflix Eureka |
+| Messaging | Apache Kafka + Zookeeper |
+| Database | MongoDB (one instance per service) |
+| Object Storage | Cloudflare R2 (S3-compatible) for media files |
+| Frontend | Angular (standalone components, signals, Reactive Forms) |
+| Auth | JWT, propagated from Gateway to downstream services |
 | Containerization | Docker, Docker Compose |
-| HTTPS | Let's Encrypt / self-signed for local dev |
+| CI/CD | Jenkins (declarative pipeline, distributed backend/frontend agents) |
+| Code Quality | SonarQube |
+| Web Server (frontend) | Nginx, self-signed TLS for local HTTPS |
 
 ---
 
 ## Project Structure
 
 ```
-buy01/
-├── api-gateway/              # Spring Cloud Gateway
-├── discovery-service/        # Eureka Service Registry
-├── user-service/             # Auth, profiles, roles
-├── product-service/          # Product CRUD
-├── media-service/            # Image upload/download
-├── frontend/                 # Angular SPA
-├── docker-compose.yml
-└── README.md
+buy-01
+├── Backend
+│   ├── discovery/        # Eureka service registry
+│   ├── gateway/           # API Gateway, JWT filter, security config
+│   ├── user/               # Auth, profiles, roles
+│   ├── product/           # Product CRUD, ownership checks
+│   ├── media/               # Image upload/validation, R2 storage
+│   └── jenkins/            # Jenkins master + backend/frontend agent images
+├── marketplace-ui/         # Angular SPA
+├── scripts/                 # Helper shell scripts (see Scripts section)
+├── docker-compose.yml        # Application services
+├── docker-compose.jenkins.yml # Infra: Mongo, Kafka, Jenkins, SonarQube
+└── Jenkinsfile              # CI/CD pipeline definition
 ```
 
 ---
 
-## Microservices & API Reference
-
-### API Gateway
-
-**Base URL:** `https://<host>/`
-
-The Gateway is the single entry point for all external traffic. It handles:
-
-- **Routing** requests to the appropriate downstream service
-- **JWT validation** and propagation of auth headers
-- **CORS** policy enforcement
-- **Rate limiting** *(optional)* on auth and media endpoints
-
-| Route Prefix | Forwarded To |
-|--------------|-------------|
-| `/auth/**` | User Service |
-| `/api/users/**` | User Service |
-| `/api/products/**` | Product Service |
-| `/api/media/**` | Media Service |
-| `/actuator/**` | Each respective service |
-
----
-
-### User Service
-
-**Base path:** `/` (routed via gateway to user-service)
-
-Handles registration, login, JWT issuance, and user profile management.
-
-#### Auth Endpoints
-
-| Method | Endpoint | Auth Required | Role | Description |
-|--------|----------|:---:|------|-------------|
-| `POST` | `/auth/register` | ❌ | — | Register as CLIENT or SELLER |
-| `POST` | `/auth/login` | ❌ | — | Login, returns JWT token |
-
-**`POST /auth/register` — Request Body**
-```json
-{
-  "username": "string",
-  "email": "string",
-  "password": "string",
-  "role": "CLIENT | SELLER"
-}
-```
-
-**`POST /auth/login` — Request Body**
-```json
-{
-  "email": "string",
-  "password": "string"
-}
-```
-
-**`POST /auth/login` — Response**
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "tokenType": "Bearer",
-  "expiresIn": 3600,
-  "role": "SELLER"
-}
-```
-
-#### Profile Endpoints
-
-| Method | Endpoint | Auth Required | Role | Description |
-|--------|----------|:---:|------|-------------|
-| `GET` | `/api/users/me` | ✅ | CLIENT / SELLER | Get current user profile |
-| `PUT` | `/api/users/me` | ✅ | CLIENT / SELLER | Update profile info |
-| `PUT` | `/api/users/me/avatar` | ✅ | SELLER | Upload/update avatar (delegates to Media Service) |
-
-**`GET /api/users/me` — Response**
-```json
-{
-  "id": "string",
-  "username": "string",
-  "email": "string",
-  "role": "SELLER",
-  "avatarUrl": "string | null",
-  "createdAt": "ISO8601"
-}
-```
-
-**`PUT /api/users/me` — Request Body**
-```json
-{
-  "username": "string",
-  "email": "string"
-}
-```
-
----
-
-### Product Service
-
-**Base path:** `/api/products`
-
-Manages the product catalog. Public read access; write operations restricted to authenticated SELLERs who own the resource.
-
-#### Public Endpoints
-
-| Method | Endpoint | Auth Required | Role | Description |
-|--------|----------|:---:|------|-------------|
-| `GET` | `/api/products` | ❌ | — | List all products (paginated) |
-| `GET` | `/api/products/{id}` | ❌ | — | Get a single product by ID |
-
-**`GET /api/products` — Query Params**
-
-| Param | Type | Default | Description |
-|-------|------|---------|-------------|
-| `page` | int | 0 | Page number (0-indexed) |
-| `size` | int | 20 | Items per page |
-
-**`GET /api/products` — Response**
-```json
-{
-  "content": [
-    {
-      "id": "string",
-      "name": "string",
-      "description": "string",
-      "price": 49.99,
-      "sellerId": "string",
-      "imageUrls": ["string"],
-      "createdAt": "ISO8601"
-    }
-  ],
-  "totalElements": 100,
-  "totalPages": 5,
-  "page": 0,
-  "size": 20
-}
-```
-
-#### Seller-Only Endpoints
-
-| Method | Endpoint | Auth Required | Role | Description |
-|--------|----------|:---:|------|-------------|
-| `POST` | `/api/products` | ✅ | SELLER | Create a new product |
-| `PUT` | `/api/products/{id}` | ✅ | SELLER (owner) | Update own product |
-| `DELETE` | `/api/products/{id}` | ✅ | SELLER (owner) | Delete own product |
-| `POST` | `/api/products/{id}/images` | ✅ | SELLER (owner) | Link an image URL to a product |
-| `DELETE` | `/api/products/{id}/images/{imageId}` | ✅ | SELLER (owner) | Remove an image reference from product |
-
-**`POST /api/products` — Request Body**
-```json
-{
-  "name": "string",
-  "description": "string",
-  "price": 49.99,
-  "imageUrls": ["string"]
-}
-```
-
-**`POST /api/products` — Response** `201 Created`
-```json
-{
-  "id": "string",
-  "name": "string",
-  "description": "string",
-  "price": 49.99,
-  "sellerId": "string",
-  "imageUrls": [],
-  "createdAt": "ISO8601"
-}
-```
-
-> **Ownership enforcement:** On `PUT` and `DELETE`, the service verifies `product.sellerId == JWT subject`. Returns `403 Forbidden` if the authenticated seller does not own the product.
-
----
-
-### Media Service
-
-**Base path:** `/api/media`
-
-Handles image uploads, storage, and retrieval. All uploads are restricted to SELLERs and undergo strict validation.
-
-#### Endpoints
-
-| Method | Endpoint | Auth Required | Role | Description |
-|--------|----------|:---:|------|-------------|
-| `POST` | `/api/media/images` | ✅ | SELLER | Upload a new image |
-| `GET` | `/api/media/images/{id}` | ❌ | — | Retrieve/serve an image |
-| `DELETE` | `/api/media/images/{id}` | ✅ | SELLER (owner) | Delete an owned image |
-
-**`POST /api/media/images` — Request**
-
-- Content-Type: `multipart/form-data`
-- Field: `file` (binary image)
-- Validations enforced:
-  - MIME type must be `image/*` (verified by content sniffing, not just extension)
-  - File size must be **≤ 2 MB**
-
-**`POST /api/media/images` — Response** `201 Created`
-```json
-{
-  "id": "string",
-  "url": "/api/media/images/{id}",
-  "filename": "string",
-  "mimeType": "image/jpeg",
-  "sizeBytes": 102400,
-  "uploadedBy": "sellerId",
-  "uploadedAt": "ISO8601"
-}
-```
-
-**`GET /api/media/images/{id}` — Response**
-
-Returns the raw image binary with appropriate headers:
-```
-Content-Type: image/jpeg
-Cache-Control: public, max-age=86400
-ETag: "abc123"
-```
-
-**`DELETE /api/media/images/{id}` — Response** `204 No Content`
-
-> Returns `403 Forbidden` if the requesting seller does not own the image.
-
-#### Upload Validation Rules
-
-| Rule | Detail |
-|------|--------|
-| MIME type | Must be `image/*`; validated by sniffing file bytes, not file extension |
-| File size | Maximum **2 MB** (2,097,152 bytes) |
-| Filename | Sanitized to prevent path traversal |
-| Content | Reject files that claim to be images but are not (e.g., renamed `.exe`) |
-
----
-
-## Frontend — Angular SPA
-
-### Pages & Routes
-
-| Route | Component | Guard | Description |
-|-------|-----------|-------|-------------|
-| `/` | `ProductListComponent` | — | Public product grid |
-| `/products/:id` | `ProductDetailComponent` | — | Single product detail view |
-| `/auth/login` | `LoginComponent` | — | Sign-in form |
-| `/auth/register` | `RegisterComponent` | — | Sign-up form with role selection |
-| `/dashboard` | `DashboardComponent` | `AuthGuard`, `RoleGuard(SELLER)` | Seller overview |
-| `/dashboard/products` | `ProductManageComponent` | `AuthGuard`, `RoleGuard(SELLER)` | Create/edit/delete products |
-| `/dashboard/media` | `MediaManageComponent` | `AuthGuard`, `RoleGuard(SELLER)` | Upload/manage images |
-| `/profile` | `ProfileComponent` | `AuthGuard` | View/edit profile; seller avatar upload |
-
-### Key Angular Features
-
-#### Route Guards
-
-```typescript
-// AuthGuard — blocks unauthenticated access
-canActivate(): boolean {
-  return this.authService.isLoggedIn() || this.router.navigate(['/auth/login']);
-}
-
-// RoleGuard — restricts by role
-canActivate(route: ActivatedRouteSnapshot): boolean {
-  const required = route.data['role'];
-  return this.authService.hasRole(required) || this.router.navigate(['/']);
-}
-```
-
-#### HTTP Interceptors
-
-**Token Interceptor** — attaches JWT to every outgoing request:
-```typescript
-intercept(req: HttpRequest<any>, next: HttpHandler) {
-  const token = this.authService.getToken();
-  const cloned = token
-    ? req.clone({ headers: req.headers.set('Authorization', `Bearer ${token}`) })
-    : req;
-  return next.handle(cloned);
-}
-```
-
-**Error Interceptor** — handles `401` (redirect to login) and `403` (show forbidden message):
-```typescript
-catchError((error: HttpErrorResponse) => {
-  if (error.status === 401) this.router.navigate(['/auth/login']);
-  if (error.status === 403) this.notificationService.error('Access denied');
-  return throwError(() => error);
-});
-```
-
-#### Forms
-
-All forms use **Angular Reactive Forms** with inline validation:
-
-- `LoginForm` — email, password; show field errors on blur
-- `RegisterForm` — username, email, password, role (CLIENT/SELLER); password strength hint
-- `ProductForm` — name, description, price (must be > 0); image attachment section
-- `MediaUploadForm` — file picker with client-side MIME and size validation before API call
-
-#### File Upload (Client-Side Validation)
-
-```typescript
-onFileSelected(file: File): void {
-  if (!file.type.startsWith('image/')) {
-    this.error = 'Only image files are allowed.';
-    return;
-  }
-  if (file.size > 2 * 1024 * 1024) {
-    this.error = 'File must be 2 MB or smaller.';
-    return;
-  }
-  this.uploadImage(file);
-}
-```
-
-#### Notifications
-
-Use Angular Material **Snackbar** or Bootstrap **Toast** for:
-- Upload success / failure
-- File too large or wrong type
-- Forbidden actions (`403`)
-- Session expired (`401`)
-
----
-
-## Authentication & Authorization
-
-```
-Client                    Gateway                  User Service
-  │                          │                          │
-  ├── POST /auth/login ──────►│                          │
-  │                          ├── forward ───────────────►│
-  │                          │                          ├── verify credentials
-  │                          │                          ├── issue JWT
-  │                          │◄── JWT ──────────────────┤
-  │◄── JWT ──────────────────┤                          │
-  │                          │                          │
-  ├── GET /api/products ─────►│                          │
-  │   Authorization: Bearer  ├── validate JWT           │
-  │                          ├── propagate X-User-Id    │
-  │                          ├── forward to Product Svc │
-  │◄── 200 OK ───────────────┤                          │
-```
-
-- **JWT** is issued on login, signed with a secret key, and includes `sub` (userId), `role`, and `exp`.
-- The **Gateway** validates the JWT signature and forwards the decoded identity (`X-User-Id`, `X-User-Role`) as headers to downstream services.
-- Downstream services **trust** these headers (they are internal-only; external headers are stripped by the Gateway).
-- **Passwords** are hashed with **BCrypt** (never stored in plain text, never returned in responses).
-
----
-
-## Database Design
-
-### MongoDB Collections
-
-**`users`**
-```json
-{
-  "_id": "ObjectId",
-  "username": "string",
-  "email": "string",
-  "passwordHash": "string",
-  "role": "CLIENT | SELLER",
-  "avatarMediaId": "string | null",
-  "createdAt": "Date",
-  "updatedAt": "Date"
-}
-```
-
-**`products`**
-```json
-{
-  "_id": "ObjectId",
-  "name": "string",
-  "description": "string",
-  "price": "Decimal128",
-  "sellerId": "ObjectId (ref: users)",
-  "imageIds": ["ObjectId (ref: media)"],
-  "createdAt": "Date",
-  "updatedAt": "Date"
-}
-```
-
-**`media`**
-```json
-{
-  "_id": "ObjectId",
-  "filename": "string",
-  "mimeType": "string",
-  "sizeBytes": "Long",
-  "storagePath": "string",
-  "uploadedBy": "ObjectId (ref: users)",
-  "uploadedAt": "Date"
-}
-```
-
-> **Note:** Images are stored on object storage (MinIO / S3 / local filesystem). Only the metadata and storage path live in MongoDB — never the binary data itself.
-
----
-
-## Security Measures
-
-| Concern | Implementation |
-|---------|---------------|
-| Transport | HTTPS end-to-end (Let's Encrypt for production, self-signed for dev) |
-| Passwords | BCrypt hash + salt in User Service; never exposed in API responses |
-| Auth tokens | Short-lived JWT; `Authorization: Bearer` header only |
-| CORS | Configured at Gateway; restricts `Origin`, `Methods`, `Headers` |
-| File validation | MIME sniffing (magic bytes), extension check, size limit (2 MB) |
-| Ownership | `sellerId == JWT subject` checked in Product and Media services |
-| Input validation | Bean Validation (`@Valid`) on all request bodies; reject malformed input with `400` |
-| Header stripping | Gateway strips `X-User-Id` / `X-User-Role` from incoming external requests |
-| Rate limiting | *(Optional)* Gateway rate limit on `/auth/login` and `POST /api/media/images` |
-| XSS / Injection | Angular's built-in sanitization; parameterized MongoDB queries |
-
----
-
-## Error Handling
-
-### Backend — HTTP Status Codes
-
-| Status | When |
-|--------|------|
-| `200 OK` | Successful GET / PUT |
-| `201 Created` | Successful POST (resource created) |
-| `204 No Content` | Successful DELETE |
-| `400 Bad Request` | Validation failure, invalid MIME type, file too large |
-| `401 Unauthorized` | Missing or invalid JWT |
-| `403 Forbidden` | Valid JWT but insufficient role or not resource owner |
-| `404 Not Found` | Resource does not exist or is not owned by caller |
-| `409 Conflict` | Duplicate registration (email already exists) |
-| `500 Internal Server Error` | Caught by global exception handler; returns structured error body |
-
-### Error Response Body (all services)
-
-```json
-{
-  "timestamp": "ISO8601",
-  "status": 400,
-  "error": "Bad Request",
-  "message": "File size exceeds the 2 MB limit",
-  "path": "/api/media/images"
-}
-```
-
-All services use a `@ControllerAdvice` global exception handler to avoid unhandled `5xx` responses.
-
-### Frontend — Angular Error UX
-
-- Inline form errors displayed on field blur (required, minlength, pattern, price > 0)
-- Snackbar / toast notifications for API errors (upload failures, forbidden, session expired)
-- Redirect to `/auth/login` on `401`; show error page on `403`
-
----
-
-## Kafka Events (Optional)
-
-If Kafka is enabled, the following events are published:
-
-| Event | Published By | Payload | Consumers |
-|-------|-------------|---------|-----------|
-| `PRODUCT_CREATED` | Product Service | `{ productId, sellerId, name }` | Audit log, cache invalidation |
-| `PRODUCT_UPDATED` | Product Service | `{ productId, sellerId }` | Cache invalidation |
-| `PRODUCT_DELETED` | Product Service | `{ productId, sellerId }` | Media cleanup, cache |
-| `IMAGE_UPLOADED` | Media Service | `{ mediaId, uploadedBy, mimeType }` | Thumbnail generation, audit |
-
-These events are useful for decoupled audit logging, cache invalidation, and future features like thumbnail generation or recommendation engines.
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- **Docker** and **Docker Compose** installed
-- **Java 17+** (if running services locally without Docker)
-- **Node.js 18+** and **Angular CLI** (if running frontend locally)
-
-### Running with Docker Compose
-
-```bash
-# Clone the repository
-git clone https://github.com/your-org/buy01.git
-cd buy01
-
-# Copy environment config
-cp .env.example .env
-# Edit .env with your secrets (JWT_SECRET, MongoDB URI, etc.)
-
-# Build and start all services
-docker-compose up --build
-
-# Services will be available at:
-# API Gateway:        http://localhost:8080
-# Angular Frontend:   http://localhost:4200
-# Eureka Dashboard:   http://localhost:8761
-# MongoDB:            localhost:27017
-# Kafka:              localhost:9092 (if enabled)
-```
-
-### Running Services Individually
-
-```bash
-# 1. Start infrastructure
-docker-compose up mongodb kafka zookeeper eureka -d
-
-# 2. Start User Service
-cd user-service
-./mvnw spring-boot:run
-
-# 3. Start Product Service
-cd product-service
-./mvnw spring-boot:run
-
-# 4. Start Media Service
-cd media-service
-./mvnw spring-boot:run
-
-# 5. Start API Gateway
-cd api-gateway
-./mvnw spring-boot:run
-
-# 6. Start Angular frontend
-cd frontend
-npm install
-ng serve
-```
+## Prerequisites
+
+- Docker & Docker Compose
+- Java 21+ and Maven (for local backend development outside containers)
+- Node.js + npm (for local Angular development)
+- A `.env` file at the project root (see below)
 
 ---
 
 ## Environment Variables
 
-| Variable | Service | Description |
-|----------|---------|-------------|
-| `JWT_SECRET` | User Service, Gateway | Secret key for signing/verifying JWT tokens |
-| `JWT_EXPIRATION_MS` | User Service | Token TTL in milliseconds (default: `3600000`) |
-| `MONGODB_URI` | All services | MongoDB connection string |
-| `EUREKA_SERVER_URL` | All services | Eureka registry URL |
-| `MEDIA_STORAGE_PATH` | Media Service | Local path or S3 bucket for image storage |
-| `MEDIA_MAX_SIZE_BYTES` | Media Service | Upload size limit (default: `2097152` = 2 MB) |
-| `KAFKA_BOOTSTRAP_SERVERS` | Product Service, Media Service | Kafka broker address |
-| `CORS_ALLOWED_ORIGINS` | API Gateway | Comma-separated list of allowed frontend origins |
-| `ANGULAR_API_BASE_URL` | Frontend | Base URL of the API Gateway |
+Create a `.env` file at the project root (see `.env.example` for the full list). Key variables include:
 
----
+```env
+# MongoDB
+DB_USERNAME=
+DB_PASSWORD=
+USERS_DB_NAME=
+PRODUCTS_DB_NAME=
+MEDIA_DB_NAME=
+USER_DB_URI=
+PRODUCT_DB_URI=
+MEDIA_DB_URI=
 
-## Health Checks
+# JWT
+JWT_SECRET=
+JWT_EXPIRATION=
 
-All microservices expose Spring Boot Actuator health endpoints:
+# CORS
+CORS_ALLOWED_ORIGIN=http://localhost:4200
 
-| Service | Endpoint |
-|---------|----------|
-| API Gateway | `GET /actuator/health` |
-| User Service | `GET /actuator/health` |
-| Product Service | `GET /actuator/health` |
-| Media Service | `GET /actuator/health` |
+# Cloudflare R2 (media storage)
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+R2_BUCKET=
+R2_ENDPOINT=
+R2_PUBLIC_URL=
 
-Docker Compose uses these for container health checks before marking a service as ready.
-
----
-
-## Folder Structure
-
+# Jenkins / SonarQube (CI infra)
+BACKEND_SLAVE_SECRET=
+FRONTEND_SLAVE_SECRET=
+SONARQUBE_DB_USERNAME=
+SONARQUBE_DB_PASSWORD=
+SONARQUBE_DB_NAME=
+SONARQUBE_DB_URI=
+USER_ID=
 ```
-buy01/
-├── api-gateway/
-│   └── src/main/java/.../gateway/
-│       ├── config/           # Security, CORS, rate limiting config
-│       └── filters/          # Auth propagation filter
-│
-├── discovery-service/
-│   └── src/main/java/.../discovery/
-│
-├── user-service/
-│   └── src/main/java/.../user/
-│       ├── controller/       # AuthController, UserController
-│       ├── service/          # AuthService, UserService
-│       ├── repository/       # UserRepository (MongoDB)
-│       ├── model/            # User, Role
-│       ├── dto/              # RegisterRequest, LoginResponse, UserDto
-│       └── security/         # JwtUtil, SecurityConfig
-│
-├── product-service/
-│   └── src/main/java/.../product/
-│       ├── controller/       # ProductController
-│       ├── service/          # ProductService
-│       ├── repository/       # ProductRepository (MongoDB)
-│       ├── model/            # Product
-│       └── dto/              # ProductRequest, ProductResponse
-│
-├── media-service/
-│   └── src/main/java/.../media/
-│       ├── controller/       # MediaController
-│       ├── service/          # MediaService, StorageService
-│       ├── repository/       # MediaRepository (MongoDB)
-│       ├── model/            # Media
-│       ├── dto/              # MediaResponse
-│       └── validation/       # FileValidator (MIME sniffing)
-│
-├── frontend/
-│   └── src/app/
-│       ├── auth/             # Login, Register components + AuthService
-│       ├── products/         # ProductList, ProductDetail components
-│       ├── dashboard/        # Seller dashboard, ProductManage, MediaManage
-│       ├── profile/          # Profile component
-│       ├── shared/           # Guards, Interceptors, Notification service
-│       └── core/             # HTTP client wrappers, models
-│
-├── docker-compose.yml
-├── .env.example
-└── README.md
+
+> Never commit `.env` — it is git-ignored. Use `.env.example` as the template.
+
+---
+
+## Running Locally
+
+### 1. Generate local TLS certificates (frontend HTTPS)
+
+```bash
+chmod +x scripts/create_Self-Signed-Certificate.sh
+./scripts/create_Self-Signed-Certificate.sh
+```
+
+### 2. Start infrastructure (MongoDB instances, Kafka/Zookeeper)
+
+```bash
+docker compose --profile infra -f docker-compose.jenkins.yml  up -d 
+```
+
+
+
+### 4. Access the app
+
+| Service | URL |
+|---|---|
+| Frontend (Angular) | https://localhost:4443 |
+| Gateway | https://localhost:8443 |
+| Eureka Dashboard | http://localhost:8761 |
+
+### Stopping / cleaning up
+
+```bash
+./scripts/clear.sh
 ```
 
 ---
 
-## Resources
+## API Overview
 
-- [Spring Boot Microservices Guide](https://spring.io/guides/tutorials/rest/)
-- [Spring Security — JWT/OAuth2](https://spring.io/projects/spring-security)
-- [MongoDB Documentation](https://www.mongodb.com/docs/)
-- [Angular Documentation](https://angular.io/docs)
-- [Let's Encrypt — HTTPS](https://letsencrypt.org/getting-started/)
-- [Apache Kafka Quickstart](https://kafka.apache.org/quickstart)
-- [Spring Cloud Gateway](https://spring.io/projects/spring-cloud-gateway)
-- [Netflix Eureka](https://spring.io/projects/spring-cloud-netflix)
+All external traffic goes through the **gateway** (`https://localhost:8443`), which routes to the appropriate service and enforces JWT auth.
 
+**User Service**
+- `POST /auth/register` — register as `CLIENT` or `SELLER`
+- `POST /auth/login` — returns JWT
+- `GET /me` / `PUT /me` — profile management (sellers can update avatar via Media Service)
 
+**Product Service**
+- `GET /products`, `GET /products/{id}` — public
+- `POST /products`, `PUT /products/{id}`, `DELETE /products/{id}` — seller-only, ownership enforced
 
+**Media Service**
+- `POST /media/images` — seller-only, validates `image/*` MIME type and 2 MB limit
+- `GET /media/images/{id}` — serves image with caching headers
+- `DELETE /media/images/{id}` — seller must own the media
+
+All services expose **`/actuator/health`** for liveness/readiness checks.
+
+---
+
+## Security
+
+- **JWT** issued by the User Service, validated and propagated at the Gateway (`JwtAuthFilter`, `JwtFilter`, `SecurityConfig`).
+- **BCrypt** password hashing — passwords are never exposed in responses.
+- **Ownership enforcement** — sellers can only modify/delete their own products and media (`sellerId == auth.subject`).
+- **File validation** — Media Service validates MIME type via content sniffing (Apache Tika) and enforces the 2 MB size limit, rejecting non-image payloads.
+- **CORS** — enforced at the Gateway via `CORS_ALLOWED_ORIGIN`.
+- **HTTPS** — Gateway and frontend both terminate TLS locally via a self-signed certificate/keystore (`keystore.p12`, `ssl/`); use Let's Encrypt in production.
+- **Global exception handling** — each service has a `GlobalExceptionHandler` mapping errors to proper status codes (400/401/403/404) instead of leaking unhandled 5xx errors.
+
+---
+
+## Testing
+
+- **Backend** — JUnit + Mockito per service (`ProductServiceTest`, `MediaServiceTest`, `UsersServiceTest`, controller tests with `@WebMvcTest`, etc.), run via `mvn clean package`.
+- **Frontend** — Jasmine/Karma specs alongside each component/service (`*.spec.ts`), run via `npm test -- --watch=false --no-progress`.
+- The Jenkins pipeline **fails the build** if any test fails, and publishes JUnit results via `junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'`.
+
+---
+
+## CI/CD Pipeline (Jenkins)
+
+The `Jenkinsfile` implements a declarative pipeline with **distributed agents** (`backend` and `frontend` labels) and **change-based execution** — only services actually touched by a commit are built, tested, analyzed, and redeployed.
+
+### Pipeline stages
+
+1. **Checkout Source Code** — clones the repo on a `backend` agent, stashes the workspace so the `frontend` agent can reuse it without re-cloning.
+2. **Detect Which Services Changed** — runs `scripts/detect-changed-services.sh` against the diff (PR target branch or `HEAD~1`) to compute `CHANGED_SERVICE_NAMES`.
+3. **Build And Test** *(parallel)*:
+   - **Backend Services** — for each changed backend service: `mvn clean package` + JUnit report publishing.
+   - **Frontend Application** — if `marketplace-ui` changed: `npm ci`, `npm test`, `npm run build -- --configuration production`.
+4. **Static Code Analysis** *(parallel)* — SonarQube scan per changed backend service (`mvn sonar:sonar -Dsonar.projectKey=buy01-<service>`) and `sonar-scanner` for the frontend, both wrapped in `withSonarQubeEnv('sonarqube-server')`.
+5. **Quality Gate** — blocks the pipeline (5-minute timeout, `abortPipeline: true`) until SonarQube reports pass/fail.
+6. **Build Docker Images** — builds a Docker image per changed service, tagged with the short commit SHA (`IMAGE_TAG=<7-char-sha>`).
+7. **Deploy To Main Environment** — on the `main` branch only: pulls the CI `.env`, then `docker compose ... up -d --no-deps` for the application services.
+
+### Triggers
+
+- Build triggers are configured in the Jenkins job (e.g. GitHub webhook / poll SCM) to start automatically on new commits.
+- Parameterized/matrix-style builds are achieved through the per-service `each { serviceName -> ... }` loops driven by change detection.
+
+### Notifications
+
+- The pipeline's `post { success / failure }` blocks send **email notifications** to the configured recipients, including the affected services and a link to the full build log/console output.
+
+---
+
+## Static Code Analysis (SonarQube)
+
+SonarQube runs via Docker Compose (`docker-compose.jenkins.yml`, `sonarqube` + `sonarqube-db` services):
+
+```bash
+docker compose --profile infra -f docker-compose.jenkins.yml --env-file .env up -d sonarqube-db sonarqube
 ```
- docker compose down -v
-docker builder prune -f
-mvn clean
-docker compose build --no-cache
-docker compose up
 
-```
+- Dashboard: `http://localhost:9001` (mapped from container port 9000).
+- Each backend service is registered as its **own SonarQube project** (`buy01-discovery`, `buy01-gateway`, `buy01-user`, `buy01-product`, `buy01-media`), and the frontend as `marketplace-ui`, so quality metrics are tracked independently per service.
+- Authentication to SonarQube from Jenkins uses a stored credential (`sonarqube-token`).
+- The **Quality Gate** stage in the Jenkinsfile aborts the pipeline if a service fails its gate (major vulnerabilities, code smells, coverage/duplication thresholds), preventing low-quality or insecure code from reaching the deploy stage.
+- Recommended process: configure a GitHub webhook (or GitHub Actions) so PRs/branches trigger analysis automatically, and require the quality gate + a code review approval before merging.
+
+---
+
+## Deployment & Rollback
+
+- Deployment is driven by the **Deploy To Main Environment** stage, restricted to the `main` branch, and only redeploys the services affected by the change (`docker compose up -d --no-deps <service>`).
+- Each image is tagged by **commit SHA** (`IMAGE_TAG`), so a rollback is a matter of re-running deployment with a previous known-good `IMAGE_TAG` (or reverting the commit and letting the pipeline redeploy), since older tagged images remain available in the image registry/build cache.
+- Health checks (`/actuator/health` on each service, Mongo `healthcheck` in Compose) gate service startup ordering (`depends_on: condition: service_healthy`), reducing the chance of promoting a broken deployment.
+
+---
+
+## Notifications
+
+Build and deployment results are emailed automatically:
+
+- ✅ **Success** — recipients get the list of affected services and a link to the build log.
+- ❌ **Failure** — recipients get a link directly to the console output for debugging.
+
+Recipients are configured via the `NOTIFICATION_EMAIL_RECIPIENT` environment variable in the `Jenkinsfile`.
+
+---
+
+## Scripts
+
+| Script | Purpose |
+|---|---|
+| `scripts/start.sh` | Bring up the full stack |
+| `scripts/clear.sh` | Tear down containers/volumes |
+| `scripts/check.sh` | Health/status checks across services |
+| `scripts/create_Self-Signed-Certificate.sh` | Generates local TLS cert/key for HTTPS |
+| `scripts/detect-changed-services.sh` | Diffs commits to determine which services changed (used by Jenkins) |
+| `scripts/get_id.sh` | Helper to fetch container/user IDs (e.g. for Docker socket permissions) |
+
+---
+
+## Evaluation Checklist
+
+- ⚙️ **Functionality** — role-based flows (CLIENT/SELLER), product & media CRUD, browsing
+- 🔐 **Security** — JWT, BCrypt, ownership checks, CORS, TLS
+- 🧩 **Architecture** — clean service boundaries, Eureka discovery, Kafka events, Gateway
+- 🚫 **Reliability** — global exception handling, health checks, no unhandled 5xx
+- 🎨 **UX** — responsive Angular UI, guards/interceptors, inline validation
+- 🧪 **CI/CD** — automated build → test → analyze → deploy, quality gates, rollback via tagged images, email notifications
