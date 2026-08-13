@@ -113,6 +113,30 @@ services:
     networks:
       - buy01-network
 
+  orders:
+    build:
+      context: ./Backend/orders
+    image: orders:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    labels:
+      - "ci.path=Backend/orders"
+    expose:
+      - "8084"
+      - "9000"
+    depends_on:
+      orders-mongodb:
+        condition: service_healthy
+      discovery:
+        condition: service_started
+      kafka:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      SPRING_MONGODB_URI: ${ORDERS_DB_URI}
+    networks:
+      - buy01-network
+
   marketplace-ui:
     build:
       context: ./marketplace-ui

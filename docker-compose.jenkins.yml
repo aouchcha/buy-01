@@ -82,6 +82,34 @@ services:
       start_period: 30s
     networks:
       - buy01-network
+    
+  orders-mongodb:
+    image: mongo:latest
+    profiles:
+      - infra
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${ORDERS_DB_NAME}
+    volumes:
+      - orders_mongo_data:/data/db
+    expose:
+      - "27017"
+    healthcheck:
+      test: >
+        mongosh --quiet
+        -u $$MONGO_INITDB_ROOT_USERNAME
+        -p $$MONGO_INITDB_ROOT_PASSWORD
+        --authenticationDatabase admin
+        --eval "db.adminCommand('ping')"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - buy01-network
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
