@@ -14,10 +14,15 @@ import { Unauthorized } from './features/errors/pages/unauthorized/unauthorized'
 import { ServerError } from './features/errors/pages/server-error/server-error';
 import { NotFound } from './features/errors/pages/not-found/not-found';
 import { ProductDetails } from './features/products/pages/product-details/product-details';
+import { Cart } from './features/cart/pages/cart/cart';
 export const routes: Routes = [
     {
     path: '',
         component: ProductList
+    },
+    {
+        path: 'cart',
+        component: Cart
     },
     {
         path: 'login',

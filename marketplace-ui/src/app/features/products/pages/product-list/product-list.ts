@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { Navbar } from '../../../../layout/navbar/navbar';
 import { ProductDto } from '../../../../core/models/product';
 import { Product as ProductService } from '../../../../core/services/product';
+import { CartService } from '../../../../core/services/cart';
+import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-product-list',
@@ -13,6 +15,8 @@ import { Product as ProductService } from '../../../../core/services/product';
 export class ProductList implements OnInit {
   private readonly productService = inject(ProductService);
   private readonly router = inject(Router);
+  private readonly cartService = inject(CartService);
+  private readonly toastService = inject(ToastService);
 
   readonly products = signal<ProductDto[]>([]);
   readonly loading = signal(true);
@@ -50,5 +54,15 @@ export class ProductList implements OnInit {
 
   goToProduct(id: string): void {
     this.router.navigate(['/products', id]);
+  }
+
+  addToCart(product: ProductDto, event: Event): void {
+    event.stopPropagation();
+    if (product.quantity <= 0) {
+      this.toastService.error('This product is out of stock.');
+      return;
+    }
+    this.cartService.add(product);
+    this.toastService.success(`${product.name} added to cart.`);
   }
 }

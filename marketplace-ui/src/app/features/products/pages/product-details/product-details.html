@@ -69,6 +69,27 @@
 
         <div class="divider"></div>
 
+        @if (product()!.quantity > 0) {
+          <div class="add-to-cart-row">
+            <div class="quantity-control">
+              <button (click)="decrementQuantity()" aria-label="Decrease quantity">−</button>
+              <span>{{ selectedQuantity() }}</span>
+              <button
+                (click)="incrementQuantity()"
+                [disabled]="selectedQuantity() >= product()!.quantity"
+                aria-label="Increase quantity"
+              >
+                +
+              </button>
+            </div>
+            <button class="btn-add-cart" (click)="addToCart()">Add to cart</button>
+          </div>
+        } @else {
+          <p class="out-of-stock">Out of stock</p>
+        }
+
+        <div class="divider"></div>
+
         <!-- Seller card -->
         <div class="seller-card">
           <div class="seller-avatar">

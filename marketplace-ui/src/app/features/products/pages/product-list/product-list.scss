@@ -255,12 +255,41 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
 }
 
 .price {
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--color-taupe-deep);
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.btn-add-cart {
+  border: 1px solid var(--color-taupe);
+  background: transparent;
+  color: var(--color-taupe-deep);
+  padding: 0.7rem 1rem;
+  border-radius: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 280ms var(--ease-apple), color 280ms var(--ease-apple);
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: var(--color-taupe);
+    color: white;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .btn-view {

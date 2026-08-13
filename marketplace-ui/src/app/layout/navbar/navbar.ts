@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../../core/services/auth'
 import { Role } from '../../core/models/user'
+import { CartService } from '../../core/services/cart';
 
 
 @Component({
@@ -16,7 +17,9 @@ export class Navbar implements OnInit {
 
   private readonly authService = inject(Auth);
   private readonly router = inject(Router);
+  private readonly cartService = inject(CartService);
   readonly Role = Role;
+  readonly cartItemCount = this.cartService.itemCount;
 
 
   readonly isMenuOpen = signal(false);
@@ -43,10 +46,12 @@ export class Navbar implements OnInit {
 
   openCart(): void {
     this.closeMenu();
+    this.router.navigate(['/cart']);
   }
 
   logout(): void {
     this.authService.logout();
+    this.cartService.clear();
     this.isLogin.set(false);
     this.closeMenu();
     this.router.navigate(['/login']);

@@ -7,6 +7,8 @@ import { ProductDto } from '../../../../core/models/product';
 import { User } from '../../../../core/models/user';
 import { Product as ProductService } from '../../../../core/services/product';
 import { UserService } from '../../../../core/services/user';
+import { CartService } from '../../../../core/services/cart';
+import { ToastService } from '../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-product-details',
@@ -18,12 +20,15 @@ export class ProductDetails implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly productService = inject(ProductService);
   private readonly userService = inject(UserService);
+  private readonly cartService = inject(CartService);
+  private readonly toastService = inject(ToastService);
 
   readonly product = signal<ProductDto | null>(null);
   readonly seller = signal<User | null>(null);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly imageIndex = signal(0);
+  readonly selectedQuantity = signal(1);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -72,5 +77,23 @@ export class ProductDetails implements OnInit {
     const s = this.seller();
     if (!s) return '?';
     return `${s.firstName[0]}${s.lastName[0]}`.toUpperCase();
+  }
+
+  incrementQuantity(): void {
+    const p = this.product();
+    if (!p) return;
+    this.selectedQuantity.update((q) => Math.min(q + 1, p.quantity));
+  }
+
+  decrementQuantity(): void {
+    this.selectedQuantity.update((q) => Math.max(q - 1, 1));
+  }
+
+  addToCart(): void {
+    const p = this.product();
+    if (!p || p.quantity <= 0) return;
+    this.cartService.add(p, this.selectedQuantity());
+    this.toastService.success(`${p.name} added to cart.`);
+    this.selectedQuantity.set(1);
   }
 }
