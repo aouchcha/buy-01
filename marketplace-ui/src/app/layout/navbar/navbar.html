@@ -13,6 +13,7 @@
       <a routerLink="/" (click)="closeMenu()" class="btn btn-primary">Home</a>
 
       <div class="actions">
+        @if (!isSeller()){
         <button class="cart-btn" (click)="openCart()">
           <span aria-hidden="true">🛒</span>
           <span class="sr-only">Cart</span>
@@ -20,6 +21,7 @@
             <span class="cart-badge">{{ cartItemCount() }}</span>
           }
         </button>
+        }
 
         @if (isLogin()) {
         <a routerLink="/profile" (click)="closeMenu()" class="btn btn-primary">

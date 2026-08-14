@@ -252,3 +252,4 @@ volumes:
   sonarqube_data:
   sonarqube_logs:
   sonarqube_extensions:
+  orders_mongo_data:
