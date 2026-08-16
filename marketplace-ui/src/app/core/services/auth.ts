@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { LoginRequest, registerRequest } from '../models/auth-request';
 import { Observable, tap, BehaviorSubject } from 'rxjs';
 import { AuthResponse } from '../models/auth-response';
@@ -15,6 +15,9 @@ export class Auth {
   private readonly userApiUrl = `${environment.apiUrl}/users`;
 
   readonly Role = Role;
+
+
+ 
 
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   readonly currentUser$ = this.currentUserSubject.asObservable();
@@ -63,6 +66,11 @@ export class Auth {
   isLoggedIn(): boolean {
     return !!this.getToken();
   }
+
+  isSeller(): boolean {
+    return this.getUserRole() === Role.SELLER;
+  }
+
 
   updateCurrentUser(user: User): void {
     this.currentUserSubject.next(user);

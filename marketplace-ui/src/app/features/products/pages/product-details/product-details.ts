@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -9,6 +9,7 @@ import { Product as ProductService } from '../../../../core/services/product';
 import { UserService } from '../../../../core/services/user';
 import { CartService } from '../../../../core/services/cart';
 import { ToastService } from '../../../../core/services/toast.service';
+import { Auth } from '../../../../core/services/auth';
 
 @Component({
   selector: 'app-product-details',
@@ -22,13 +23,16 @@ export class ProductDetails implements OnInit {
   private readonly userService = inject(UserService);
   private readonly cartService = inject(CartService);
   private readonly toastService = inject(ToastService);
-
+  private readonly authService = inject(Auth);
   readonly product = signal<ProductDto | null>(null);
   readonly seller = signal<User | null>(null);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly imageIndex = signal(0);
   readonly selectedQuantity = signal(1);
+
+   readonly isLogin = computed(() => this.authService.isLoggedIn());
+  readonly isSeller = computed(() => this.authService.isSeller());
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');

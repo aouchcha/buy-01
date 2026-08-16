@@ -60,9 +60,11 @@
               <div class="card-footer">
                 <span class="price">{{ item.price }} DH</span>
                 <div class="card-actions">
+                  @if (isLogin() && !isSeller()) {
                   <button class="btn-add-cart" (click)="addToCart(item, $event)" [disabled]="item.quantity <= 0">
                     {{ item.quantity <= 0 ? 'Out of stock' : 'Add to cart' }}
                   </button>
+                  }
                   <button class="btn-view" (click)="goToProduct(item.id)">
                     View
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">

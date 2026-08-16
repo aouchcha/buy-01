@@ -1,10 +1,11 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Navbar } from '../../../../layout/navbar/navbar';
 import { ProductDto } from '../../../../core/models/product';
 import { Product as ProductService } from '../../../../core/services/product';
 import { CartService } from '../../../../core/services/cart';
 import { ToastService } from '../../../../core/services/toast.service';
+import { Auth } from '../../../../core/services/auth';
 
 @Component({
   selector: 'app-product-list',
@@ -17,11 +18,14 @@ export class ProductList implements OnInit {
   private readonly router = inject(Router);
   private readonly cartService = inject(CartService);
   private readonly toastService = inject(ToastService);
+  private readonly authService = inject(Auth);
 
   readonly products = signal<ProductDto[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly imageIndexes = signal<Record<string, number>>({});
+  readonly isLogin = computed(() => this.authService.isLoggedIn());
+  readonly isSeller = computed(() => this.authService.isSeller());
 
   ngOnInit(): void {
     this.productService.getAll().subscribe({

@@ -68,7 +68,7 @@
         <p class="description">{{ product()!.description }}</p>
 
         <div class="divider"></div>
-
+        @if (isLogin() && !isSeller()) {
         @if (product()!.quantity > 0) {
           <div class="add-to-cart-row">
             <div class="quantity-control">
@@ -86,6 +86,7 @@
           </div>
         } @else {
           <p class="out-of-stock">Out of stock</p>
+        }
         }
 
         <div class="divider"></div>

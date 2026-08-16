@@ -13,14 +13,15 @@
       <a routerLink="/" (click)="closeMenu()" class="btn btn-primary">Home</a>
 
       <div class="actions">
-        @if (!isSeller()){
-        <button class="cart-btn" (click)="openCart()">
-          <span aria-hidden="true">🛒</span>
-          <span class="sr-only">Cart</span>
+        @if (!isSeller() && isLogin()) {
+        <a class="btn btn-primary" routerLink="/cart" (click)="closeMenu()">
+          <!-- <span aria-hidden="true">🛒</span> -->
+          <mat-icon>shopping_cart</mat-icon>
+          <span>Cart</span>
           @if (cartItemCount() > 0) {
             <span class="cart-badge">{{ cartItemCount() }}</span>
           }
-        </button>
+        </a>
         }
 
         @if (isLogin()) {

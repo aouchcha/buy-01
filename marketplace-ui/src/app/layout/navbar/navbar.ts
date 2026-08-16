@@ -4,12 +4,13 @@ import { Router, RouterLink } from '@angular/router';
 import { Auth } from '../../core/services/auth'
 import { Role } from '../../core/models/user'
 import { CartService } from '../../core/services/cart';
+import { MatIconModule } from '@angular/material/icon';
 
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, MatIconModule],
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss',
 })
@@ -44,10 +45,10 @@ export class Navbar implements OnInit {
     this.isMenuOpen.set(false);
   }
 
-  openCart(): void {
-    this.closeMenu();
-    this.router.navigate(['/cart']);
-  }
+  // openCart(): void {
+  //   this.closeMenu();
+  //   this.router.navigate(['/cart']);
+  // }
 
   logout(): void {
     this.authService.logout();
