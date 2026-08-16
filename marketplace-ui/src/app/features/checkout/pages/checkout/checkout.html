@@ -1,0 +1,130 @@
+<app-navbar></app-navbar>
+
+<section class="checkout-page">
+  <div class="container">
+    <h1>Checkout</h1>
+
+    <ol class="step-indicator">
+      <li [class.active]="step() === 'address'" [class.done]="step() !== 'address'">1. Address</li>
+      <li [class.active]="step() === 'review'" [class.done]="step() === 'payment'">2. Review</li>
+      <li [class.active]="step() === 'payment'">3. Payment</li>
+    </ol>
+
+    @if (step() === 'address') {
+      <form class="checkout-card" [formGroup]="addressForm" (ngSubmit)="continueFromAddress()">
+        <h2>Shipping Address</h2>
+
+        <div class="form-group">
+          <label for="fullName">Full name</label>
+          <input id="fullName" type="text" formControlName="fullName" placeholder="Full name" />
+          @if (addressForm.controls.fullName.invalid && addressForm.controls.fullName.touched) {
+            <span class="field-error">
+              @if (addressForm.controls.fullName.errors?.['required']) {
+                Full name is required.
+              } @else {
+                Full name must be between 2 and 100 characters.
+              }
+            </span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="phoneNumber">Phone</label>
+          <input id="phoneNumber" type="tel" formControlName="phoneNumber" placeholder="+212 6 12 34 56 78" />
+          @if (addressForm.controls.phoneNumber.invalid && addressForm.controls.phoneNumber.touched) {
+            <span class="field-error">
+              @if (addressForm.controls.phoneNumber.errors?.['required']) {
+                Phone number is required.
+              } @else {
+                Enter a valid phone number.
+              }
+            </span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="city">City</label>
+          <input id="city" type="text" formControlName="city" placeholder="City" />
+          @if (addressForm.controls.city.invalid && addressForm.controls.city.touched) {
+            <span class="field-error">City is required.</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="address">Address</label>
+          <textarea id="address" formControlName="address" placeholder="Street, building, apartment..." rows="3"></textarea>
+          @if (addressForm.controls.address.invalid && addressForm.controls.address.touched) {
+            <span class="field-error">
+              @if (addressForm.controls.address.errors?.['required']) {
+                Address is required.
+              } @else {
+                Address must be at least 5 characters.
+              }
+            </span>
+          }
+        </div>
+
+        <div class="checkout-actions">
+          <a routerLink="/cart" class="btn-outline">← Back to cart</a>
+          <button type="submit" class="btn-primary">Continue</button>
+        </div>
+      </form>
+    }
+
+    @if (step() === 'review') {
+      <div class="checkout-card">
+        <h2>Review Order</h2>
+
+        <div class="review-items">
+          @for (item of items(); track item.productId) {
+            <div class="review-item">
+              <span class="review-item-name">{{ item.name }} × {{ item.quantity }}</span>
+              <span class="review-item-total">{{ item.price * item.quantity | number:'1.0-2' }} DH</span>
+            </div>
+          }
+        </div>
+
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span>{{ subtotal() | number:'1.0-2' }} DH</span>
+        </div>
+        <div class="summary-row">
+          <span>Delivery</span>
+          <span>{{ delivery | number:'1.0-2' }} DH</span>
+        </div>
+        <div class="summary-row summary-total">
+          <span>Total</span>
+          <span>{{ total() | number:'1.0-2' }} DH</span>
+        </div>
+
+        <div class="checkout-actions">
+          <button type="button" class="btn-outline" (click)="backToAddress()">← Back</button>
+          <button type="button" class="btn-primary" (click)="continueFromReview()">Continue</button>
+        </div>
+      </div>
+    }
+
+    @if (step() === 'payment') {
+      <div class="checkout-card">
+        <h2>Payment Method</h2>
+
+        <label class="payment-option">
+          <input type="radio" name="paymentMethod" checked disabled />
+          <span>Pay on Delivery</span>
+        </label>
+
+        <div class="summary-row summary-total">
+          <span>Total</span>
+          <span>{{ total() | number:'1.0-2' }} DH</span>
+        </div>
+
+        <div class="checkout-actions">
+          <button type="button" class="btn-outline" [disabled]="submitting()" (click)="backToReview()">← Back</button>
+          <button type="button" class="btn-primary" [disabled]="submitting()" (click)="placeOrder()">
+            {{ submitting() ? 'Placing order...' : 'Place Order' }}
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</section>

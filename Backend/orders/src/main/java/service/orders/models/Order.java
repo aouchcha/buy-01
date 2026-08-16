@@ -1,13 +1,11 @@
 package service.orders.models;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,6 +28,9 @@ public class Order {
 
     @Field("total_Amount")
     private Double totalAmount;
+
+    @Field("full_name")
+    private String fullName;
 
     @Field("address")
     private String address;

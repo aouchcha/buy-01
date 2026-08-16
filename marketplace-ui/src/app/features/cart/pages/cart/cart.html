@@ -39,9 +39,31 @@
         }
       </div>
 
-      <div class="cart-summary">
+      <div class="order-summary">
+        <h2>Order Summary</h2>
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span>{{ total() | number:'1.0-2' }} DH</span>
+        </div>
+        <div class="summary-row">
+          <span>Delivery</span>
+          <span>{{ delivery | number:'1.0-2' }} DH</span>
+        </div>
+        <div class="summary-row summary-total">
+          <span>Total</span>
+          <span>{{ total() + delivery | number:'1.0-2' }} DH</span>
+        </div>
+      </div>
+
+      <div class="cart-actions">
         <button class="btn-outline" (click)="clearCart()">Clear cart</button>
-        <span class="total">Total: {{ total() | number:'1.0-2' }} DH</span>
+        <button
+          class="btn-checkout"
+          [disabled]="items().length === 0"
+          (click)="goToCheckout()"
+        >
+          Proceed to Checkout
+        </button>
       </div>
     }
   </div>

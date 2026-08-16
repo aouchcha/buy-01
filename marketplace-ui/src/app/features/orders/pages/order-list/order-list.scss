@@ -1,0 +1,108 @@
+// NOTE: color tokens (--color-*, --glass-*) come from the global
+// src/styles.scss. Don't redeclare :root here.
+
+.order-list-page {
+  min-height: 100vh;
+  padding: 120px 1.5rem 4rem;
+  background: var(--color-ivory);
+}
+
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+h1 {
+  color: var(--color-charcoal);
+  margin-bottom: 2rem;
+}
+
+.loading-state,
+.empty-state {
+  text-align: center;
+  padding: 4rem 0;
+  color: var(--color-muted);
+}
+
+.btn-back {
+  display: inline-block;
+  margin-top: 1rem;
+  color: var(--color-taupe-deep);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.order-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 1rem;
+  background: var(--color-cream);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow-soft);
+  text-decoration: none;
+  color: var(--color-charcoal);
+
+  &:hover {
+    box-shadow: var(--shadow-lift, var(--shadow-soft));
+  }
+}
+
+.order-row-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.order-row-id {
+  font-weight: 700;
+}
+
+.order-row-date {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.order-row-total {
+  font-weight: 700;
+  color: var(--color-taupe-deep);
+  min-width: 90px;
+  text-align: right;
+}
+
+.status-badge {
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  background: var(--color-beige);
+  color: var(--color-charcoal);
+
+  &.status-cancelled {
+    background: #f3d3cd;
+    color: #a3382a;
+  }
+
+  &.status-delivered {
+    background: #d7ecd9;
+    color: #2c6e3f;
+  }
+}
+
+@media (max-width: 640px) {
+  .order-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .order-row-total {
+    text-align: left;
+  }
+}

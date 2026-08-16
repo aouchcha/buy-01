@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { MatDialogModule } from '@angular/material/dialog';
 
 import { Cart } from './cart';
@@ -11,6 +11,7 @@ describe('Cart', () => {
   let component: Cart;
   let fixture: ComponentFixture<Cart>;
   let cartService: CartService;
+  let router: Router;
 
   const mockProduct: ProductDto = {
     id: 'prod-1',
@@ -33,11 +34,13 @@ describe('Cart', () => {
     fixture = TestBed.createComponent(Cart);
     component = fixture.componentInstance;
     cartService = TestBed.inject(CartService);
+    router = TestBed.inject(Router);
     fixture.detectChanges();
   });
 
   afterEach(() => {
     localStorage.clear();
+    vi.clearAllMocks();
   });
 
   it('should create', () => {
@@ -87,5 +90,45 @@ describe('Cart', () => {
     component.remove('prod-1');
 
     expect(cartService.items()).toEqual([]);
+  });
+
+  it('shows the order summary with subtotal, delivery and total', () => {
+    cartService.add(mockProduct, 2);
+    fixture.detectChanges();
+
+    expect(component.delivery).toBe(0);
+    expect(fixture.nativeElement.textContent).toContain('Order Summary');
+    expect(fixture.nativeElement.textContent).toContain('Subtotal');
+    expect(fixture.nativeElement.textContent).toContain('Delivery');
+  });
+
+  it('disables the Proceed to Checkout button when the cart is empty', () => {
+    fixture.detectChanges();
+
+    expect(component.items()).toEqual([]);
+    const button: HTMLButtonElement | null = fixture.nativeElement.querySelector('.btn-checkout');
+    expect(button).toBeNull();
+  });
+
+  it('enables Proceed to Checkout and navigates to /checkout when there are items', () => {
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    cartService.add(mockProduct, 1);
+    fixture.detectChanges();
+
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector('.btn-checkout');
+    expect(button.disabled).toBe(false);
+
+    component.goToCheckout();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/checkout']);
+  });
+
+  it('goToCheckout() does nothing when the cart is empty', () => {
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    fixture.detectChanges();
+
+    component.goToCheckout();
+
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 });

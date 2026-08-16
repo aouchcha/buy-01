@@ -1,0 +1,197 @@
+// NOTE: color tokens (--color-*, --glass-*) come from the global
+// src/styles.scss. Don't redeclare :root here.
+
+.checkout-page {
+  min-height: 100vh;
+  padding: 120px 1.5rem 4rem;
+  background: var(--color-ivory);
+}
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+h1 {
+  color: var(--color-charcoal);
+  margin-bottom: 1.5rem;
+}
+
+.step-indicator {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2rem;
+  gap: 1.5rem;
+
+  li {
+    font-weight: 600;
+    color: var(--color-muted);
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid transparent;
+
+    &.done {
+      color: var(--color-taupe-deep);
+    }
+
+    &.active {
+      color: var(--color-charcoal);
+      border-bottom-color: var(--color-taupe-deep);
+    }
+  }
+}
+
+.checkout-card {
+  background: var(--color-cream);
+  border-radius: 14px;
+  padding: 1.75rem;
+  box-shadow: var(--shadow-soft);
+
+  h2 {
+    margin: 0 0 1.25rem;
+    color: var(--color-charcoal);
+  }
+}
+
+.form-group {
+  margin-bottom: 1rem;
+
+  label {
+    display: block;
+    margin-bottom: 0.4rem;
+    color: var(--color-charcoal);
+    font-weight: 600;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border-radius: 10px;
+    border: 1px solid var(--color-sand);
+    background: var(--color-ivory);
+    color: var(--color-charcoal);
+    font-size: 1rem;
+    font-family: inherit;
+    outline: none;
+
+    &:focus {
+      border-color: var(--color-taupe-deep);
+    }
+  }
+}
+
+.field-error {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  color: #a3382a;
+}
+
+.review-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.review-item {
+  display: flex;
+  justify-content: space-between;
+  color: var(--color-charcoal);
+}
+
+.review-item-total {
+  font-weight: 600;
+  color: var(--color-taupe-deep);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.35rem 0;
+  color: var(--color-muted);
+
+  &.summary-total {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-beige);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-charcoal);
+  }
+}
+
+.payment-option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-sand);
+  border-radius: 10px;
+  margin-bottom: 1.25rem;
+  color: var(--color-charcoal);
+  font-weight: 600;
+}
+
+.checkout-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.75rem;
+  gap: 1rem;
+}
+
+.btn-outline {
+  padding: 0.6rem 1.1rem;
+  border-radius: 10px;
+  border: 1px solid var(--color-taupe);
+  color: var(--color-taupe);
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+
+  &:hover {
+    background: var(--color-taupe);
+    color: white;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  padding: 0.7rem 1.4rem;
+  border-radius: 10px;
+  border: none;
+  background: var(--color-taupe-deep);
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@media (max-width: 640px) {
+  .checkout-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+
+    button,
+    a {
+      width: 100%;
+      text-align: center;
+    }
+  }
+}

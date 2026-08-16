@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { Navbar } from '../../../../layout/navbar/navbar';
 import { CartService } from '../../../../core/services/cart';
@@ -17,9 +17,11 @@ export class Cart {
   private readonly cartService = inject(CartService);
   private readonly confirmService = inject(ConfirmService);
   private readonly toastService = inject(ToastService);
+  private readonly router = inject(Router);
 
   readonly items = this.cartService.items;
   readonly total = this.cartService.total;
+  readonly delivery = 0;
 
   increment(productId: string, currentQuantity: number, maxQuantity: number): void {
     if (currentQuantity >= maxQuantity) {
@@ -52,5 +54,12 @@ export class Cart {
           this.toastService.success('Cart cleared.');
         }
       });
+  }
+
+  goToCheckout(): void {
+    if (this.items().length === 0) {
+      return;
+    }
+    this.router.navigate(['/checkout']);
   }
 }

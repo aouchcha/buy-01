@@ -1,0 +1,76 @@
+<app-navbar></app-navbar>
+
+<section class="order-details-page">
+  <div class="container">
+    @if (loading()) {
+      <p class="loading-state">Loading order...</p>
+    } @else if (notFound()) {
+      <div class="empty-state">
+        <p>We couldn't find this order.</p>
+        <a routerLink="/orders" class="btn-back">← Back to my orders</a>
+      </div>
+    } @else if (order(); as order) {
+      <div class="order-header">
+        <div>
+          <h1>Order created successfully</h1>
+          <p class="order-id">Order #{{ order.id }}</p>
+          <p class="order-date">Placed on {{ order.createdAt | date:'medium' }}</p>
+        </div>
+        <span class="status-badge" [class]="'status-' + order.status.toLowerCase()">{{ order.status }}</span>
+      </div>
+
+      <div class="timeline">
+        @for (step of timeline(); track step.label) {
+          <div class="timeline-step" [class]="'state-' + step.state">
+            <span class="timeline-icon">
+              @if (step.state === 'done') {
+                ✓
+              } @else if (step.state === 'cancelled') {
+                ✕
+              } @else {
+                ○
+              }
+            </span>
+            <span class="timeline-label">{{ step.label }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="order-card">
+        <h2>Products</h2>
+        <div class="order-items">
+          @for (item of order.cartItems; track item.productId) {
+            <div class="order-item">
+              <span class="item-name">{{ item.productName }}</span>
+              <span class="item-qty">× {{ item.quantity }}</span>
+              <span class="item-unit-price">{{ item.price | number:'1.0-2' }} DH</span>
+              <span class="item-subtotal">{{ item.totalPrice | number:'1.0-2' }} DH</span>
+            </div>
+          }
+        </div>
+
+        <div class="summary-row summary-total">
+          <span>Total</span>
+          <span>{{ order.totalAmount | number:'1.0-2' }} DH</span>
+        </div>
+      </div>
+
+      <div class="order-card">
+        <h2>Shipping Address</h2>
+        <p>{{ order.fullName }}</p>
+        <p>{{ order.address }}, {{ order.city }}</p>
+        <p>{{ order.phoneNumber }}</p>
+      </div>
+
+      <div class="order-card">
+        <h2>Payment Method</h2>
+        <p>{{ order.paymentMethod === PaymentMethod.CASH_ON_DELIVERY ? 'Pay on Delivery' : order.paymentMethod }}</p>
+      </div>
+
+      <div class="order-actions">
+        <a routerLink="/orders" class="btn-outline">View my orders</a>
+        <a routerLink="/" class="btn-primary">Continue shopping</a>
+      </div>
+    }
+  </div>
+</section>
