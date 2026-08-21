@@ -1,30 +1,44 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 
 import { CartService } from './cart';
-import { ProductDto } from '../models/product';
+import { Cart } from '../models/cart';
+import { environment } from '../../../environments/environment';
 
 describe('CartService', () => {
   let service: CartService;
+  let httpTesting: HttpTestingController;
 
-  const mockProduct: ProductDto = {
-    id: 'prod-1',
-    name: 'Rooster',
-    description: 'A fine rooster',
-    price: 150,
-    quantity: 3,
-    userId: 'seller-1',
-    imageUrls: ['rooster.jpg'],
+  const apiUrl = `${environment.apiUrl}/cart`;
+
+  const mockCart: Cart = {
+    id: 'cart-1',
+    userId: 'user-1',
+    cartItems: [
+      {
+        id: 'item-1',
+        sellerId: 'seller-1',
+        productId: 'prod-1',
+        productName: 'Rooster',
+        price: 150,
+        quantity: 2,
+        totalPrice: 300,
+      },
+    ],
   };
 
   beforeEach(() => {
-    localStorage.clear();
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+    });
+
     service = TestBed.inject(CartService);
+    httpTesting = TestBed.inject(HttpTestingController);
   });
 
   afterEach(() => {
-    localStorage.clear();
+    httpTesting.verify();
   });
 
   it('starts empty', () => {
@@ -33,92 +47,71 @@ describe('CartService', () => {
     expect(service.total()).toBe(0);
   });
 
-  it('add() adds a new product with quantity 1 by default', () => {
-    service.add(mockProduct);
+  it('load() GETs the cart and updates items/itemCount/total', () => {
+    service.load().subscribe();
 
-    expect(service.items()).toEqual([
-      {
-        productId: 'prod-1',
-        name: 'Rooster',
-        price: 150,
-        imageUrl: 'rooster.jpg',
-        quantity: 1,
-        maxQuantity: 3,
-      },
-    ]);
-    expect(service.itemCount()).toBe(1);
-    expect(service.total()).toBe(150);
-  });
+    const req = httpTesting.expectOne(apiUrl);
+    expect(req.request.method).toBe('GET');
+    req.flush(mockCart);
 
-  it('add() increases quantity when the product is already in the cart', () => {
-    service.add(mockProduct);
-    service.add(mockProduct);
-
-    expect(service.items()[0].quantity).toBe(2);
+    expect(service.items()).toEqual(mockCart.cartItems);
     expect(service.itemCount()).toBe(2);
     expect(service.total()).toBe(300);
   });
 
-  it('add() caps quantity at the product stock', () => {
-    service.add(mockProduct, 5);
+  it('addItem() POSTs to /cart/items then reloads the cart', () => {
+    service.addItem('prod-1', 2).subscribe();
 
-    expect(service.items()[0].quantity).toBe(3);
+    const postReq = httpTesting.expectOne(`${apiUrl}/items`);
+    expect(postReq.request.method).toBe('POST');
+    expect(postReq.request.body).toEqual({ productId: 'prod-1', quantity: 2 });
+    postReq.flush(null);
+
+    const getReq = httpTesting.expectOne(apiUrl);
+    expect(getReq.request.method).toBe('GET');
+    getReq.flush(mockCart);
+
+    expect(service.items()).toEqual(mockCart.cartItems);
   });
 
-  it('updateQuantity() updates the quantity of an existing item', () => {
-    service.add(mockProduct);
-    service.updateQuantity('prod-1', 2);
+  it('updateQuantity() PATCHes /cart/items and applies the returned cart', () => {
+    service.updateQuantity('prod-1', 3).subscribe();
 
-    expect(service.items()[0].quantity).toBe(2);
+    const req = httpTesting.expectOne(`${apiUrl}/items`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ productId: 'prod-1', quantity: 3 });
+    req.flush(mockCart);
+
+    expect(service.items()).toEqual(mockCart.cartItems);
   });
 
-  it('updateQuantity() caps at the stored maxQuantity', () => {
-    service.add(mockProduct);
-    service.updateQuantity('prod-1', 99);
+  it('remove() DELETEs /cart/items/{productId} and applies the returned cart', () => {
+    service.remove('prod-1').subscribe();
 
-    expect(service.items()[0].quantity).toBe(3);
-  });
-
-  it('updateQuantity() removes the item when quantity drops to 0 or below', () => {
-    service.add(mockProduct);
-    service.updateQuantity('prod-1', 0);
+    const req = httpTesting.expectOne(`${apiUrl}/items/prod-1`);
+    expect(req.request.method).toBe('DELETE');
+    req.flush({ ...mockCart, cartItems: [] });
 
     expect(service.items()).toEqual([]);
   });
 
-  it('remove() removes an item by productId', () => {
-    service.add(mockProduct);
-    service.remove('prod-1');
+  it('clear() DELETEs /cart and empties the items', () => {
+    service.load().subscribe();
+    httpTesting.expectOne(apiUrl).flush(mockCart);
 
-    expect(service.items()).toEqual([]);
-  });
-
-  it('clear() empties the cart', () => {
-    service.add(mockProduct);
-    service.clear();
+    service.clear().subscribe();
+    httpTesting.expectOne(apiUrl).flush(null);
 
     expect(service.items()).toEqual([]);
     expect(service.itemCount()).toBe(0);
   });
 
-  it('persists items to localStorage and reloads them on a fresh instance', () => {
-    service.add(mockProduct);
+  it('reset() empties the items locally without an HTTP call', () => {
+    service.load().subscribe();
+    httpTesting.expectOne(apiUrl).flush(mockCart);
 
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({});
-    const reloaded = TestBed.inject(CartService);
+    service.reset();
 
-    expect(reloaded.items()).toHaveLength(1);
-    expect(reloaded.items()[0].productId).toBe('prod-1');
-  });
-
-  it('falls back to an empty cart when localStorage holds invalid JSON', () => {
-    localStorage.setItem('cart_items', 'not-json');
-
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({});
-    const freshService = TestBed.inject(CartService);
-
-    expect(freshService.items()).toEqual([]);
+    expect(service.items()).toEqual([]);
   });
 });

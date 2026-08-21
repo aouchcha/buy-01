@@ -32,9 +32,12 @@ export class Navbar implements OnInit {
     this.isLogin.set(!!token);
     const role = this.authService.getUserRole()
     console.log(role);
-    
+
     this.isSeller.set(Role.SELLER === role)
 
+    if (token) {
+      this.cartService.load().subscribe({ error: () => {} });
+    }
   }
 
   toggleMenu(): void {
@@ -52,7 +55,7 @@ export class Navbar implements OnInit {
 
   logout(): void {
     this.authService.logout();
-    this.cartService.clear();
+    this.cartService.reset();
     this.isLogin.set(false);
     this.closeMenu();
     this.router.navigate(['/login']);

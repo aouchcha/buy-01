@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Navbar } from '../../../../layout/navbar/navbar';
 import { ProductDto } from '../../../../core/models/product';
@@ -66,7 +67,20 @@ export class ProductList implements OnInit {
       this.toastService.error('This product is out of stock.');
       return;
     }
-    this.cartService.add(product);
-    this.toastService.success(`${product.name} added to cart.`);
+    this.cartService.addItem(product.id).subscribe({
+      next: () => this.toastService.success(`${product.name} added to cart.`),
+      error: (err: HttpErrorResponse) => this.toastService.error(this.mapAddToCartError(err)),
+    });
+  }
+
+  private mapAddToCartError(err: HttpErrorResponse): string {
+    switch (err.status) {
+      case 404:
+        return 'This product is no longer available.';
+      case 409:
+        return 'Not enough stock available for this item.';
+      default:
+        return 'Could not add this item to your cart. Please try again.';
+    }
   }
 }

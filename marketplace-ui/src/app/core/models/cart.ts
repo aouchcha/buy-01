@@ -1,8 +1,15 @@
 export interface CartItem {
+  id: string;
+  sellerId: string | null;
   productId: string;
-  name: string;
+  productName: string;
   price: number;
-  imageUrl: string | null;
   quantity: number;
-  maxQuantity: number;
+  totalPrice: number;
+}
+
+export interface Cart {
+  id: string;
+  userId: string;
+  cartItems: CartItem[];
 }

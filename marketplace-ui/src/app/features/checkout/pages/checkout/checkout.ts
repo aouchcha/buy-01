@@ -39,13 +39,19 @@ export class Checkout implements OnInit {
     fullName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
     phoneNumber: ['', [Validators.required, Validators.pattern(/^\+?[0-9 ()-]{8,20}$/)]],
     city: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+    postalCode: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(20)]],
     address: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(255)]],
   });
 
   ngOnInit(): void {
-    if (this.items().length === 0) {
-      this.router.navigate(['/cart']);
-    }
+    this.cartService.load().subscribe({
+      next: () => {
+        if (this.items().length === 0) {
+          this.router.navigate(['/cart']);
+        }
+      },
+      error: () => this.router.navigate(['/cart']),
+    });
   }
 
   continueFromAddress(): void {
@@ -79,24 +85,22 @@ export class Checkout implements OnInit {
 
     this.submitting.set(true);
 
-    const { fullName, phoneNumber, city, address } = this.addressForm.getRawValue();
+    const { fullName, phoneNumber, city, postalCode, address } = this.addressForm.getRawValue();
 
     const request: CreateOrderRequest = {
-      fullName: fullName!,
-      phoneNumber: phoneNumber!,
-      city: city!,
-      address: address!,
-      items: this.items().map((item) => ({
-        productId: item.productId,
-        productName: item.name,
-        price: item.price,
-        quantity: item.quantity,
-      })),
+      shippingAddress: {
+        fullName: fullName!,
+        phone: phoneNumber!,
+        city: city!,
+        postalCode: postalCode!,
+        address: address!,
+      },
+      paymentMethod: PaymentMethod.CASH_ON_DELIVERY,
     };
 
     this.orderService.create(request).subscribe({
       next: (order) => {
-        this.cartService.clear();
+        this.cartService.reset();
         this.toastService.success('Order placed successfully.');
         this.router.navigate(['/orders', order.id]);
       },

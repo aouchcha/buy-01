@@ -4,7 +4,9 @@
   <div class="container">
     <h1>Your Cart</h1>
 
-    @if (items().length === 0) {
+    @if (loading()) {
+      <p class="loading-state">Loading your cart...</p>
+    } @else if (items().length === 0) {
       <div class="empty-state">
         <p>Your cart is empty.</p>
         <a routerLink="/" class="btn-back">← Browse birds</a>
@@ -13,26 +15,20 @@
       <div class="cart-list">
         @for (item of items(); track item.productId) {
           <article class="cart-item">
-            <img [src]="item.imageUrl ?? 'assets/images/background.png'" [alt]="item.name" class="cart-item-media" />
+            <img src="assets/images/background.png" [alt]="item.productName" class="cart-item-media" />
 
             <div class="cart-item-info">
-              <h3>{{ item.name }}</h3>
+              <h3>{{ item.productName }}</h3>
               <span class="unit-price">{{ item.price | number:'1.0-2' }} DH each</span>
             </div>
 
             <div class="quantity-control">
               <button (click)="decrement(item.productId, item.quantity)" aria-label="Decrease quantity">−</button>
               <span>{{ item.quantity }}</span>
-              <button
-                (click)="increment(item.productId, item.quantity, item.maxQuantity)"
-                [disabled]="item.quantity >= item.maxQuantity"
-                aria-label="Increase quantity"
-              >
-                +
-              </button>
+              <button (click)="increment(item.productId, item.quantity)" aria-label="Increase quantity">+</button>
             </div>
 
-            <span class="line-total">{{ item.price * item.quantity | number:'1.0-2' }} DH</span>
+            <span class="line-total">{{ item.totalPrice | number:'1.0-2' }} DH</span>
 
             <button class="remove-btn" (click)="remove(item.productId)" aria-label="Remove item">✕</button>
           </article>

@@ -27,23 +27,22 @@ export interface Order {
   fullName: string;
   address: string;
   city: string;
+  postalCode: string;
   phoneNumber: string;
   createdAt: number;
   cartItems: OrderItem[];
   paymentMethod: PaymentMethod;
 }
 
-export interface CreateOrderItemRequest {
-  productId: string;
-  productName: string;
-  price: number;
-  quantity: number;
+export interface ShippingAddressRequest {
+  fullName: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  phone: string;
 }
 
 export interface CreateOrderRequest {
-  fullName: string;
-  phoneNumber: string;
-  city: string;
-  address: string;
-  items: CreateOrderItemRequest[];
+  shippingAddress: ShippingAddressRequest;
+  paymentMethod: PaymentMethod;
 }

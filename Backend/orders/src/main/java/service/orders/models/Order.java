@@ -38,6 +38,9 @@ public class Order {
     @Field("City")
     private String city;
 
+    @Field("postal_code")
+    private String postalCode;
+
     @Field("phone_number")
     private String phoneNumber;
 

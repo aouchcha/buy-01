@@ -23,6 +23,7 @@ describe('OrderDetails', () => {
     fullName: 'John Doe',
     address: '12 rue des Fleurs',
     city: 'Casablanca',
+    postalCode: '60000',
     phoneNumber: '+212612345678',
     createdAt: 1700000000000,
     cartItems: [

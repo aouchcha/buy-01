@@ -2,118 +2,153 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { MatDialogModule } from '@angular/material/dialog';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 
 import { Cart } from './cart';
 import { CartService } from '../../../../core/services/cart';
-import { ProductDto } from '../../../../core/models/product';
+import { Cart as CartModel } from '../../../../core/models/cart';
+import { environment } from '../../../../../environments/environment';
 
 describe('Cart', () => {
   let component: Cart;
   let fixture: ComponentFixture<Cart>;
   let cartService: CartService;
   let router: Router;
+  let httpTesting: HttpTestingController;
 
-  const mockProduct: ProductDto = {
-    id: 'prod-1',
-    name: 'Rooster',
-    description: 'A fine rooster',
-    price: 150,
-    quantity: 5,
-    userId: 'seller-1',
-    imageUrls: ['rooster.jpg'],
+  const apiUrl = `${environment.apiUrl}/cart`;
+
+  const mockCart: CartModel = {
+    id: 'cart-1',
+    userId: 'user-1',
+    cartItems: [
+      {
+        id: 'item-1',
+        sellerId: 'seller-1',
+        productId: 'prod-1',
+        productName: 'Rooster',
+        price: 150,
+        quantity: 2,
+        totalPrice: 300,
+      },
+    ],
   };
 
-  beforeEach(async () => {
-    localStorage.clear();
+  function createComponentAndLoad(cart: CartModel = mockCart): void {
+    fixture = TestBed.createComponent(Cart);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
 
+    httpTesting.expectOne(apiUrl).flush(cart);
+    fixture.detectChanges();
+  }
+
+  beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Cart, MatDialogModule],
+      imports: [Cart, MatDialogModule, HttpClientTestingModule],
       providers: [provideRouter([])],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Cart);
-    component = fixture.componentInstance;
     cartService = TestBed.inject(CartService);
     router = TestBed.inject(Router);
-    fixture.detectChanges();
+    httpTesting = TestBed.inject(HttpTestingController);
   });
 
   afterEach(() => {
-    localStorage.clear();
+    httpTesting.verify();
     vi.clearAllMocks();
   });
 
   it('should create', () => {
+    fixture = TestBed.createComponent(Cart);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    httpTesting.expectOne(apiUrl).flush({ id: 'cart-1', userId: 'user-1', cartItems: [] });
+
     expect(component).toBeTruthy();
   });
 
-  it('shows an empty cart by default', () => {
+  it('shows an empty cart when the server cart has no items', () => {
+    fixture = TestBed.createComponent(Cart);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    httpTesting.expectOne(apiUrl).flush({ id: 'cart-1', userId: 'user-1', cartItems: [] });
+
     expect(component.items()).toEqual([]);
     expect(component.total()).toBe(0);
   });
 
-  it('reflects items added through the CartService', () => {
-    cartService.add(mockProduct, 2);
-    fixture.detectChanges();
+  it('loads items from the backend cart on init', () => {
+    createComponentAndLoad();
 
     expect(component.items()).toHaveLength(1);
     expect(component.total()).toBe(300);
   });
 
-  it('increment() raises the quantity up to the stock limit', () => {
-    cartService.add(mockProduct, 1);
+  it('increment() PATCHes the cart with quantity + 1', () => {
+    createComponentAndLoad();
 
-    component.increment('prod-1', 1, 5);
+    component.increment('prod-1', 2);
 
-    expect(cartService.items()[0].quantity).toBe(2);
+    const req = httpTesting.expectOne(`${apiUrl}/items`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ productId: 'prod-1', quantity: 3 });
+    req.flush({ ...mockCart, cartItems: [{ ...mockCart.cartItems[0], quantity: 3, totalPrice: 450 }] });
+
+    expect(cartService.items()[0].quantity).toBe(3);
   });
 
-  it('increment() does nothing once the stock limit is reached', () => {
-    cartService.add(mockProduct, 5);
-
-    component.increment('prod-1', 5, 5);
-
-    expect(cartService.items()[0].quantity).toBe(5);
-  });
-
-  it('decrement() lowers the quantity', () => {
-    cartService.add(mockProduct, 2);
+  it('decrement() PATCHes the cart with quantity - 1 when above 1', () => {
+    createComponentAndLoad();
 
     component.decrement('prod-1', 2);
+
+    const req = httpTesting.expectOne(`${apiUrl}/items`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ productId: 'prod-1', quantity: 1 });
+    req.flush({ ...mockCart, cartItems: [{ ...mockCart.cartItems[0], quantity: 1, totalPrice: 150 }] });
 
     expect(cartService.items()[0].quantity).toBe(1);
   });
 
-  it('remove() takes the item out of the cart', () => {
-    cartService.add(mockProduct, 1);
+  it('decrement() removes the item instead of going to 0', () => {
+    createComponentAndLoad();
 
-    component.remove('prod-1');
+    component.decrement('prod-1', 1);
+
+    const req = httpTesting.expectOne(`${apiUrl}/items/prod-1`);
+    expect(req.request.method).toBe('DELETE');
+    req.flush({ ...mockCart, cartItems: [] });
 
     expect(cartService.items()).toEqual([]);
   });
 
-  it('shows the order summary with subtotal, delivery and total', () => {
-    cartService.add(mockProduct, 2);
-    fixture.detectChanges();
+  it('remove() takes the item out of the cart', () => {
+    createComponentAndLoad();
 
-    expect(component.delivery).toBe(0);
-    expect(fixture.nativeElement.textContent).toContain('Order Summary');
-    expect(fixture.nativeElement.textContent).toContain('Subtotal');
-    expect(fixture.nativeElement.textContent).toContain('Delivery');
+    component.remove('prod-1');
+
+    const req = httpTesting.expectOne(`${apiUrl}/items/prod-1`);
+    expect(req.request.method).toBe('DELETE');
+    req.flush({ ...mockCart, cartItems: [] });
+
+    expect(cartService.items()).toEqual([]);
   });
 
-  it('disables the Proceed to Checkout button when the cart is empty', () => {
+  it('does not render the Proceed to Checkout button when the cart is empty', () => {
+    fixture = TestBed.createComponent(Cart);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    httpTesting.expectOne(apiUrl).flush({ id: 'cart-1', userId: 'user-1', cartItems: [] });
     fixture.detectChanges();
 
-    expect(component.items()).toEqual([]);
     const button: HTMLButtonElement | null = fixture.nativeElement.querySelector('.btn-checkout');
     expect(button).toBeNull();
   });
 
   it('enables Proceed to Checkout and navigates to /checkout when there are items', () => {
     vi.spyOn(router, 'navigate').mockResolvedValue(true);
-    cartService.add(mockProduct, 1);
-    fixture.detectChanges();
+    createComponentAndLoad();
 
     const button: HTMLButtonElement = fixture.nativeElement.querySelector('.btn-checkout');
     expect(button.disabled).toBe(false);
@@ -125,7 +160,10 @@ describe('Cart', () => {
 
   it('goToCheckout() does nothing when the cart is empty', () => {
     vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    fixture = TestBed.createComponent(Cart);
+    component = fixture.componentInstance;
     fixture.detectChanges();
+    httpTesting.expectOne(apiUrl).flush({ id: 'cart-1', userId: 'user-1', cartItems: [] });
 
     component.goToCheckout();
 

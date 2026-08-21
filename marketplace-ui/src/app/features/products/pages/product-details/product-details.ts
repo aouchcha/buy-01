@@ -2,6 +2,8 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
+import { HttpErrorResponse } from '@angular/common/http';
+
 import { Navbar } from '../../../../layout/navbar/navbar';
 import { ProductDto } from '../../../../core/models/product';
 import { User } from '../../../../core/models/user';
@@ -96,8 +98,25 @@ export class ProductDetails implements OnInit {
   addToCart(): void {
     const p = this.product();
     if (!p || p.quantity <= 0) return;
-    this.cartService.add(p, this.selectedQuantity());
-    this.toastService.success(`${p.name} added to cart.`);
-    this.selectedQuantity.set(1);
+    this.cartService.addItem(p.id, this.selectedQuantity()).subscribe({
+      next: () => {
+        this.toastService.success(`${p.name} added to cart.`);
+        this.selectedQuantity.set(1);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.toastService.error(this.mapAddToCartError(err));
+      },
+    });
+  }
+
+  private mapAddToCartError(err: HttpErrorResponse): string {
+    switch (err.status) {
+      case 404:
+        return 'This product is no longer available.';
+      case 409:
+        return 'Not enough stock available for this item.';
+      default:
+        return 'Could not add this item to your cart. Please try again.';
+    }
   }
 }

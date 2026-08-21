@@ -13,11 +13,14 @@ describe('OrderService', () => {
   const apiUrl = `${environment.apiUrl}/orders`;
 
   const mockRequest: CreateOrderRequest = {
-    fullName: 'John Doe',
-    phoneNumber: '+212612345678',
-    city: 'Casablanca',
-    address: '12 rue des Fleurs',
-    items: [{ productId: 'prod-1', productName: 'Rooster', price: 150, quantity: 2 }],
+    shippingAddress: {
+      fullName: 'John Doe',
+      phone: '+212612345678',
+      city: 'Casablanca',
+      postalCode: '60000',
+      address: '12 rue des Fleurs',
+    },
+    paymentMethod: PaymentMethod.CASH_ON_DELIVERY,
   };
 
   const mockOrder: Order = {
@@ -28,6 +31,7 @@ describe('OrderService', () => {
     fullName: 'John Doe',
     address: '12 rue des Fleurs',
     city: 'Casablanca',
+    postalCode: '60000',
     phoneNumber: '+212612345678',
     createdAt: 1700000000000,
     cartItems: [

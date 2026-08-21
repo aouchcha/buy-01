@@ -51,6 +51,14 @@
         </div>
 
         <div class="form-group">
+          <label for="postalCode">Postal code</label>
+          <input id="postalCode" type="text" formControlName="postalCode" placeholder="Postal code" />
+          @if (addressForm.controls.postalCode.invalid && addressForm.controls.postalCode.touched) {
+            <span class="field-error">Postal code is required.</span>
+          }
+        </div>
+
+        <div class="form-group">
           <label for="address">Address</label>
           <textarea id="address" formControlName="address" placeholder="Street, building, apartment..." rows="3"></textarea>
           @if (addressForm.controls.address.invalid && addressForm.controls.address.touched) {
@@ -78,8 +86,8 @@
         <div class="review-items">
           @for (item of items(); track item.productId) {
             <div class="review-item">
-              <span class="review-item-name">{{ item.name }} × {{ item.quantity }}</span>
-              <span class="review-item-total">{{ item.price * item.quantity | number:'1.0-2' }} DH</span>
+              <span class="review-item-name">{{ item.productName }} × {{ item.quantity }}</span>
+              <span class="review-item-total">{{ item.totalPrice | number:'1.0-2' }} DH</span>
             </div>
           }
         </div>
