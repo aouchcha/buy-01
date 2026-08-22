@@ -460,4 +460,35 @@ export class Profile implements OnInit {
 
   }
 
+
+  public sellerEarnings(): number {
+
+    return 0;
+
+  }
+
+  public bestSellingProducts(): ProductDto[] {
+
+    return [];
+
+  }
+
+  public totalMoneySpent(): number {
+
+    return 0;
+
+  }
+
+  public mostBoughtProducts(): ProductDto[] {
+
+    return [];
+
+  }
+
+  public bestProducts(): ProductDto[] {
+
+    return [];
+
+  }
+
 }

@@ -19,7 +19,7 @@
           <mat-icon>shopping_cart</mat-icon>
           <span>Cart</span>
           @if (cartItemCount() > 0) {
-            <span class="cart-badge">{{ cartItemCount() }}</span>
+          <span class="cart-badge">{{ cartItemCount() }}</span>
           }
         </a>
         }
@@ -28,11 +28,11 @@
         <a routerLink="/profile" (click)="closeMenu()" class="btn btn-primary">
           Profile
         </a>
-        @if (isSeller()){
-          <a routerLink="/seller" class="btn btn-primary" (click)="closeMenu()">
-            Dashboard
-          </a>
-        }
+
+        <a routerLink="/seller" class="btn btn-primary" (click)="closeMenu()">
+          Dashboard
+        </a>
+
 
         <a class="btn btn-primary" (click)="logout()">
           Logout

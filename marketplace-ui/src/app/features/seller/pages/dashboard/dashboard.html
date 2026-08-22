@@ -1,6 +1,93 @@
 <app-navbar></app-navbar>
 
 <section class="dashboard">
+  <!-- USER / CLIENT DASHBOARD -->
+  @if (isClient()) {
+  <header class="dashboard__header">
+    <div class="dashboard__greeting">
+      <span class="dashboard__eyebrow">Client Overview</span>
+      <h1>Welcome {{ user?.firstName }}</h1>
+      <p class="dashboard__sub">Here is your spending and shopping history.</p>
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat-card">
+      <span class="stat-card__label">Total Spent</span>
+      <span class="stat-card__value">{{ totalSpent() | number: '1.0-2' }} MAD</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card__label">Orders Placed</span>
+      <span class="stat-card__value">{{ orderCount() }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card__label">Items Bought</span>
+      <span class="stat-card__value">{{ totalItemsBought() }}</span>
+    </div>
+  </div>
+
+  <div class="analytics-grid">
+    <div class="chart-card">
+      <div class="catalog__header">
+        <h2>Top Spending Categories</h2>
+      </div>
+      <div class="chart-container">
+        <canvas baseChart
+          [data]="clientCategoryChartData()"
+          [options]="chartOptions"
+          [type]="'doughnut'">
+        </canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="catalog__header">
+        <h2>Monthly Spending</h2>
+      </div>
+      <div class="chart-container">
+        <canvas baseChart
+          [data]="clientSpendingChartData()"
+          [options]="chartOptions"
+          [type]="'bar'">
+        </canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="catalog">
+    <div class="catalog__header">
+      <h2>Most Bought Products</h2>
+    </div>
+    @if (mostBoughtProducts().length === 0) {
+    <div class="empty-state">
+      <p class="empty-state__title">No purchase history</p>
+      <p class="empty-state__sub">Your most frequently purchased products will appear here.</p>
+    </div>
+    } @else {
+    <div class="catalog__grid">
+      @for (product of mostBoughtProducts(); track product.id) {
+      <article class="product-card">
+        <div class="product-card__media">
+          @if (product.imageUrls.length) {
+          <img [src]="product.imageUrls[getImageIndex(product.id)]" [alt]="product.name" loading="lazy" />
+          } @else {
+          <div class="product-card__placeholder">No image</div>
+          }
+        </div>
+        <div class="product-card__body">
+          <h3>{{ product.name }}</h3>
+          <p class="product-card__desc">{{ product.description }}</p>
+          <p class="product-card__price">{{ product.price | number: '1.0-2' }} MAD</p>
+        </div>
+      </article>
+      }
+    </div>
+    }
+  </div>
+  }
+
+  <!-- SELLER DASHBOARD -->
+  @if (isSeller()) {
   <header class="dashboard__header">
     <div class="dashboard__greeting">
       <span class="dashboard__eyebrow">Seller ledger</span>
@@ -21,52 +108,64 @@
 
   <div class="stats">
     <div class="stat-card">
-      <span class="stat-card__label">Products</span>
+      <span class="stat-card__label">Total Revenue</span>
+      <span class="stat-card__value">{{ totalRevenue() | number: '1.0-2' }} MAD</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card__label">Units Sold</span>
+      <span class="stat-card__value">{{ totalUnitsSold() }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card__label">Active Products</span>
       <span class="stat-card__value">{{ products().length }}</span>
     </div>
-    <div class="stat-card">
-      <span class="stat-card__label">Catalog value</span>
-      <span class="stat-card__value">{{ totalValue() | number: '1.0-0' }} MAD</span>
+  </div>
+
+  <div class="analytics-grid">
+    <div class="chart-card">
+      <div class="catalog__header">
+        <h2>Units Sold by Category</h2>
+      </div>
+      <div class="chart-container">
+        <canvas baseChart
+          [data]="sellerUnitsChartData()"
+          [options]="chartOptions"
+          [type]="'pie'">
+        </canvas>
+      </div>
     </div>
-    <div class="stat-card">
-      <span class="stat-card__label">With images</span>
-      <span class="stat-card__value">{{ withImages() }} / {{ products().length }}</span>
+
+    <div class="chart-card">
+      <div class="catalog__header">
+        <h2>Revenue Trends</h2>
+      </div>
+      <div class="chart-container">
+        <canvas baseChart
+          [data]="sellerRevenueChartData()"
+          [options]="chartOptions"
+          [type]="'line'">
+        </canvas>
+      </div>
     </div>
   </div>
 
   <div class="catalog">
     <div class="catalog__header">
-      <h2>Your catalog</h2>
+      <h2>Best-Selling Products</h2>
     </div>
 
-    @if (loading()) {
-    <div class="catalog__grid">
-      @for (i of [1, 2, 3]; track i) {
-      <div class="product-card product-card--skeleton"></div>
-      }
-    </div>
-    } @else if (products().length === 0) {
+    @if (bestSellingProducts().length === 0) {
     <div class="empty-state">
-      <p class="empty-state__title">No products yet</p>
-      <p class="empty-state__sub">Add your first piece to start selling.</p>
-      <button type="button" class="btn btn--primary" (click)="openAddModal()">Add product</button>
+      <p class="empty-state__title">No sales data yet</p>
+      <p class="empty-state__sub">Your top performing items will show here once orders are placed.</p>
     </div>
     } @else {
     <div class="catalog__grid">
-      @for (product of products(); track product.id) {
+      @for (product of bestSellingProducts(); track product.id) {
       <article class="product-card">
         <div class="product-card__media">
           @if (product.imageUrls.length) {
           <img [src]="product.imageUrls[getImageIndex(product.id)]" [alt]="product.name" loading="lazy" />
-          @if (product.imageUrls.length > 1) {
-          <button class="carousel-btn carousel-btn--prev" (click)="prevImage(product, $event)" aria-label="Previous image">&#8249;</button>
-          <button class="carousel-btn carousel-btn--next" (click)="nextImage(product, $event)" aria-label="Next image">&#8250;</button>
-          <span class="carousel-dots">
-            @for (url of product.imageUrls; track url; let i = $index) {
-            <span class="carousel-dot" [class.active]="i === getImageIndex(product.id)"></span>
-            }
-          </span>
-          }
           } @else {
           <div class="product-card__placeholder">No image</div>
           }
@@ -77,191 +176,17 @@
           <p class="product-card__price">{{ product.price | number: '1.0-2' }} MAD</p>
         </div>
         <div class="product-card__actions">
-          <button type="button" class="icon-btn" (click)="openEditModal(product)" title="Edit"
-            aria-label="Edit product">
+          <button type="button" class="icon-btn" (click)="openEditModal(product)" title="Edit">
             <mat-icon>edit</mat-icon>
           </button>
-
-          <button class="icon-btn icon-btn--danger" [disabled]="deletingId() === product.id"
-            (click)="deleteProduct(product.id)" title="Delete" aria-label="Delete product">
-            @if (deletingId() === product.id) {
-            <mat-icon>hourglass_empty</mat-icon>
-            } @else {
+          <button class="icon-btn icon-btn--danger" [disabled]="deletingId() === product.id" (click)="deleteProduct(product.id)">
             <mat-icon>delete</mat-icon>
-            }
           </button>
         </div>
       </article>
       }
     </div>
     }
-  </div>
-
-  @if (showAddModal()) {
-  <div class="modal-backdrop" (click)="closeAddModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <header class="modal__header">
-        <h2>Add product</h2>
-        <button type="button" class="modal__close" (click)="closeAddModal()" aria-label="Close">✕</button>
-      </header>
-
-      <form [formGroup]="addProductForm" (ngSubmit)="submitAddProduct()" class="modal__form">
-        <div class="field">
-          <label for="name">Name</label>
-          <input id="name" type="text" formControlName="name" placeholder="e.g. Ceramic Vase" />
-          @if (addProductForm.controls.name.invalid && addProductForm.controls.name.touched) {
-          <span class="field__error">Name is required.</span>
-          }
-        </div>
-
-        <div class="field">
-          <label for="description">Description</label>
-          <textarea id="description" formControlName="description" rows="3" placeholder="Short description"></textarea>
-          @if (addProductForm.controls.description.invalid && addProductForm.controls.description.touched) {
-          <span class="field__error">Description is required.</span>
-          }
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label for="price">Price (MAD)</label>
-            <input id="price" type="number" step="0.01" formControlName="price" placeholder="0.00" />
-            @if (addProductForm.controls.price.invalid && addProductForm.controls.price.touched) {
-            <span class="field__error">Price must be greater than 0.</span>
-            }
-          </div>
-
-          <div class="field">
-            <label for="quantity">Quantity</label>
-            <input id="quantity" type="number" formControlName="quantity" placeholder="0" />
-            @if (addProductForm.controls.quantity.invalid && addProductForm.controls.quantity.touched) {
-            <span class="field__error">Quantity must be at least 1.</span>
-            }
-          </div>
-        </div>
-
-        <div class="field">
-          <label>Product images <span class="field__hint">(max 3)</span></label>
-
-          @if (imagePreviewUrls().length) {
-          <div class="image-previews">
-            @for (url of imagePreviewUrls(); track url; let i = $index) {
-            <div class="image-preview">
-              <img [src]="url" alt="Product image {{ i + 1 }}" />
-              <button type="button" class="image-preview__remove" (click)="removeSelectedImage(i)">✕</button>
-            </div>
-            }
-          </div>
-          }
-
-          @if (imagePreviewUrls().length < 3) {
-          <label class="upload-btn">
-            <input type="file" accept="image/*" multiple (change)="onFileSelected($event)" hidden />
-            + Add image
-          </label>
-          <span class="field__hint">JPG, PNG or WEBP — max 2MB each.</span>
-          }
-
-          @if (fileError()) {
-          <span class="field__error">{{ fileError() }}</span>
-          }
-        </div>
-
-        <footer class="modal__footer">
-          <button type="button" class="btn btn--outline" (click)="closeAddModal()">Cancel</button>
-          <button type="submit" class="btn btn--primary" [disabled]="submitting()">
-            @if (submitting()) { Saving… } @else { Save product }
-          </button>
-        </footer>
-      </form>
-    </div>
-  </div>
-  }
-
-  @if (showEditModal()) {
-  <div class="modal-backdrop" (click)="closeEditModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <header class="modal__header">
-        <h2>Edit product</h2>
-        <button type="button" class="modal__close" (click)="closeEditModal()" aria-label="Close">✕</button>
-      </header>
-
-      <form [formGroup]="editProductForm" (ngSubmit)="submitEditProduct()" class="modal__form">
-        <div class="field">
-          <label for="edit-name">Name</label>
-          <input id="edit-name" type="text" formControlName="name" placeholder="e.g. Ceramic Vase" />
-          @if (editProductForm.controls.name.invalid && editProductForm.controls.name.touched) {
-          <span class="field__error">Name is required.</span>
-          }
-        </div>
-
-        <div class="field">
-          <label for="edit-description">Description</label>
-          <textarea id="edit-description" formControlName="description" rows="3" placeholder="Short description"></textarea>
-          @if (editProductForm.controls.description.invalid && editProductForm.controls.description.touched) {
-          <span class="field__error">Description is required.</span>
-          }
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label for="edit-price">Price (MAD)</label>
-            <input id="edit-price" type="number" step="0.01" formControlName="price" placeholder="0.00" />
-            @if (editProductForm.controls.price.invalid && editProductForm.controls.price.touched) {
-            <span class="field__error">Price must be greater than 0.</span>
-            }
-          </div>
-
-          <div class="field">
-            <label for="edit-quantity">Quantity</label>
-            <input id="edit-quantity" type="number" formControlName="quantity" placeholder="0" />
-            @if (editProductForm.controls.quantity.invalid && editProductForm.controls.quantity.touched) {
-            <span class="field__error">Quantity must be at least 1.</span>
-            }
-          </div>
-        </div>
-
-        <div class="field">
-          <label>Product images <span class="field__hint">(max 3)</span></label>
-
-          @if (existingImageUrls().length || selectedEditFilePreviews().length) {
-          <div class="image-previews">
-            @for (url of existingImageUrls(); track url; let i = $index) {
-            <div class="image-preview">
-              <img [src]="url" alt="Product image" />
-              <button type="button" class="image-preview__remove" (click)="removeExistingImage(i)">✕</button>
-            </div>
-            }
-            @for (url of selectedEditFilePreviews(); track url; let i = $index) {
-            <div class="image-preview image-preview--new">
-              <img [src]="url" alt="New image {{ i + 1 }}" />
-              <button type="button" class="image-preview__remove" (click)="removeEditFile(i)">✕</button>
-            </div>
-            }
-          </div>
-          }
-
-          @if ((existingImageUrls().length + selectedEditFiles().length) < 3) {
-          <label class="upload-btn">
-            <input type="file" accept="image/*" multiple (change)="onEditFileSelected($event)" hidden />
-            + Add image
-          </label>
-          <span class="field__hint">JPG, PNG or WEBP — max 2MB each.</span>
-          }
-
-          @if (editFileError()) {
-          <span class="field__error">{{ editFileError() }}</span>
-          }
-        </div>
-
-        <footer class="modal__footer">
-          <button type="button" class="btn btn--outline" (click)="closeEditModal()">Cancel</button>
-          <button type="submit" class="btn btn--primary" [disabled]="submittingEdit()">
-            @if (submittingEdit()) { Saving… } @else { Save changes }
-          </button>
-        </footer>
-      </form>
-    </div>
   </div>
   }
 </section>

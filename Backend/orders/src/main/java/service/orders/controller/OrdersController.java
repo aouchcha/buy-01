@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import service.orders.models.Order;
 import service.orders.service.OrderService;
 import service.orders.dto.CreateOrderRequest;
 import service.orders.dto.OrdersResponse;

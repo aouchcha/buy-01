@@ -39,6 +39,8 @@ public class Product {
     @Builder.Default
     @Field("image_urls")
     private List<String> imageUrls = new ArrayList<>();
+
+    private Category category;
 }
 
 
