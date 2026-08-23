@@ -171,6 +171,7 @@
           }
         </div>
         <div class="product-card__body">
+          <span class="product-card__category">{{ categoryLabel(product.category) }}</span>
           <h3>{{ product.name }}</h3>
           <p class="product-card__desc">{{ product.description }}</p>
           <p class="product-card__price">{{ product.price | number: '1.0-2' }} MAD</p>
@@ -190,3 +191,187 @@
   </div>
   }
 </section>
+
+@if (showAddModal()) {
+<div class="modal-backdrop" role="presentation" (click)="onAddBackdropClick($event)" (keydown.escape)="closeAddModal()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="add-product-title">
+    <div class="modal__header">
+      <h2 id="add-product-title">Add product</h2>
+      <button type="button" class="modal__close" (click)="closeAddModal()" aria-label="Close">✕</button>
+    </div>
+    <form class="modal__form" [formGroup]="addProductForm" (ngSubmit)="submitAddProduct()">
+      <div class="field">
+        <label for="add-name">Name</label>
+        <input id="add-name" type="text" formControlName="name" />
+        @if (addProductForm.get('name')?.invalid && addProductForm.get('name')?.touched) {
+        <span class="field__error">Name is required.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="add-description">Description</label>
+        <textarea id="add-description" rows="3" formControlName="description"></textarea>
+        @if (addProductForm.get('description')?.invalid && addProductForm.get('description')?.touched) {
+        <span class="field__error">Description is required.</span>
+        }
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="add-price">Price (MAD)</label>
+          <input id="add-price" type="number" step="0.01" formControlName="price" />
+          @if (addProductForm.get('price')?.invalid && addProductForm.get('price')?.touched) {
+          <span class="field__error">Price must be greater than 0.</span>
+          }
+        </div>
+        <div class="field">
+          <label for="add-quantity">Quantity</label>
+          <input id="add-quantity" type="number" formControlName="quantity" />
+          @if (addProductForm.get('quantity')?.invalid && addProductForm.get('quantity')?.touched) {
+          <span class="field__error">Quantity must be at least 1.</span>
+          }
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="add-category">Category</label>
+        <select id="add-category" formControlName="category">
+          <option [ngValue]="null" disabled>Select a category</option>
+          @for (option of categoryOptions; track option.value) {
+          <option [ngValue]="option.value">{{ option.label }}</option>
+          }
+        </select>
+        @if (addProductForm.get('category')?.invalid && addProductForm.get('category')?.touched) {
+        <span class="field__error">Category is required.</span>
+        }
+      </div>
+
+      <div class="field">
+        <span class="field__group-label">Images (up to 3)</span>
+        @if (imagePreviewUrls().length) {
+        <div class="image-previews">
+          @for (url of imagePreviewUrls(); track url; let i = $index) {
+          <div class="image-preview">
+            <img [src]="url" alt="Preview" />
+            <button type="button" class="image-preview__remove" (click)="removeSelectedImage(i)">Remove</button>
+          </div>
+          }
+        </div>
+        }
+        @if (selectedFiles().length < 3) { <label class="upload-btn">
+          <mat-icon>add_photo_alternate</mat-icon>
+          Add image
+          <input type="file" accept="image/*" multiple hidden (change)="onFileSelected($event)" />
+          </label>
+          }
+          @if (fileError()) {
+          <span class="field__error">{{ fileError() }}</span>
+          }
+          <span class="field__hint">JPEG or PNG, up to 3 images.</span>
+      </div>
+
+      <div class="modal__footer">
+        <button type="button" class="btn btn--outline" (click)="closeAddModal()">Cancel</button>
+        <button type="submit" class="btn btn--primary" [disabled]="submitting()">
+          {{ submitting() ? 'Saving…' : 'Add product' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+}
+
+@if (showEditModal()) {
+<div class="modal-backdrop" role="presentation" (click)="onEditBackdropClick($event)" (keydown.escape)="closeEditModal()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="edit-product-title">
+    <div class="modal__header">
+      <h2 id="edit-product-title">Edit product</h2>
+      <button type="button" class="modal__close" (click)="closeEditModal()" aria-label="Close">✕</button>
+    </div>
+    <form class="modal__form" [formGroup]="editProductForm" (ngSubmit)="submitEditProduct()">
+      <div class="field">
+        <label for="edit-name">Name</label>
+        <input id="edit-name" type="text" formControlName="name" />
+        @if (editProductForm.get('name')?.invalid && editProductForm.get('name')?.touched) {
+        <span class="field__error">Name is required.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="edit-description">Description</label>
+        <textarea id="edit-description" rows="3" formControlName="description"></textarea>
+        @if (editProductForm.get('description')?.invalid && editProductForm.get('description')?.touched) {
+        <span class="field__error">Description is required.</span>
+        }
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="edit-price">Price (MAD)</label>
+          <input id="edit-price" type="number" step="0.01" formControlName="price" />
+          @if (editProductForm.get('price')?.invalid && editProductForm.get('price')?.touched) {
+          <span class="field__error">Price must be greater than 0.</span>
+          }
+        </div>
+        <div class="field">
+          <label for="edit-quantity">Quantity</label>
+          <input id="edit-quantity" type="number" formControlName="quantity" />
+          @if (editProductForm.get('quantity')?.invalid && editProductForm.get('quantity')?.touched) {
+          <span class="field__error">Quantity must be at least 1.</span>
+          }
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="edit-category">Category</label>
+        <select id="edit-category" formControlName="category">
+          <option [ngValue]="null" disabled>Select a category</option>
+          @for (option of categoryOptions; track option.value) {
+          <option [ngValue]="option.value">{{ option.label }}</option>
+          }
+        </select>
+        @if (editProductForm.get('category')?.invalid && editProductForm.get('category')?.touched) {
+        <span class="field__error">Category is required.</span>
+        }
+      </div>
+
+      <div class="field">
+        <span class="field__group-label">Images (up to 3)</span>
+        @if (existingImageUrls().length || selectedEditFilePreviews().length) {
+        <div class="image-previews">
+          @for (url of existingImageUrls(); track url; let i = $index) {
+          <div class="image-preview">
+            <img [src]="url" alt="Existing" />
+            <button type="button" class="image-preview__remove" (click)="removeExistingImage(i)">Remove</button>
+          </div>
+          }
+          @for (url of selectedEditFilePreviews(); track url; let i = $index) {
+          <div class="image-preview">
+            <img [src]="url" alt="New upload" />
+            <button type="button" class="image-preview__remove" (click)="removeEditFile(i)">Remove</button>
+          </div>
+          }
+        </div>
+        }
+        @if (existingImageUrls().length + selectedEditFiles().length < 3) { <label class="upload-btn">
+          <mat-icon>add_photo_alternate</mat-icon>
+          Add image
+          <input type="file" accept="image/*" multiple hidden (change)="onEditFileSelected($event)" />
+          </label>
+          }
+          @if (editFileError()) {
+          <span class="field__error">{{ editFileError() }}</span>
+          }
+          <span class="field__hint">JPEG or PNG, up to 3 images.</span>
+      </div>
+
+      <div class="modal__footer">
+        <button type="button" class="btn btn--outline" (click)="closeEditModal()">Cancel</button>
+        <button type="submit" class="btn btn--primary" [disabled]="submittingEdit()">
+          {{ submittingEdit() ? 'Saving…' : 'Save changes' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+}

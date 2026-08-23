@@ -2,7 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Navbar } from '../../../../layout/navbar/navbar';
-import { ProductDto } from '../../../../core/models/product';
+import { CATEGORY_LABELS, Category, ProductDto } from '../../../../core/models/product';
 import { Product as ProductService } from '../../../../core/services/product';
 import { CartService } from '../../../../core/services/cart';
 import { ToastService } from '../../../../core/services/toast.service';
@@ -39,6 +39,10 @@ export class ProductList implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  categoryLabel(category: Category): string {
+    return CATEGORY_LABELS[category];
   }
 
   getImageIndex(productId: string): number {

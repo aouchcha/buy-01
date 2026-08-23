@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Auth } from '../../../../core/services/auth';
 import { Product } from '../../../../core/services/product';
-import { ProductDto } from '../../../../core/models/product';
+import { CATEGORY_LABELS, CATEGORY_OPTIONS, Category, ProductDto } from '../../../../core/models/product';
 import { Media } from '../../../../core/services/media';
 import { Navbar } from '../../../../layout/navbar/navbar';
 import { ConfirmService } from '../../../../core/services/confirm';
@@ -49,6 +49,10 @@ export class Dashboard implements OnInit {
   readonly loading = signal<boolean>(true);
   readonly deletingId = signal<string | null>(null);
   readonly imageIndexes = signal<Record<string, number>>({});
+
+  categoryLabel(category: Category): string {
+    return CATEGORY_LABELS[category];
+  }
 
   getImageIndex(productId: string): number {
     return this.imageIndexes()[productId] ?? 0;
@@ -149,11 +153,14 @@ export class Dashboard implements OnInit {
   readonly imagePreviewUrls = signal<string[]>([]);
   readonly fileError = signal<string | null>(null);
 
+  readonly categoryOptions = CATEGORY_OPTIONS;
+
   readonly addProductForm = this.fb.group({
     name: ['', Validators.required],
     description: ['', Validators.required],
     price: [null as number | null, [Validators.required, Validators.min(0.01)]],
     quantity: [null as number | null, [Validators.required, Validators.min(1)]],
+    category: [null as Category | null, Validators.required],
   });
 
   // --- Edit Product Modal State ---
@@ -170,6 +177,7 @@ export class Dashboard implements OnInit {
     description: ['', Validators.required],
     price: [null as number | null, [Validators.required, Validators.min(0.01)]],
     quantity: [null as number | null, [Validators.required, Validators.min(1)]],
+    category: [null as Category | null, Validators.required],
   });
 
   ngOnInit(): void {
@@ -222,6 +230,10 @@ export class Dashboard implements OnInit {
 
   openAddModal(): void {
     this.showAddModal.set(true);
+  }
+
+  onAddBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) this.closeAddModal();
   }
 
   closeAddModal(): void {
@@ -280,7 +292,7 @@ export class Dashboard implements OnInit {
     }
 
     this.submitting.set(true);
-    const { name, description, price, quantity } = this.addProductForm.getRawValue();
+    const { name, description, price, quantity, category } = this.addProductForm.getRawValue();
 
     this.productService
       .create({
@@ -288,6 +300,7 @@ export class Dashboard implements OnInit {
         description: description!,
         price: price!,
         quantity: quantity!,
+        category: category!,
       })
       .subscribe({
         next: (product) => {
@@ -333,6 +346,10 @@ export class Dashboard implements OnInit {
 
   // --- Edit Product Modal ---
 
+  onEditBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) this.closeEditModal();
+  }
+
   openEditModal(product: ProductDto): void {
     this.editingProduct.set(product);
     this.editProductForm.setValue({
@@ -340,6 +357,7 @@ export class Dashboard implements OnInit {
       description: product.description,
       price: product.price,
       quantity: product.quantity,
+      category: product.category,
     });
     this.existingImageUrls.set(product.imageUrls ?? []);
     this.selectedEditFiles.set([]);
@@ -422,7 +440,7 @@ export class Dashboard implements OnInit {
     if (!current) return;
 
     this.submittingEdit.set(true);
-    const { name, description, price, quantity } = this.editProductForm.getRawValue();
+    const { name, description, price, quantity, category } = this.editProductForm.getRawValue();
 
     this.productService
       .update(current.id, {
@@ -430,6 +448,7 @@ export class Dashboard implements OnInit {
         description: description!,
         price: price!,
         quantity: quantity!,
+        category: category!,
       })
       .subscribe({
         next: (updated) => {

@@ -24,6 +24,7 @@ import Product.Service.dto.ProductResponse;
 import Product.Service.dto.kafka.ProductCreated;
 import Product.Service.dto.kafka.ProductDeleted;
 import Product.Service.exception.ProductNotFoundException;
+import Product.Service.model.Category;
 import Product.Service.model.Product;
 import Product.Service.repository.ProductRepository;
 import Product.Service.exception.ForbiddenException;
@@ -61,7 +62,8 @@ class ProductApplicationTests {
 				"flos",
 				"Smart flos",
 				800.0,
-				3);
+				3,
+				Category.FEED_AND_SUPPLIES);
 	}
 
 	@Test

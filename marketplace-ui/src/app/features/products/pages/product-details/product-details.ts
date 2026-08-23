@@ -5,7 +5,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { Navbar } from '../../../../layout/navbar/navbar';
-import { ProductDto } from '../../../../core/models/product';
+import { CATEGORY_LABELS, Category, ProductDto } from '../../../../core/models/product';
 import { User } from '../../../../core/models/user';
 import { Product as ProductService } from '../../../../core/services/product';
 import { UserService } from '../../../../core/services/user';
@@ -59,6 +59,10 @@ export class ProductDetails implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  categoryLabel(category: Category): string {
+    return CATEGORY_LABELS[category];
   }
 
   get currentImage(): string {

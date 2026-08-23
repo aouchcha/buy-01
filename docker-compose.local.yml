@@ -1,0 +1,281 @@
+services:
+  users-mongodb:
+    image: mongo:latest
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${USERS_DB_NAME}
+    volumes:
+      - users_mongo_data:/data/db
+    expose:
+      - "27017"
+    healthcheck:
+      test: >
+        mongosh --quiet
+        -u $$MONGO_INITDB_ROOT_USERNAME
+        -p $$MONGO_INITDB_ROOT_PASSWORD
+        --authenticationDatabase admin
+        --eval "db.adminCommand('ping')"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - buy01-network
+
+  products-mongodb:
+    image: mongo:latest
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${PRODUCTS_DB_NAME}
+    volumes:
+      - products_mongo_data:/data/db
+    expose:
+      - "27017"
+    healthcheck:
+      test: >
+        mongosh --quiet
+        -u $$MONGO_INITDB_ROOT_USERNAME
+        -p $$MONGO_INITDB_ROOT_PASSWORD
+        --authenticationDatabase admin
+        --eval "db.adminCommand('ping')"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - buy01-network
+
+  media-mongodb:
+    image: mongo:latest
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MEDIA_DB_NAME}
+    volumes:
+      - media_mongo_data:/data/db
+    expose:
+      - "27017"
+    healthcheck:
+      test: >
+        mongosh --quiet
+        -u $$MONGO_INITDB_ROOT_USERNAME
+        -p $$MONGO_INITDB_ROOT_PASSWORD
+        --authenticationDatabase admin
+        --eval "db.adminCommand('ping')"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - buy01-network
+
+  orders-mongodb:
+    image: mongo:latest
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${ORDERS_DB_NAME}
+    volumes:
+      - orders_mongo_data:/data/db
+    expose:
+      - "27017"
+    healthcheck:
+      test: >
+        mongosh --quiet
+        -u $$MONGO_INITDB_ROOT_USERNAME
+        -p $$MONGO_INITDB_ROOT_PASSWORD
+        --authenticationDatabase admin
+        --eval "db.adminCommand('ping')"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - buy01-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    expose:
+      - "2181"
+    networks:
+      - buy01-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    depends_on:
+      - zookeeper
+    expose:
+      - "29092"
+    restart: unless-stopped
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - buy01-network
+
+  discovery:
+    build:
+      context: ./Backend/discovery
+    image: discovery:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    expose:
+      - "8761"
+      - "9000"
+    networks:
+      - buy01-network
+
+  gateway:
+    build:
+      context: ./Backend/gateway
+    image: gateway:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "8443:8443"
+    expose:
+      - "9000"
+    depends_on:
+      discovery:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      CORS_ALLOWED_ORIGIN: ${CORS_ALLOWED_ORIGIN:-http://localhost:4200}
+    networks:
+      - buy01-network
+
+  user:
+    build:
+      context: ./Backend/user
+    image: user:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    expose:
+      - "8081"
+      - "9000"
+    depends_on:
+      users-mongodb:
+        condition: service_healthy
+      discovery:
+        condition: service_started
+      kafka:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      SPRING_MONGODB_URI: ${USER_DB_URI}
+    networks:
+      - buy01-network
+
+  media:
+    build:
+      context: ./Backend/media
+    image: media:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    expose:
+      - "8082"
+      - "9000"
+    depends_on:
+      media-mongodb:
+        condition: service_healthy
+      discovery:
+        condition: service_started
+      kafka:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      R2_BUCKET: ${R2_BUCKET}
+      R2_ENDPOINT: ${R2_ENDPOINT}
+      R2_PUBLIC_URL: ${R2_PUBLIC_URL}
+      SPRING_MONGODB_URI: ${MEDIA_DB_URI}
+    networks:
+      - buy01-network
+
+  product:
+    build:
+      context: ./Backend/product
+    image: product:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    expose:
+      - "8083"
+      - "9000"
+    depends_on:
+      products-mongodb:
+        condition: service_healthy
+      discovery:
+        condition: service_started
+      kafka:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      SPRING_MONGODB_URI: ${PRODUCT_DB_URI}
+    networks:
+      - buy01-network
+
+  orders:
+    build:
+      context: ./Backend/orders
+    image: orders:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    expose:
+      - "8084"
+      - "9000"
+    depends_on:
+      orders-mongodb:
+        condition: service_healthy
+      discovery:
+        condition: service_started
+      kafka:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      SPRING_MONGODB_URI: ${ORDERS_DB_URI}
+    networks:
+      - buy01-network
+
+  marketplace-ui:
+    build:
+      context: ./marketplace-ui
+    image: marketplace-ui:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "4200:80"     # HTTP (redirects to HTTPS)
+      - "4443:443"     # HTTPS
+    depends_on:
+      gateway:
+        condition: service_started
+    networks:
+      - buy01-network
+
+networks:
+  buy01-network:
+    driver: bridge
+
+volumes:
+  users_mongo_data:
+  products_mongo_data:
+  media_mongo_data:
+  orders_mongo_data:

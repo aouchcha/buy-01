@@ -40,6 +40,7 @@ public class Product {
     @Field("image_urls")
     private List<String> imageUrls = new ArrayList<>();
 
+    @Field("category")
     private Category category;
 }
 

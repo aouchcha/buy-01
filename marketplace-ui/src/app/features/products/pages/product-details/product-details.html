@@ -54,6 +54,8 @@
       <div class="details-info">
         <a routerLink="/" class="back-link">← Back to catalog</a>
 
+        <span class="category-badge">{{ categoryLabel(product()!.category) }}</span>
+
         <h1>{{ product()!.name }}</h1>
 
         <div class="price-row">

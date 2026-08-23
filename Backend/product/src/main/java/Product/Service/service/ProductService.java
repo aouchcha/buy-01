@@ -43,11 +43,11 @@ public class ProductService {
                 .price(productRequest.price())
                 .quantity(productRequest.quantity())
                 .userId(userId)
+                .category(productRequest.category())
                 .build();
         product = productRepository.save(product);
         ProductCreated event = new ProductCreated(product.getId(), userId);
         kafka.send("product.created", userId, event);
-        System.out.println("====================================\nProduct Created Event Lunched");
         return toResponse(product);
     }
 
@@ -58,9 +58,8 @@ public class ProductService {
         product.setDescription(productRequest.description());
         product.setPrice(productRequest.price());
         product.setQuantity(productRequest.quantity());
+        product.setCategory(productRequest.category());
         productRepository.save(product);
-        System.out.println("====================================\nProduct Updated Event Lunched");
-        System.out.println("====================================\n" + product.getImageUrls());
         return toResponse(product);
     }
 
@@ -74,7 +73,6 @@ public class ProductService {
     public void addImageUrl(String productId, List<String> imageUrls) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND));
-        // product.getImageUrls().add(imageUrl);
         product.setImageUrls(imageUrls);
         productRepository.save(product);
     }
@@ -84,7 +82,6 @@ public class ProductService {
                 .orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND));
         List<String> urls = product.getImageUrls();
         urls.remove(url);
-        System.out.println("====================================\nurls = "+urls);
         product.setImageUrls(urls);
         productRepository.save(product);
     }
@@ -107,7 +104,7 @@ public class ProductService {
 
     private ProductResponse toResponse(Product product) {
         return new ProductResponse(product.getId(), product.getName(), product.getDescription(), product.getPrice(),
-                product.getQuantity(), product.getUserId(), product.getImageUrls());
+                product.getQuantity(), product.getUserId(), product.getCategory(), product.getImageUrls());
     }
 
 }
