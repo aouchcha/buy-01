@@ -174,7 +174,12 @@
         <!-- ================= CLIENT SECTION ================= -->
         @if (user.role === Role.CLIENT) {
         <div class="catalog-section">
-
+          <div class="my_orders">
+            <a routerLink="/orders" class="orders-link">
+              <span class="orders-link__text">View Order History</span>
+              <span class="orders-link__icon">&#8250;</span>
+            </a>
+          </div>
           <div class="metrics-grid">
             <div class="metric-card">
               <span class="metric-card__title">Total Spent</span>

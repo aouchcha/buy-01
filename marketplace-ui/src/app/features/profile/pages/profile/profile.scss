@@ -714,3 +714,31 @@
     color: var(--color-taupe-deep, #7a5f45);
   }
 }
+
+.my_orders{
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+
+  .orders-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    background: var(--color-cream, #f4ede1);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--color-taupe-deep, #7a5f45);
+    font-weight: 600;
+    transition: background 0.3s ease;
+
+    &:hover {
+      background: var(--color-beige, #e8dcc4);
+    }
+
+    &__icon {
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+  }
+}

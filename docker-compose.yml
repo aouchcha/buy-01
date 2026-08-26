@@ -152,8 +152,6 @@ services:
         condition: service_started
     networks:
       - buy01-network
-include:
-  - docker-compose.infra.yml
 
 networks:
   buy01-network:

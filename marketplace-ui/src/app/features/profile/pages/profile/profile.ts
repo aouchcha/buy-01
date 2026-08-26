@@ -10,12 +10,13 @@ import { Navbar } from '../../../../layout/navbar/navbar';
 import { ToastService } from '../../../../core/services/toast.service';
 import { Product } from '../../../../core/services/product';
 import { ProductDto } from '../../../../core/models/product';
+import { RouterLink } from '@angular/router';
 
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, Navbar],
+  imports: [CommonModule, FormsModule, Navbar, RouterLink],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })
