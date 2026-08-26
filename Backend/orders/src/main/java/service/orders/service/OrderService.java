@@ -93,4 +93,14 @@ public class OrderService {
                 items
         );
     }
+
+
+    public void deleteOrder(String orderId, String userId) {
+        Order order = orderRepository.findByIdAndUserId(orderId, userId)
+                .orElseThrow(() -> new OrderNotFoundException("Order not found: " + orderId));
+        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CONFIRMED) {
+            throw new IllegalStateException("Only pending or confirmed orders can be deleted");
+        }
+        orderRepository.delete(order);
+    }
 }
