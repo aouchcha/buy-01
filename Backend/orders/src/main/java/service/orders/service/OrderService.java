@@ -1,15 +1,21 @@
 package service.orders.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import lombok.AllArgsConstructor;
 import service.orders.exception.EmptyCartException;
 import service.orders.exception.OrderNotFoundException;
+import service.orders.exception.ProductNotFoundException;
 import service.orders.models.CartItems;
 import service.orders.models.OrderStatus;
 import service.orders.repository.OrderRepository;
+import service.orders.repository.OrderStatsRepository;
 import service.orders.models.Order;
+import service.orders.dto.Analytics;
+import service.orders.dto.BestSellingProductDTO;
 import service.orders.dto.CreateOrderRequest;
 import service.orders.dto.OrderItemResponse;
 import service.orders.dto.OrdersResponse;
@@ -22,6 +28,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final CartService cartService;
+    private final OrderStatsRepository orderStatsRepository;
 
     public OrdersResponse createOrder(CreateOrderRequest request, String userId) {
 
@@ -102,5 +109,53 @@ public class OrderService {
             throw new IllegalStateException("Only pending or confirmed orders can be deleted");
         }
         orderRepository.delete(order);
+    }
+
+    public Object getAnalytics(String period) {
+        final String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        final String role = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .findFirst()
+                .map(grantedAuthority -> grantedAuthority.getAuthority())
+                .orElse(null);
+        if (userId == null) {
+            throw new ProductNotFoundException("User ID is not available in the security context");
+        }
+        if (role == null) {
+            throw new ProductNotFoundException("User role is not available in the security context");
+        }
+
+        List<BestSellingProductDTO> products = new ArrayList<>();
+        
+        if (role.equals("ROLE_SELLER")) {
+            products = getSellerAnalytics(userId, getFromTimestamp(period));
+        } else if (role.equals("ROLE_BUYER")) {
+            products = getBuyerAnalytics(userId, getFromTimestamp(period));
+        }
+        Analytics analytics = Analytics.builder()
+                .bestSellingProducts(products)
+                .totalRevenue(0.0)
+                .build();
+        return analytics;
+    }
+
+    private List<BestSellingProductDTO> getSellerAnalytics(String sellerId, long fromTimestamp) {
+ 
+        return orderStatsRepository.getBestSellingProducts(sellerId, fromTimestamp, 5);
+    }
+
+    private List<BestSellingProductDTO> getBuyerAnalytics(String buyerId, long fromTimestamp) {
+
+        return orderStatsRepository.getTopBuyedProductByUser(buyerId, fromTimestamp, 5);
+    }
+    
+
+    private long getFromTimestamp(String period) {
+        long now = System.currentTimeMillis();
+        return switch (period) {
+            case "today" -> now - 24L * 60 * 60 * 1000;
+            case "week"  -> now - 7L * 24 * 60 * 60 * 1000;
+            case "month" -> now - 30L * 24 * 60 * 60 * 1000;
+            default -> throw new IllegalArgumentException("Invalid period: " + period);
+        };
     }
 }

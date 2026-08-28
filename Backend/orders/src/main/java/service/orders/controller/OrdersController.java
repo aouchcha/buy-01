@@ -57,5 +57,8 @@ public class OrdersController {
         return ResponseEntity.noContent().build();
     }
 
-    
+    @GetMapping("/analytics")
+    public ResponseEntity<?> getAnalytics(@RequestHeader("period") String period) {
+        return ResponseEntity.ok(orderService.getAnalytics(period));
+    }
 }

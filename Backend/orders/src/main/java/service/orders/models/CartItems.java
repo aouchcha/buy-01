@@ -12,7 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 
-@Document(collection = "orders")
+@Document(collection = "cartitems")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
