@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PatchMapping;
 
 import Product.Service.dto.ProductRequest;
 import Product.Service.dto.ProductResponse;
+import Product.Service.dto.OrderRequest;
 import Product.Service.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -69,5 +71,11 @@ public class ProductController {
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("product-service is running");
+    }
+
+    @PatchMapping("/update-stock")
+    public ResponseEntity<Void> updateStock(@RequestBody List<OrderRequest> productRequests) {
+        productService.updateStock(productRequests);
+        return ResponseEntity.noContent().build();
     }
 }

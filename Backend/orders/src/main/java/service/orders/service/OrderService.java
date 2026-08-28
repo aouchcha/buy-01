@@ -3,6 +3,8 @@ package service.orders.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import lombok.AllArgsConstructor;
 import service.orders.exception.EmptyCartException;
 import service.orders.exception.OrderNotFoundException;
@@ -10,11 +12,13 @@ import service.orders.models.CartItems;
 import service.orders.models.OrderStatus;
 import service.orders.repository.OrderRepository;
 import service.orders.models.Order;
+import service.orders.client.ProductClient;
 import service.orders.dto.CreateOrderRequest;
+import service.orders.dto.ItemStockStatus;
 import service.orders.dto.OrderItemResponse;
 import service.orders.dto.OrdersResponse;
+import service.orders.dto.stockRequests;
 import service.orders.models.Cart;
-
 
 @Service
 @AllArgsConstructor
@@ -22,6 +26,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final CartService cartService;
+    private final ProductClient productClient;
 
     public OrdersResponse createOrder(CreateOrderRequest request, String userId) {
 
@@ -48,6 +53,21 @@ public class OrderService {
                 .cartItems(cartItems)
                 .totalAmount(totalAmount)
                 .build();
+        // record => list<product id & quantity> => update product stock
+        try {
+            productClient.updateProductStock(stockRequests);
+        } catch (PartialOutOfStockException e) {
+            List<String> outOfStockIds = e.getResult().items().stream()
+                    .filter(item -> !item.success())
+                    .map(ItemStockStatus::productId)
+                    .toList();
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Order failed. Out of stock items: " + outOfStockIds);
+        }
+
+
 
         order = orderRepository.save(order);
         cartService.clearCart(userId);
@@ -59,7 +79,6 @@ public class OrderService {
                 .map(this::toResponse)
                 .toList();
     }
-
 
     public OrdersResponse getOrderByIdAndUserId(String orderId, String userId) {
         Order order = orderRepository.findByIdAndUserId(orderId, userId)
@@ -90,10 +109,8 @@ public class OrderService {
                 order.getPaymentMethod().name(),
                 order.getCreatedAt(),
                 order.getTotalAmount(),
-                items
-        );
+                items);
     }
-
 
     public void deleteOrder(String orderId, String userId) {
         Order order = orderRepository.findByIdAndUserId(orderId, userId)
@@ -102,5 +119,16 @@ public class OrderService {
             throw new IllegalStateException("Only pending or confirmed orders can be deleted");
         }
         orderRepository.delete(order);
+    }
+
+    public OrdersResponse cancelOrder(String orderId, String userId) {
+        Order order = orderRepository.findByIdAndUserId(orderId, userId)
+                .orElseThrow(() -> new OrderNotFoundException("Order not found: " + orderId));
+        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CONFIRMED) {
+            throw new IllegalStateException("Only pending or confirmed orders can be cancelled");
+        }
+        order.setStatus(OrderStatus.CANCELLED);
+        order = orderRepository.save(order);
+        return toResponse(order);
     }
 }
