@@ -19,6 +19,8 @@ import service.orders.dto.OrderItemResponse;
 import service.orders.dto.OrdersResponse;
 import service.orders.dto.stockRequests;
 import service.orders.models.Cart;
+import service.orders.exception.PartialOutOfStockException;
+import org.springframework.http.HttpStatus;
 
 @Service
 @AllArgsConstructor
@@ -54,6 +56,10 @@ public class OrderService {
                 .totalAmount(totalAmount)
                 .build();
         // record => list<product id & quantity> => update product stock
+        List<stockRequests> stockRequests = cartItems.stream()
+                .map(item -> new stockRequests(item.getProductId(), item.getQuantity()))
+                .toList();
+        
         try {
             productClient.updateProductStock(stockRequests);
         } catch (PartialOutOfStockException e) {

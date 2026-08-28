@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.PatchMapping;
 
 import Product.Service.dto.ProductRequest;
 import Product.Service.dto.ProductResponse;
-import Product.Service.dto.OrderRequest;
+import Product.Service.dto.StockRequest;
+import Product.Service.dto.StockUpdateResult;
+import Product.Service.dto.StockRequest;
 import Product.Service.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -35,7 +37,8 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAllProduct() {
-        System.out.println("============================================================================\n===============++=================++++==============++=========================\n=============================\n");
+        System.out.println(
+                "============================================================================\n===============++=================++++==============++=========================\n=============================\n");
         return ResponseEntity.ok(productService.getAllProduct());
     }
 
@@ -74,8 +77,13 @@ public class ProductController {
     }
 
     @PatchMapping("/update-stock")
-    public ResponseEntity<Void> updateStock(@RequestBody List<OrderRequest> productRequests) {
-        productService.updateStock(productRequests);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<StockUpdateResult> updateStock(@RequestBody List<StockRequest> productRequests) {
+        StockUpdateResult result = productService.updateStock(productRequests);
+
+        if (!result.allSuccessful()) {
+            return ResponseEntity.badRequest().body(result);
+        }
+
+        return ResponseEntity.ok(result);
     }
 }

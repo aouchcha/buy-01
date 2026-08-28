@@ -1,6 +1,6 @@
 package Product.Service.dto;
 
-public record OrderRequest(String productId,
+public record StockRequest(String productId,
     int quantity) {
     
 }
