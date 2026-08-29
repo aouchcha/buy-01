@@ -209,12 +209,15 @@
 }
 
 .btn-outline,
-.btn-primary {
+.btn-primary,
+.btn-danger {
   padding: 0.6rem 1.2rem;
   border-radius: 10px;
   font-weight: 600;
   text-decoration: none;
   text-align: center;
+  font-size: 1rem;
+  cursor: pointer;
 }
 
 .btn-outline {
@@ -234,6 +237,22 @@
 
   &:hover {
     opacity: 0.9;
+  }
+}
+
+.btn-danger {
+  border: 1px solid #a3382a;
+  background: transparent;
+  color: #a3382a;
+
+  &:hover:not(:disabled) {
+    background: #a3382a;
+    color: white;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 }
 

@@ -30,8 +30,6 @@ public class ProductClient {
 
     public StockUpdateResult updateProductStock(List<stockRequests> productRequests) {
         try {
-            System.out.println("=========================1==============================");
-            System.out.println("IN updateProductStock");
             return restTemplate.patchForObject(
                     "http://product-service/api/product/update-stock",
                     productRequests,
@@ -41,6 +39,13 @@ public class ProductClient {
             StockUpdateResult result = e.getResponseBodyAs(StockUpdateResult.class);
             throw new PartialOutOfStockException("Some items in cart are out of stock", result);
         }
+    }
+
+    public void restockProductStock(List<stockRequests> productRequests) {
+        restTemplate.patchForObject(
+                "http://product-service/api/product/restock-stock",
+                productRequests,
+                Void.class);
     }
 
 }

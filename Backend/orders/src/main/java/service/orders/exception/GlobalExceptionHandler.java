@@ -38,6 +38,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<String> handleIllegalState(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
     @ExceptionHandler(PartialOutOfStockException.class)
     public ResponseEntity<Map<String, Object>> handlePartialOutOfStock(PartialOutOfStockException e) {
         List<String> outOfStockIds = e.getResult().items().stream()

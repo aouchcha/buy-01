@@ -68,6 +68,16 @@
       </div>
 
       <div class="order-actions">
+        @if (canCancel()) {
+          <button
+            type="button"
+            class="btn-danger"
+            [disabled]="cancelling()"
+            (click)="cancelOrder()"
+          >
+            {{ cancelling() ? 'Cancelling…' : 'Cancel order' }}
+          </button>
+        }
         <a routerLink="/orders" class="btn-outline">View my orders</a>
         <a routerLink="/" class="btn-primary">Continue shopping</a>
       </div>

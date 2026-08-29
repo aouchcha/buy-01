@@ -3,7 +3,6 @@ package service.orders.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import lombok.AllArgsConstructor;
 import service.orders.exception.EmptyCartException;
@@ -14,17 +13,16 @@ import service.orders.repository.OrderRepository;
 import service.orders.models.Order;
 import service.orders.client.ProductClient;
 import service.orders.dto.CreateOrderRequest;
-import service.orders.dto.ItemStockStatus;
 import service.orders.dto.OrderItemResponse;
 import service.orders.dto.OrdersResponse;
 import service.orders.dto.stockRequests;
 import service.orders.models.Cart;
-import service.orders.exception.PartialOutOfStockException;
-import org.springframework.http.HttpStatus;
 
 @Service
 @AllArgsConstructor
 public class OrderService {
+
+    private static final String ORDER_NOT_FOUND = "Order not found: ";
 
     private final OrderRepository orderRepository;
     private final CartService cartService;
@@ -55,28 +53,8 @@ public class OrderService {
                 .cartItems(cartItems)
                 .totalAmount(totalAmount)
                 .build();
-        // record => list<product id & quantity> => update product stock
-        List<stockRequests> stockRequests = cartItems.stream()
-                .map(item -> new stockRequests(item.getProductId(), item.getQuantity()))
-                .toList();
 
-        // try {
-        // System.out.println("=========================0==============================");
-
-        productClient.updateProductStock(stockRequests);
-        // } catch (PartialOutOfStockException e) {
-        // System.out.println("=========================2==============================");
-        // System.out.println("IN error "+e.getMessage());
-
-        // List<String> outOfStockIds = e.getResult().items().stream()
-        // .filter(item -> !item.success())
-        // .map(ItemStockStatus::productId)
-        // .toList();
-
-        // throw new ResponseStatusException(
-        // HttpStatus.BAD_REQUEST,
-        // "Order failed. Out of stock items: " + outOfStockIds);
-        // }
+        productClient.updateProductStock(toStockRequests(cartItems));
 
         order = orderRepository.save(order);
         cartService.clearCart(userId);
@@ -91,8 +69,14 @@ public class OrderService {
 
     public OrdersResponse getOrderByIdAndUserId(String orderId, String userId) {
         Order order = orderRepository.findByIdAndUserId(orderId, userId)
-                .orElseThrow(() -> new OrderNotFoundException("Order not found: " + orderId));
+                .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND + orderId));
         return toResponse(order);
+    }
+
+    private List<stockRequests> toStockRequests(List<CartItems> cartItems) {
+        return cartItems.stream()
+                .map(item -> new stockRequests(item.getProductId(), item.getQuantity()))
+                .toList();
     }
 
     private OrdersResponse toResponse(Order order) {
@@ -123,19 +107,21 @@ public class OrderService {
 
     public void deleteOrder(String orderId, String userId) {
         Order order = orderRepository.findByIdAndUserId(orderId, userId)
-                .orElseThrow(() -> new OrderNotFoundException("Order not found: " + orderId));
+                .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND + orderId));
         if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CONFIRMED) {
             throw new IllegalStateException("Only pending or confirmed orders can be deleted");
         }
+        productClient.restockProductStock(toStockRequests(order.getCartItems()));
         orderRepository.delete(order);
     }
 
     public OrdersResponse cancelOrder(String orderId, String userId) {
         Order order = orderRepository.findByIdAndUserId(orderId, userId)
-                .orElseThrow(() -> new OrderNotFoundException("Order not found: " + orderId));
+                .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND + orderId));
         if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CONFIRMED) {
             throw new IllegalStateException("Only pending or confirmed orders can be cancelled");
         }
+        productClient.restockProductStock(toStockRequests(order.getCartItems()));
         order.setStatus(OrderStatus.CANCELLED);
         order = orderRepository.save(order);
         return toResponse(order);

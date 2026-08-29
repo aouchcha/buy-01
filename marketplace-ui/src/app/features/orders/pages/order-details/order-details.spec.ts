@@ -1,10 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { MatDialogModule } from '@angular/material/dialog';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { of } from 'rxjs';
 
 import { OrderDetails } from './order-details';
 import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmService } from '../../../../core/services/confirm';
 import { Order, OrderStatus, PaymentMethod } from '../../../../core/models/order';
 import { environment } from '../../../../../environments/environment';
 
@@ -34,7 +37,7 @@ describe('OrderDetails', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [OrderDetails, HttpClientTestingModule],
+      imports: [OrderDetails, MatDialogModule, HttpClientTestingModule],
       providers: [
         provideRouter([]),
         {
@@ -107,5 +110,67 @@ describe('OrderDetails', () => {
     httpTesting.expectOne(apiUrl).flush('Internal error', { status: 500, statusText: 'Server Error' });
 
     expect(toast.error).toHaveBeenCalledWith('Unable to load this order. Please try again.');
+  });
+
+  it('shows the Cancel order button for a PENDING order', () => {
+    httpTesting.expectOne(apiUrl).flush(baseOrder);
+    fixture.detectChanges();
+
+    const button: HTMLButtonElement | null = fixture.nativeElement.querySelector('.btn-danger');
+    expect(button).not.toBeNull();
+    expect(button?.textContent).toContain('Cancel order');
+  });
+
+  it('hides the Cancel order button once the order is delivered', () => {
+    httpTesting.expectOne(apiUrl).flush({ ...baseOrder, status: OrderStatus.DELIVERED });
+    fixture.detectChanges();
+
+    const button: HTMLButtonElement | null = fixture.nativeElement.querySelector('.btn-danger');
+    expect(button).toBeNull();
+  });
+
+  it('cancelOrder() does nothing when the user does not confirm', () => {
+    httpTesting.expectOne(apiUrl).flush(baseOrder);
+    const confirmService = TestBed.inject(ConfirmService);
+    vi.spyOn(confirmService, 'open').mockReturnValue(of(false));
+
+    component.cancelOrder();
+
+    httpTesting.verify();
+  });
+
+  it('cancelOrder() PATCHes the cancel endpoint and updates the order on confirm', () => {
+    httpTesting.expectOne(apiUrl).flush(baseOrder);
+    const confirmService = TestBed.inject(ConfirmService);
+    const toast = TestBed.inject(ToastService);
+    vi.spyOn(confirmService, 'open').mockReturnValue(of(true));
+    vi.spyOn(toast, 'success');
+
+    component.cancelOrder();
+
+    const req = httpTesting.expectOne(`${apiUrl}/cancel`);
+    expect(req.request.method).toBe('PATCH');
+    req.flush({ ...baseOrder, status: OrderStatus.CANCELLED });
+
+    expect(component.order()?.status).toBe(OrderStatus.CANCELLED);
+    expect(component.canCancel()).toBe(false);
+    expect(toast.success).toHaveBeenCalledWith('Order cancelled.');
+  });
+
+  it('shows an error toast when the order can no longer be cancelled', () => {
+    httpTesting.expectOne(apiUrl).flush(baseOrder);
+    const confirmService = TestBed.inject(ConfirmService);
+    const toast = TestBed.inject(ToastService);
+    vi.spyOn(confirmService, 'open').mockReturnValue(of(true));
+    vi.spyOn(toast, 'error');
+
+    component.cancelOrder();
+
+    httpTesting
+      .expectOne(`${apiUrl}/cancel`)
+      .flush('Only pending or confirmed orders can be cancelled', { status: 409, statusText: 'Conflict' });
+
+    expect(toast.error).toHaveBeenCalledWith('This order can no longer be cancelled.');
+    expect(component.cancelling()).toBe(false);
   });
 });

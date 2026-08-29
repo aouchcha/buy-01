@@ -179,4 +179,13 @@ public class ProductService {
         return new StockUpdateResult(true, items);
     }
 
+    public void restockStock(List<StockRequest> stockRequests) {
+        for (StockRequest request : stockRequests) {
+            productRepository.findById(request.productId()).ifPresent(product -> {
+                product.setQuantity(product.getQuantity() + request.quantity());
+                productRepository.save(product);
+            });
+        }
+    }
+
 }

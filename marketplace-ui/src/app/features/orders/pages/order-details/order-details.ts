@@ -6,6 +6,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Navbar } from '../../../../layout/navbar/navbar';
 import { OrderService } from '../../../../core/services/order';
 import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmService } from '../../../../core/services/confirm';
 import { Order, OrderStatus, PaymentMethod } from '../../../../core/models/order';
 
 type TimelineState = 'done' | 'current' | 'pending' | 'cancelled';
@@ -25,13 +26,20 @@ export class OrderDetails {
   private readonly route = inject(ActivatedRoute);
   private readonly orderService = inject(OrderService);
   private readonly toastService = inject(ToastService);
+  private readonly confirmService = inject(ConfirmService);
 
   readonly OrderStatus = OrderStatus;
   readonly PaymentMethod = PaymentMethod;
 
   readonly loading = signal(true);
   readonly notFound = signal(false);
+  readonly cancelling = signal(false);
   readonly order = signal<Order | null>(null);
+
+  readonly canCancel = computed(() => {
+    const order = this.order();
+    return order?.status === OrderStatus.PENDING || order?.status === OrderStatus.CONFIRMED;
+  });
 
   readonly timeline = computed<TimelineStep[]>(() => {
     const order = this.order();
@@ -78,5 +86,38 @@ export class OrderDetails {
         }
       },
     });
+  }
+
+  cancelOrder(): void {
+    const order = this.order();
+    if (!order) return;
+
+    this.confirmService
+      .open({
+        title: 'Cancel order',
+        message: 'Cancel this order? This cannot be undone.',
+        confirmText: 'Cancel order',
+        danger: true,
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) return;
+
+        this.cancelling.set(true);
+        this.orderService.cancel(order.id).subscribe({
+          next: (updated) => {
+            this.cancelling.set(false);
+            this.order.set(updated);
+            this.toastService.success('Order cancelled.');
+          },
+          error: (err: HttpErrorResponse) => {
+            this.cancelling.set(false);
+            if (err.status === 409) {
+              this.toastService.error('This order can no longer be cancelled.');
+            } else {
+              this.toastService.error('Could not cancel this order. Please try again.');
+            }
+          },
+        });
+      });
   }
 }

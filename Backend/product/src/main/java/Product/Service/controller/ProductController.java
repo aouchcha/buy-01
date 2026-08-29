@@ -86,4 +86,10 @@ public class ProductController {
 
         return ResponseEntity.ok(result);
     }
+
+    @PatchMapping("/restock-stock")
+    public ResponseEntity<Void> restockStock(@RequestBody List<StockRequest> productRequests) {
+        productService.restockStock(productRequests);
+        return ResponseEntity.noContent().build();
+    }
 }
