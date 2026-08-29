@@ -27,4 +27,8 @@ export class OrderService {
   cancel(id: string): Observable<Order> {
     return this.http.patch<Order>(`${this.apiUrl}/${id}/cancel`, {});
   }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }

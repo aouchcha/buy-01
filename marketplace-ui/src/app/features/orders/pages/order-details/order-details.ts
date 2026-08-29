@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { Navbar } from '../../../../layout/navbar/navbar';
@@ -24,6 +24,7 @@ interface TimelineStep {
 })
 export class OrderDetails {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly orderService = inject(OrderService);
   private readonly toastService = inject(ToastService);
   private readonly confirmService = inject(ConfirmService);
@@ -34,12 +35,15 @@ export class OrderDetails {
   readonly loading = signal(true);
   readonly notFound = signal(false);
   readonly cancelling = signal(false);
+  readonly deleting = signal(false);
   readonly order = signal<Order | null>(null);
 
   readonly canCancel = computed(() => {
     const order = this.order();
     return order?.status === OrderStatus.PENDING || order?.status === OrderStatus.CONFIRMED;
   });
+
+  readonly canDelete = this.canCancel;
 
   readonly timeline = computed<TimelineStep[]>(() => {
     const order = this.order();
@@ -115,6 +119,39 @@ export class OrderDetails {
               this.toastService.error('This order can no longer be cancelled.');
             } else {
               this.toastService.error('Could not cancel this order. Please try again.');
+            }
+          },
+        });
+      });
+  }
+
+  deleteOrder(): void {
+    const order = this.order();
+    if (!order) return;
+
+    this.confirmService
+      .open({
+        title: 'Delete order',
+        message: 'Delete this order permanently? This cannot be undone.',
+        confirmText: 'Delete order',
+        danger: true,
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) return;
+
+        this.deleting.set(true);
+        this.orderService.delete(order.id).subscribe({
+          next: () => {
+            this.deleting.set(false);
+            this.toastService.success('Order deleted.');
+            this.router.navigate(['/orders']);
+          },
+          error: (err: HttpErrorResponse) => {
+            this.deleting.set(false);
+            if (err.status === 409) {
+              this.toastService.error('This order can no longer be deleted.');
+            } else {
+              this.toastService.error('Could not delete this order. Please try again.');
             }
           },
         });

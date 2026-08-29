@@ -72,10 +72,20 @@
           <button
             type="button"
             class="btn-danger"
-            [disabled]="cancelling()"
+            [disabled]="cancelling() || deleting()"
             (click)="cancelOrder()"
           >
             {{ cancelling() ? 'Cancelling…' : 'Cancel order' }}
+          </button>
+        }
+        @if (canDelete()) {
+          <button
+            type="button"
+            class="btn-danger"
+            [disabled]="cancelling() || deleting()"
+            (click)="deleteOrder()"
+          >
+            {{ deleting() ? 'Deleting…' : 'Delete order' }}
           </button>
         }
         <a routerLink="/orders" class="btn-outline">View my orders</a>

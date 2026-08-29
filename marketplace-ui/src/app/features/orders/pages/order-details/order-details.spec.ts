@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { MatDialogModule } from '@angular/material/dialog';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { of } from 'rxjs';
@@ -121,12 +121,20 @@ describe('OrderDetails', () => {
     expect(button?.textContent).toContain('Cancel order');
   });
 
-  it('hides the Cancel order button once the order is delivered', () => {
+  it('hides the Cancel and Delete order buttons once the order is delivered', () => {
     httpTesting.expectOne(apiUrl).flush({ ...baseOrder, status: OrderStatus.DELIVERED });
     fixture.detectChanges();
 
-    const button: HTMLButtonElement | null = fixture.nativeElement.querySelector('.btn-danger');
-    expect(button).toBeNull();
+    const buttons: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('.btn-danger'));
+    expect(buttons).toHaveLength(0);
+  });
+
+  it('shows the Delete order button for a PENDING order', () => {
+    httpTesting.expectOne(apiUrl).flush(baseOrder);
+    fixture.detectChanges();
+
+    const buttons: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('.btn-danger'));
+    expect(buttons.some((b) => b.textContent?.includes('Delete order'))).toBe(true);
   });
 
   it('cancelOrder() does nothing when the user does not confirm', () => {
@@ -172,5 +180,51 @@ describe('OrderDetails', () => {
 
     expect(toast.error).toHaveBeenCalledWith('This order can no longer be cancelled.');
     expect(component.cancelling()).toBe(false);
+  });
+
+  it('deleteOrder() does nothing when the user does not confirm', () => {
+    httpTesting.expectOne(apiUrl).flush(baseOrder);
+    const confirmService = TestBed.inject(ConfirmService);
+    vi.spyOn(confirmService, 'open').mockReturnValue(of(false));
+
+    component.deleteOrder();
+
+    httpTesting.verify();
+  });
+
+  it('deleteOrder() DELETEs the order and navigates back to the order list on confirm', () => {
+    httpTesting.expectOne(apiUrl).flush(baseOrder);
+    const confirmService = TestBed.inject(ConfirmService);
+    const toast = TestBed.inject(ToastService);
+    const router = TestBed.inject(Router);
+    vi.spyOn(confirmService, 'open').mockReturnValue(of(true));
+    vi.spyOn(toast, 'success');
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    component.deleteOrder();
+
+    const req = httpTesting.expectOne(apiUrl);
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null);
+
+    expect(toast.success).toHaveBeenCalledWith('Order deleted.');
+    expect(router.navigate).toHaveBeenCalledWith(['/orders']);
+  });
+
+  it('shows an error toast when the order can no longer be deleted', () => {
+    httpTesting.expectOne(apiUrl).flush(baseOrder);
+    const confirmService = TestBed.inject(ConfirmService);
+    const toast = TestBed.inject(ToastService);
+    vi.spyOn(confirmService, 'open').mockReturnValue(of(true));
+    vi.spyOn(toast, 'error');
+
+    component.deleteOrder();
+
+    httpTesting
+      .expectOne(apiUrl)
+      .flush('Only pending or confirmed orders can be deleted', { status: 409, statusText: 'Conflict' });
+
+    expect(toast.error).toHaveBeenCalledWith('This order can no longer be deleted.');
+    expect(component.deleting()).toBe(false);
   });
 });
