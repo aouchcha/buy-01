@@ -9,27 +9,48 @@
     } @else if (items().length === 0) {
       <div class="empty-state">
         <p>Your cart is empty.</p>
-        <a routerLink="/" class="btn-back">← Browse birds</a>
+        <a routerLink="/" class="btn-back">← Browse items</a>
       </div>
     } @else {
       <div class="cart-list">
         @for (item of items(); track item.productId) {
-          <article class="cart-item">
-            <img src="assets/images/background.png" [alt]="item.productName" class="cart-item-media" />
+          <article 
+            class="cart-item" 
+            [class.is-out-of-stock]="item.OutOfStock"
+          >
+            <!-- Overlay shown only when the product is out of stock -->
+            @if (item.OutOfStock) {
+              <div class="out-of-stock-overlay">
+                <span class="out-of-stock-badge">Out of Stock</span>
+              </div>
+            }
 
-            <div class="cart-item-info">
-              <h3>{{ item.productName }}</h3>
-              <span class="unit-price">{{ item.price | number:'1.0-2' }} DH each</span>
+            <!-- Item content wrapper applied with blur when out of stock -->
+            <div class="cart-item-content" [class.blur-content]="item.OutOfStock">
+              <img src="assets/images/background.png" [alt]="item.productName" class="cart-item-media" />
+
+              <div class="cart-item-info">
+                <h3>{{ item.productName }}</h3>
+                <span class="unit-price">{{ item.price | number:'1.0-2' }} DH each</span>
+              </div>
+
+              <div class="quantity-control">
+                <button 
+                  (click)="decrement(item.productId, item.quantity)" 
+                  aria-label="Decrease quantity"
+                >−</button>
+                <span>{{ item.quantity }}</span>
+                <button 
+                  [disabled]="item.OutOfStock"
+                  (click)="increment(item.productId, item.quantity)" 
+                  aria-label="Increase quantity"
+                >+</button>
+              </div>
+
+              <span class="line-total">{{ item.totalPrice | number:'1.0-2' }} DH</span>
             </div>
 
-            <div class="quantity-control">
-              <button (click)="decrement(item.productId, item.quantity)" aria-label="Decrease quantity">−</button>
-              <span>{{ item.quantity }}</span>
-              <button (click)="increment(item.productId, item.quantity)" aria-label="Increase quantity">+</button>
-            </div>
-
-            <span class="line-total">{{ item.totalPrice | number:'1.0-2' }} DH</span>
-
+            <!-- Remove button stays clickable above the blur/overlay -->
             <button class="remove-btn" (click)="remove(item.productId)" aria-label="Remove item">✕</button>
           </article>
         }
@@ -55,7 +76,7 @@
         <button class="btn-outline" (click)="clearCart()">Clear cart</button>
         <button
           class="btn-checkout"
-          [disabled]="items().length === 0"
+          [disabled]="items().length === 0 || hasOutOfStockItems()"
           (click)="goToCheckout()"
         >
           Proceed to Checkout

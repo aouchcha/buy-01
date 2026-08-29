@@ -30,6 +30,8 @@ public class ProductClient {
 
     public StockUpdateResult updateProductStock(List<stockRequests> productRequests) {
         try {
+            System.out.println("=========================1==============================");
+            System.out.println("IN updateProductStock");
             return restTemplate.patchForObject(
                     "http://product-service/api/product/update-stock",
                     productRequests,

@@ -13,8 +13,6 @@ import service.orders.dto.ProductResponse;
 import service.orders.exception.InsufficientStockException;
 import service.orders.exception.CartItemNotFoundException;
 
-
-
 @Service
 @AllArgsConstructor
 public class CartService {
@@ -22,19 +20,29 @@ public class CartService {
     private final CartRepository cartRepository;
     private final ProductClient productClient;
 
-
     public Cart getCart(String userId) {
 
         Optional<Cart> optionalCart = cartRepository.findByUserId(userId);
-
-        if (optionalCart.isPresent()) {
-            return optionalCart.get();
-        }else {
+        Cart cart = optionalCart.orElseGet(() -> {
             Cart newCart = new Cart();
             newCart.setUserId(userId);
-            newCart.setCartItems(new ArrayList<CartItems>());
+            newCart.setCartItems(new ArrayList<>());
             return cartRepository.save(newCart);
+        });
+
+        for (CartItems item : cart.getCartItems()) {
+            try {
+                ProductResponse product = productClient.getProduct(item.getProductId());
+                item.setOutOfStock(product.quantity() < item.getQuantity());
+                System.out.println("========================product.quantity() < item.getQuantity()===========================");
+                System.out.println(product.quantity() < item.getQuantity());
+
+            } catch (Exception e) {
+                item.setOutOfStock(true); 
+            }
         }
+
+        return cartRepository.save(cart);
     }
 
     public void addItemToCart(String userId, CartItemsRequest cartItemRequest) {

@@ -59,21 +59,24 @@ public class OrderService {
         List<stockRequests> stockRequests = cartItems.stream()
                 .map(item -> new stockRequests(item.getProductId(), item.getQuantity()))
                 .toList();
-        
-        try {
-            productClient.updateProductStock(stockRequests);
-        } catch (PartialOutOfStockException e) {
-            List<String> outOfStockIds = e.getResult().items().stream()
-                    .filter(item -> !item.success())
-                    .map(ItemStockStatus::productId)
-                    .toList();
 
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Order failed. Out of stock items: " + outOfStockIds);
-        }
+        // try {
+        // System.out.println("=========================0==============================");
 
+        productClient.updateProductStock(stockRequests);
+        // } catch (PartialOutOfStockException e) {
+        // System.out.println("=========================2==============================");
+        // System.out.println("IN error "+e.getMessage());
 
+        // List<String> outOfStockIds = e.getResult().items().stream()
+        // .filter(item -> !item.success())
+        // .map(ItemStockStatus::productId)
+        // .toList();
+
+        // throw new ResponseStatusException(
+        // HttpStatus.BAD_REQUEST,
+        // "Order failed. Out of stock items: " + outOfStockIds);
+        // }
 
         order = orderRepository.save(order);
         cartService.clearCart(userId);

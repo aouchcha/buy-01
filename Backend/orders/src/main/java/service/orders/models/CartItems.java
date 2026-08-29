@@ -38,5 +38,8 @@ public class CartItems {
 
     @Field("total_price")
     private Double totalPrice;
+
+    @Field("OutOfStock")
+    private Boolean OutOfStock;
     
 }

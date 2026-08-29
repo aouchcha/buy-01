@@ -117,11 +117,11 @@ public class ProductService {
                 product.getQuantity(), product.getUserId(), product.getCategory(), product.getImageUrls());
     }
 
-    public StockUpdateResult updateStock(List<StockRequest> productRequests) {
+    public StockUpdateResult updateStock(List<StockRequest> StockRequest) {
 
         List<ItemStockStatus> items = new ArrayList<>();
 
-        for (StockRequest request : productRequests) {
+        for (StockRequest request : StockRequest) {
 
             Optional<Product> optionalProduct = productRepository.findById(request.productId());
 
@@ -164,7 +164,7 @@ public class ProductService {
             return new StockUpdateResult(false, items);
         }
 
-        for (StockRequest request : productRequests) {
+        for (StockRequest request : StockRequest) {
 
             Product product = productRepository
                     .findById(request.productId())

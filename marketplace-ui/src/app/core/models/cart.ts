@@ -6,6 +6,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   totalPrice: number;
+  OutOfStock?: boolean;
 }
 
 export interface Cart {
@@ -13,3 +14,5 @@ export interface Cart {
   userId: string;
   cartItems: CartItem[];
 }
+
+

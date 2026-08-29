@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
@@ -25,14 +25,26 @@ export class Cart implements OnInit {
   readonly delivery = 0;
   readonly loading = signal(true);
 
+  readonly hasOutOfStockItems = computed(() =>
+    this.items().some((item) => item.OutOfStock)
+  );
+
   ngOnInit(): void {
     this.cartService.load().subscribe({
-      next: () => this.loading.set(false),
+      next: () => {
+        this.loading.set(false)
+        console.log('=========================>');
+        console.log('Out of stock items present:', this.hasOutOfStockItems());
+        console.log(this.cartService.items);
+        
+      },
       error: () => {
         this.loading.set(false);
         this.toastService.error('Could not load your cart. Please try again.');
       },
     });
+    ;
+
   }
 
   increment(productId: string, currentQuantity: number): void {
@@ -77,6 +89,10 @@ export class Cart implements OnInit {
 
   goToCheckout(): void {
     if (this.items().length === 0) {
+      return;
+    }
+    if (this.hasOutOfStockItems()) {
+      this.toastService.error('Please remove out-of-stock items before proceeding to checkout.');
       return;
     }
     this.router.navigate(['/checkout']);
