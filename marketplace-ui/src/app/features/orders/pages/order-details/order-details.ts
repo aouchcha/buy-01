@@ -43,7 +43,11 @@ export class OrderDetails {
     return order?.status === OrderStatus.PENDING || order?.status === OrderStatus.CONFIRMED;
   });
 
-  readonly canDelete = this.canCancel;
+
+  readonly canDelete = computed(() => {
+    const order = this.order();
+    return order?.status === OrderStatus.PENDING || order?.status === OrderStatus.CONFIRMED || order?.status === OrderStatus.CANCELLED;
+  });
 
   readonly timeline = computed<TimelineStep[]>(() => {
     const order = this.order();

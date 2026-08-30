@@ -108,7 +108,7 @@ public class OrderService {
     public void deleteOrder(String orderId, String userId) {
         Order order = orderRepository.findByIdAndUserId(orderId, userId)
                 .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND + orderId));
-        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CONFIRMED) {
+        if (order.getStatus() == OrderStatus.DELIVERED && order.getStatus() == OrderStatus.SHIPPED) {
             throw new IllegalStateException("Only pending or confirmed orders can be deleted");
         }
         productClient.restockProductStock(toStockRequests(order.getCartItems()));
