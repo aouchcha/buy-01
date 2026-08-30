@@ -159,14 +159,9 @@ test('buyer can buy the created product', async ({ page }) => {
 
   // Find exact product card
   const productCard = page
-    .locator('div')
+    .locator('article.card')
     .filter({
       hasText: productName,
-    })
-    .filter({
-      has: page.getByRole('button', {
-        name: 'Add to cart',
-      }),
     })
     .first();
 
@@ -279,7 +274,7 @@ test('seller can delete the created product', async ({ page }) => {
 
   // Find exact product
   const createdProduct = page
-    .locator('div')
+    .locator('article.product-card')
     .filter({
       hasText: productName,
     })
