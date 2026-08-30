@@ -152,8 +152,23 @@ services:
         condition: service_started
     networks:
       - buy01-network
+  
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.2
+    environment:
+      - discovery.type=single.node
+      - xpack.security.enabled=false
+    expose:
+      - 9200
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    networks:
+      - buy01-network
 
 networks:
   buy01-network:
     driver: bridge
+
+volumes:
+  es_data:
 
