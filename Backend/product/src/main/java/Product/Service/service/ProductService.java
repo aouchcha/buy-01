@@ -48,6 +48,7 @@ public class ProductService {
         product = productRepository.save(product);
         ProductCreated event = new ProductCreated(product.getId(), userId);
         kafka.send("product.created", userId, event);
+        kafka.send("product.created.ES", product.getId(), product);
         return toResponse(product);
     }
 
@@ -59,7 +60,8 @@ public class ProductService {
         product.setPrice(productRequest.price());
         product.setQuantity(productRequest.quantity());
         product.setCategory(productRequest.category());
-        productRepository.save(product);
+        product = productRepository.save(product);
+        kafka.send("product.created.ES", product.getId(), product);
         return toResponse(product);
     }
 
@@ -68,13 +70,16 @@ public class ProductService {
         ProductDeleted event = new ProductDeleted(id);
         kafka.send("product.deleted", id, event);
         productRepository.deleteById(id);
+        kafka.send("product.deleted.ES", id, id);
     }
 
-    public void addImageUrl(String productId, List<String> imageUrls) {
+    public Product addImageUrl(String productId, List<String> imageUrls) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND));
         product.setImageUrls(imageUrls);
-        productRepository.save(product);
+        product = productRepository.save(product);
+        kafka.send("product.created.ES", product.getId(), product);
+        return product;
     }
 
     public void removeImageUrl(String productId, String url) {
@@ -83,8 +88,10 @@ public class ProductService {
         List<String> urls = product.getImageUrls();
         urls.remove(url);
         product.setImageUrls(urls);
-        productRepository.save(product);
+        product = productRepository.save(product);
+        kafka.send("product.created.ES", product.getId(), product);
     }
+
 
     public List<ProductResponse> getMyProduct(String userId) {
         return productRepository.findByUserId(userId).stream()

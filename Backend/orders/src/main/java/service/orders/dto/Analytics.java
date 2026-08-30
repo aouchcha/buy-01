@@ -11,5 +11,5 @@ import lombok.Data;
 @Builder
 public class Analytics {
     public List<BestSellingProductDTO> bestSellingProducts;
-    public Double Total;
+    public double total;
 }

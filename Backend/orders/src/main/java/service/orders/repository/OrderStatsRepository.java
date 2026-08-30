@@ -29,7 +29,6 @@ public class OrderStatsRepository {
 
             match(where("status").is("DELIVERED")),
 
-
             unwind("cart_items"),
 
             match(where("cart_items.seller_id").is(sellerId)),
@@ -54,9 +53,9 @@ public class OrderStatsRepository {
 
             match(where("status").is("DELIVERED")),
 
-            match(where("user_id").is(userId)),
-
             unwind("cart_items"),
+            
+            match(where("user_id").is(userId)),
 
             group("cart_items.product_id")
                 .first("cart_items.product_name").as("productName")

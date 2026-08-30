@@ -238,6 +238,15 @@ services:
       - sonarqube_extensions:/opt/sonarqube/extensions
     networks:
       - buy01-network
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.2
+    environment:
+      - discovery.type=single.node
+      - xpack.security.enabled=false
+    expose:
+      - 9200
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
 
 networks:
   buy01-network:
@@ -253,3 +262,4 @@ volumes:
   sonarqube_logs:
   sonarqube_extensions:
   orders_mongo_data:
+  es_data:
