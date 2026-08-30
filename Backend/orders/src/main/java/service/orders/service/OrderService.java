@@ -1,17 +1,26 @@
 package service.orders.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+// import jakarta.ws.rs.InternalServerErrorException;
 import lombok.AllArgsConstructor;
+import service.orders.exception.CartItemNotFoundException;
 import service.orders.exception.EmptyCartException;
 import service.orders.exception.OrderNotFoundException;
+import service.orders.exception.ProductNotFoundException;
 import service.orders.models.CartItems;
 import service.orders.models.OrderStatus;
+import service.orders.repository.CartItemsRepository;
 import service.orders.repository.OrderRepository;
+import service.orders.repository.OrderStatsRepository;
 import service.orders.models.Order;
 import service.orders.client.ProductClient;
+import service.orders.dto.Analytics;
+import service.orders.dto.BestSellingProductDTO;
 import service.orders.dto.CreateOrderRequest;
 import service.orders.dto.OrderItemResponse;
 import service.orders.dto.OrdersResponse;
@@ -27,6 +36,8 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CartService cartService;
     private final ProductClient productClient;
+    private final OrderStatsRepository orderStatsRepository;
+    private final CartItemsRepository cartItemsRepository;
 
     public OrdersResponse createOrder(CreateOrderRequest request, String userId) {
 
@@ -125,5 +136,66 @@ public class OrderService {
         order.setStatus(OrderStatus.CANCELLED);
         order = orderRepository.save(order);
         return toResponse(order);
+    }
+    public Analytics getAnalytics(String period) {
+        final String userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        final String role = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .findFirst()
+                .map(grantedAuthority -> grantedAuthority.getAuthority())
+                .orElse(null);
+        if (userId == null) {
+            throw new ProductNotFoundException("User ID is not available in the security context");
+        }
+        if (role == null) {
+            throw new ProductNotFoundException("User role is not available in the security context");
+        }
+
+        List<BestSellingProductDTO> products = new ArrayList<>();
+        double total = 0.0;
+        
+        if (role.equals("ROLE_SELLER")) {
+            products = getSellerAnalytics(userId, getFromTimestamp(period));
+            final List<CartItems> cartItems = cartItemsRepository.findBySellerId(userId);
+            if (cartItems == null) {
+                throw new CartItemNotFoundException("cart Items for a seller is null");
+            }
+            total = cartItems.stream().mapToDouble(CartItems::getTotalPrice).sum();
+        } else if (role.equals("ROLE_BUYER")) {
+            products = getBuyerAnalytics(userId, getFromTimestamp(period));
+            final List<Order> orders = orderRepository.findByUserIdAndStatusOrders(userId, "DELIVERED");
+            if (orders == null) {
+                throw new OrderNotFoundException("orders for a client is null");
+            }
+            total = orders.stream().mapToDouble(Order::getTotalAmount).sum();
+        } else {
+            System.out.println(role);
+            throw new OrderNotFoundException("The Role is not valid when check for the analytics");
+        }
+        Analytics analytics = Analytics.builder()
+                .bestSellingProducts(products)
+                .total(total)
+                .build();
+        return analytics;
+    }
+
+    private List<BestSellingProductDTO> getSellerAnalytics(String sellerId, long fromTimestamp) {
+ 
+        return orderStatsRepository.getBestSellingProducts(sellerId, fromTimestamp, 5);
+    }
+
+    private List<BestSellingProductDTO> getBuyerAnalytics(String buyerId, long fromTimestamp) {
+
+        return orderStatsRepository.getTopBuyedProductByUser(buyerId, fromTimestamp, 5);
+    }
+    
+
+    private long getFromTimestamp(String period) {
+        long now = System.currentTimeMillis();
+        return switch (period) {
+            case "today" -> now - 24L * 60 * 60 * 1000;
+            case "week"  -> now - 7L * 24 * 60 * 60 * 1000;
+            case "month" -> now - 30L * 24 * 60 * 60 * 1000;
+            default -> throw new IllegalArgumentException("Invalid period: " + period);
+        };
     }
 }

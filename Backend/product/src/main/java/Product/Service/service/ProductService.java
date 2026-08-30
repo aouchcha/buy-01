@@ -55,6 +55,7 @@ public class ProductService {
         ProductCreated event = new ProductCreated(product.getId(), userId);
         kafka.send("product.created", userId, event);
         System.out.println("====================================\nProduct Created Event Lunched");
+        kafka.send("product.created.ES", product.getId(), product);
         return toResponse(product);
     }
 
@@ -65,9 +66,11 @@ public class ProductService {
         product.setDescription(productRequest.description());
         product.setPrice(productRequest.price());
         product.setQuantity(productRequest.quantity());
-        productRepository.save(product);
+        product.setCategory(productRequest.category());
         System.out.println("====================================\nProduct Updated Event Lunched");
         System.out.println("====================================\n" + product.getImageUrls());
+        product = productRepository.save(product);
+        kafka.send("product.created.ES", product.getId(), product);
         return toResponse(product);
     }
 
@@ -76,14 +79,17 @@ public class ProductService {
         ProductDeleted event = new ProductDeleted(id);
         kafka.send("product.deleted", id, event);
         productRepository.deleteById(id);
+        kafka.send("product.deleted.ES", id, id);
     }
 
-    public void addImageUrl(String productId, List<String> imageUrls) {
+    public Product addImageUrl(String productId, List<String> imageUrls) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND));
         // product.getImageUrls().add(imageUrl);
         product.setImageUrls(imageUrls);
-        productRepository.save(product);
+        product = productRepository.save(product);
+        kafka.send("product.created.ES", product.getId(), product);
+        return product;
     }
 
     public void removeImageUrl(String productId, String url) {
@@ -93,8 +99,10 @@ public class ProductService {
         urls.remove(url);
         System.out.println("====================================\nurls = " + urls);
         product.setImageUrls(urls);
-        productRepository.save(product);
+        product = productRepository.save(product);
+        kafka.send("product.created.ES", product.getId(), product);
     }
+
 
     public List<ProductResponse> getMyProduct(String userId) {
         return productRepository.findByUserId(userId).stream()
@@ -173,7 +181,8 @@ public class ProductService {
             int newQuantity = product.getQuantity() - request.quantity();
 
             product.setQuantity(newQuantity);
-            productRepository.save(product);
+            product = productRepository.save(product);
+            kafka.send("product.created.ES", product.getId(), product);
         }
 
         return new StockUpdateResult(true, items);
@@ -183,7 +192,8 @@ public class ProductService {
         for (StockRequest request : stockRequests) {
             productRepository.findById(request.productId()).ifPresent(product -> {
                 product.setQuantity(product.getQuantity() + request.quantity());
-                productRepository.save(product);
+                product = productRepository.save(product);
+                kafka.send("product.created.ES", product.getId(), product);
             });
         }
     }
