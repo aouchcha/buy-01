@@ -116,7 +116,7 @@ public class OrderService {
         orderRepository.delete(order);
     }
 
-    public Object getAnalytics(String period) {
+    public Analytics getAnalytics(String period) {
         final String userId = SecurityContextHolder.getContext().getAuthentication().getName();
         final String role = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
                 .findFirst()
