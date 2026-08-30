@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         NOTIFICATION_EMAIL_RECIPIENT = 'yahyakhaldy2@gmail.com, ouchchatea@gmail.com'
-        COMPOSE_PROJECT_NAME = "safe-zone"
+        COMPOSE_PROJECT_NAME = "buy02"
     }
 
     stages {
