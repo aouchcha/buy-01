@@ -1,6 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { BaseChartDirective } from 'ng2-charts';
+import { Chart, ChartData, ChartOptions, registerables } from 'chart.js';
 
 import { ProfileService } from '../../../../core/services/profile';
 import { Media } from '../../../../core/services/media';
@@ -11,12 +13,15 @@ import { ToastService } from '../../../../core/services/toast.service';
 import { Product } from '../../../../core/services/product';
 import { ProductDto } from '../../../../core/models/product';
 import { RouterLink } from '@angular/router';
+import { OrderService } from '../../../../core/services/order';
+import { Analytics, ANALYTICS_PERIOD_OPTIONS, AnalyticsPeriod } from '../../../../core/models/analytics';
 
+Chart.register(...registerables);
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, Navbar, RouterLink],
+  imports: [CommonModule, FormsModule, Navbar, RouterLink, BaseChartDirective],
   templateUrl: './profile.html',
   styleUrl: './profile.scss',
 })
@@ -27,10 +32,43 @@ export class Profile implements OnInit {
   private readonly auth = inject(Auth);
   private readonly toast = inject(ToastService);
   private readonly productService = inject(Product);
+  private readonly orderService = inject(OrderService);
 
 
   readonly products = signal<ProductDto[]>([]);
   readonly productsLoading = signal(true);
+
+  // --- Analytics ---
+  readonly periodOptions = ANALYTICS_PERIOD_OPTIONS;
+  readonly analyticsPeriod = signal<AnalyticsPeriod>('month');
+  readonly analytics = signal<Analytics | null>(null);
+  readonly analyticsLoading = signal(true);
+  readonly analyticsError = signal<string | null>(null);
+
+  readonly chartOptions: ChartOptions<'bar'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+  };
+
+  readonly bestSellingChartData = computed<ChartData<'bar'>>(() => {
+    const items = this.analytics()?.bestSellingProducts ?? [];
+    return {
+      labels: items.map((p) => p.productName),
+      datasets: [
+        {
+          label: 'Units sold',
+          data: items.map((p) => p.totalUnitsSold ?? 0),
+          backgroundColor: '#a08060',
+        },
+      ],
+    };
+  });
+
+  readonly unitsSoldTotal = computed(() =>
+    (this.analytics()?.bestSellingProducts ?? []).reduce((sum, p) => sum + (p.totalUnitsSold ?? 0), 0)
+  );
 
   readonly Role = Role;
 
@@ -52,18 +90,6 @@ export class Profile implements OnInit {
     return this.imageIndexes()[productId] ?? 0;
   }
 
-  nextImage(product: ProductDto, event: Event): void {
-    event.stopPropagation();
-    const current = this.getImageIndex(product.id);
-    this.imageIndexes.update(m => ({ ...m, [product.id]: (current + 1) % product.imageUrls.length }));
-  }
-
-  prevImage(product: ProductDto, event: Event): void {
-    event.stopPropagation();
-    const current = this.getImageIndex(product.id);
-    this.imageIndexes.update(m => ({ ...m, [product.id]: (current - 1 + product.imageUrls.length) % product.imageUrls.length }));
-  }
-
 
   readonly defaultAvatar =
     'data:image/svg+xml;utf8,' +
@@ -79,6 +105,29 @@ export class Profile implements OnInit {
   ngOnInit(): void {
     this.loadProfile();
     this.fetchProducts();
+    this.fetchAnalytics();
+  }
+
+  private fetchAnalytics(): void {
+    this.analyticsLoading.set(true);
+    this.analyticsError.set(null);
+
+    this.orderService.getAnalytics(this.analyticsPeriod()).subscribe({
+      next: (analytics) => {
+        this.analytics.set(analytics);
+        this.analyticsLoading.set(false);
+      },
+      error: (err) => {
+        this.analyticsError.set('Unable to load analytics.');
+        this.analyticsLoading.set(false);
+        this.toast.error(err.error || 'Unable to load analytics.');
+      },
+    });
+  }
+
+  onPeriodChange(period: AnalyticsPeriod): void {
+    this.analyticsPeriod.set(period);
+    this.fetchAnalytics();
   }
 
 
@@ -464,25 +513,13 @@ export class Profile implements OnInit {
 
   public sellerEarnings(): number {
 
-    return 0;
-
-  }
-
-  public bestSellingProducts(): ProductDto[] {
-
-    return [];
+    return this.analytics()?.total ?? 0;
 
   }
 
   public totalMoneySpent(): number {
 
-    return 0;
-
-  }
-
-  public mostBoughtProducts(): ProductDto[] {
-
-    return [];
+    return this.analytics()?.total ?? 0;
 
   }
 

@@ -4,6 +4,7 @@ package service.search.config.security;
 import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -22,6 +23,7 @@ public class SecurityConfig {
                 .addFilterBefore(headerAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                     .requestMatchers(EndpointRequest.to("health")).permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/search/products").permitAll()
                     .anyRequest().authenticated()
                 );
         return http.build();

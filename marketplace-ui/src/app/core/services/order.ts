@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { CreateOrderRequest, Order } from '../models/order';
+import { Analytics, AnalyticsPeriod } from '../models/analytics';
 
 @Injectable({
   providedIn: 'root',
@@ -30,5 +31,9 @@ export class OrderService {
 
   delete(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  getAnalytics(period: AnalyticsPeriod): Observable<Analytics> {
+    return this.http.get<Analytics>(`${this.apiUrl}/analytics`, { params: { period } });
   }
 }

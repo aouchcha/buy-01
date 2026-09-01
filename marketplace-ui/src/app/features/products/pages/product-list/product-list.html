@@ -27,13 +27,125 @@
   <div class="container">
     <h2>Popular Birds</h2>
 
-    @if (loading()) {
+    <div class="search-bar">
+      <input
+        type="search"
+        class="search-input"
+        placeholder="Search birds by name or description…"
+        [ngModel]="keyword()"
+        (ngModelChange)="keyword.set($event); onFilterChange()"
+        aria-label="Search birds"
+      />
+
+      <select class="filter-select" [ngModel]="selectedCategory()" (ngModelChange)="selectedCategory.set($event); onFilterChange()" aria-label="Filter by category">
+        <option value="">All categories</option>
+        @for (option of categoryOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+
+      <input
+        type="number"
+        class="filter-input"
+        placeholder="Min price"
+        min="0"
+        [ngModel]="minPrice()"
+        (ngModelChange)="minPrice.set($event); onFilterChange()"
+        aria-label="Minimum price"
+      />
+
+      <input
+        type="number"
+        class="filter-input"
+        placeholder="Max price"
+        min="0"
+        [ngModel]="maxPrice()"
+        (ngModelChange)="maxPrice.set($event); onFilterChange()"
+        aria-label="Maximum price"
+      />
+
+      <select class="filter-select" [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event); onFilterChange()" aria-label="Sort by">
+        <option value="">Sort by</option>
+        @for (option of sortOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+
+      @if (searchActive()) {
+        <button type="button" class="btn-clear-filters" (click)="clearFilters()">Clear</button>
+      }
+    </div>
+
+    @if (searchActive()) {
+      @if (searchLoading() && displayItems().length === 0) {
+        <p class="status-message">Searching…</p>
+      } @else if (searchError()) {
+        <p class="status-message status-message--error">{{ searchError() }}</p>
+      } @else if (displayItems().length === 0) {
+        <p class="empty-state">No birds match your search.</p>
+      } @else {
+        <div class="product-grid">
+          @for (item of displayItems(); track item.id) {
+
+            <article class="card" (click)="goToProduct(item.id)">
+              <div class="card-media">
+                @if (item.imageUrls.length > 0) {
+                  <img [src]="item.imageUrls[getImageIndex(item.id)]" [alt]="item.name" loading="lazy" />
+                  @if (item.imageUrls.length > 1) {
+                    <button class="carousel-btn carousel-btn--prev" (click)="prevImage(item, $event)" aria-label="Previous image">&#8249;</button>
+                    <button class="carousel-btn carousel-btn--next" (click)="nextImage(item, $event)" aria-label="Next image">&#8250;</button>
+                    <span class="carousel-dots">
+                      @for (url of item.imageUrls; track url; let i = $index) {
+                        <span class="carousel-dot" [class.active]="i === getImageIndex(item.id)"></span>
+                      }
+                    </span>
+                  }
+                } @else {
+                  <img src="assets/images/background.png" [alt]="item.name" loading="lazy" />
+                }
+              </div>
+
+              <div class="card-body">
+                <span class="card-category">{{ categoryLabel(item.category) }}</span>
+                <h3>{{ item.name }}</h3>
+                <p>{{ item.description }}</p>
+
+                <div class="card-footer">
+                  <span class="price">{{ item.price }} DH</span>
+                  <div class="card-actions">
+                    @if (isLogin() && !isSeller()) {
+                    <button class="btn-add-cart" (click)="addToCart(item, $event)" [disabled]="item.quantity <= 0">
+                      {{ item.quantity <= 0 ? 'Out of stock' : 'Add to cart' }}
+                    </button>
+                    }
+                    <button class="btn-view" (click)="goToProduct(item.id)">
+                      View
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+
+        @if (hasMore()) {
+          <div class="load-more">
+            <button type="button" class="btn-view" [disabled]="searchLoading()" (click)="loadMore()">
+              {{ searchLoading() ? 'Loading…' : 'Load more' }}
+            </button>
+          </div>
+        }
+      }
+    } @else if (loading()) {
       <p class="status-message">Loading birds…</p>
     } @else if (error()) {
       <p class="status-message status-message--error">{{ error() }}</p>
     } @else {
       <div class="product-grid">
-        @for (item of products(); track item.id) {
+        @for (item of displayItems(); track item.id) {
 
           <article class="card" (click)="goToProduct(item.id)">
             <div class="card-media">

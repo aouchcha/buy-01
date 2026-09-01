@@ -690,6 +690,38 @@
   margin-bottom: 2rem;
 }
 
+.period-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-muted, #7a7168);
+  }
+
+  select {
+    padding: 0.5rem 0.9rem;
+    border-radius: 10px;
+    border: 1px solid var(--color-beige, #e8dcc4);
+    background: white;
+    font-family: var(--font-display);
+  }
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.5));
+  border-radius: 20px;
+  box-shadow: var(--shadow-soft, 0 8px 20px rgba(60, 45, 30, 0.08));
+}
+
 .metric-card {
   padding: 1.25rem 1.5rem;
   background: rgba(255, 255, 255, 0.85);
