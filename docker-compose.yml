@@ -6,6 +6,8 @@ services:
     restart: unless-stopped
     labels:
       - "ci.path=Backend/discovery"
+    ports:
+      - "8761:8761"
     expose:
       - "8761"
       - "9000"
@@ -153,15 +155,27 @@ services:
     networks:
       - buy01-network
   
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.2
-    environment:
-      - discovery.type=single.node
-      - xpack.security.enabled=false
+  search:
+    build:
+      context: ./Backend/search
+    image: search:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    labels:
+      - "ci.path=Backend/search"
     expose:
-      - 9200
-    volumes:
-      - es_data:/usr/share/elasticsearch/data
+      - "8085"
+      - "9000"
+    depends_on:
+      elasticsearch:
+        condition: service_started
+      discovery:
+        condition: service_started
+      kafka:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
     networks:
       - buy01-network
 
@@ -169,6 +183,5 @@ networks:
   buy01-network:
     driver: bridge
 
-volumes:
-  es_data:
-
+# volumes:
+#   es_data:

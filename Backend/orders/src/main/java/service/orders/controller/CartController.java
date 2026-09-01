@@ -36,6 +36,7 @@ public class CartController {
 
     @PostMapping("/items")
     public ResponseEntity<Void> addItemToCart(@RequestHeader("X-User-Id") String userId, @Valid @RequestBody CartItemsRequest cartItem) {
+        System.out.println("=================\nReceived request to add item to cart: " + cartItem);
         cartService.addItemToCart(userId, cartItem);
         return ResponseEntity.ok().build();
     }

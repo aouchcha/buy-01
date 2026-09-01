@@ -162,7 +162,7 @@ public class OrderService {
             total = cartItems.stream().mapToDouble(CartItems::getTotalPrice).sum();
         } else if (role.equals("ROLE_BUYER")) {
             products = getBuyerAnalytics(userId, getFromTimestamp(period));
-            final List<Order> orders = orderRepository.findByUserIdAndStatusOrders(userId, "DELIVERED");
+            final List<Order> orders = orderRepository.findByUserIdAndStatus(userId, "DELIVERED");
             if (orders == null) {
                 throw new OrderNotFoundException("orders for a client is null");
             }
@@ -175,6 +175,9 @@ public class OrderService {
                 .bestSellingProducts(products)
                 .total(total)
                 .build();
+        System.out.println("===***********************************************************************************************===");
+        System.out.println("Analytics for userId: " + userId + ", role: " + role + ", period: " + period + " => " + analytics);
+        System.out.println("===***********************************************************************************************===");
         return analytics;
     }
 

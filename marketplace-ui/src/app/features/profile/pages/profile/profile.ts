@@ -114,6 +114,7 @@ export class Profile implements OnInit {
 
     this.orderService.getAnalytics(this.analyticsPeriod()).subscribe({
       next: (analytics) => {
+        console.log('Fetched analytics:', analytics);
         this.analytics.set(analytics);
         this.analyticsLoading.set(false);
       },
