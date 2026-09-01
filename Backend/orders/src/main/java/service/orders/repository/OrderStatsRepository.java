@@ -2,7 +2,6 @@ package service.orders.repository;
 
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.stereotype.Repository;
 import service.orders.dto.BestSellingProductDTO;
 
@@ -59,9 +58,9 @@ public class OrderStatsRepository {
 
             group("cart_items.product_id")
                 .first("cart_items.product_name").as("productName")
-                .sum("cart_items.quantity").as("totalUnitsBuyed"),
+                .sum("cart_items.quantity").as("totalUnitsSold"),
 
-            sort(DESC, "totalUnitsBuyed"),
+            sort(DESC, "totalUnitsSold"),
 
             limit(limit)
         );

@@ -33,8 +33,7 @@ public class KafkaConsumerConfig {
         config.put(JacksonJsonDeserializer.TRUSTED_PACKAGES, "service.search.dto.kafka.*");
         config.put(JacksonJsonDeserializer.TYPE_MAPPINGS,
                         "productCreated:service.search.dto.kafka.ProductCreated,"
-                        + "productDeleted:service.search.dto.kafka.ProductDeleted"
-                        // + "userDeleted:service.search.dto.kafka.UserDeleted"
+                        + "productDeleted:service.search.dto.kafka.ProductDeletion"
                     );
         // config.put(JacksonJsonDeserializer.USE_TYPE_INFO_HEADERS, false);
         return new DefaultKafkaConsumerFactory<>(config);
