@@ -10,10 +10,6 @@ import { Navbar } from '../../../../layout/navbar/navbar';
 import { ConfirmService } from '../../../../core/services/confirm';
 import { ToastService } from '../../../../core/services/toast.service';
 import { MatIconModule } from '@angular/material/icon';
-import { BaseChartDirective } from 'ng2-charts';
-import { Chart, ChartData, ChartOptions, registerables } from 'chart.js';
-
-Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard',
@@ -23,8 +19,7 @@ Chart.register(...registerables);
     RouterModule,
     ReactiveFormsModule,
     Navbar,
-    MatIconModule,
-    BaseChartDirective
+    MatIconModule
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
@@ -39,10 +34,6 @@ export class Dashboard implements OnInit {
 
   readonly user = this.auth.getCurrentUser();
   readonly seller = this.user;
-
-  // --- Role checks ---
-  readonly isSeller = computed(() => this.auth.isSeller());
-  readonly isClient = computed(() => !this.isSeller());
 
   // --- Product State ---
   readonly products = signal<ProductDto[]>([]);
@@ -82,69 +73,6 @@ export class Dashboard implements OnInit {
   readonly bestSellingProducts = computed(() =>
     [...this.products()].sort((a, b) => (b.quantity || 0) - (a.quantity || 0))
   );
-
-  readonly totalValue = computed(() =>
-    this.products().reduce((sum, p) => sum + p.price * p.quantity, 0)
-  );
-
-  readonly withImages = computed(() =>
-    this.products().filter(p => p.imageUrls?.length > 0).length
-  );
-
-  // --- Client Dashboard Metrics & Lists ---
-  readonly totalSpent = signal<number>(0);
-  readonly orderCount = signal<number>(0);
-  readonly totalItemsBought = signal<number>(0);
-  readonly mostBoughtProducts = signal<ProductDto[]>([]);
-
-  // --- Chart Configurations & Data ---
-  readonly chartOptions: ChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: { font: { family: 'Inter' } }
-      }
-    }
-  };
-
-  readonly sellerUnitsChartData = computed<ChartData<'pie'>>(() => ({
-    labels: this.products().map(p => p.name),
-    datasets: [{
-      data: this.products().map(p => p.quantity || 0),
-      backgroundColor: ['#a08060', '#7a5f45', '#c9b99a', '#e8dcc4', '#4a4038']
-    }]
-  }));
-
-  readonly sellerRevenueChartData = computed<ChartData<'line'>>(() => ({
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [{
-      label: 'Revenue (MAD)',
-      data: [1200, 1900, 3000, 5000, 2000, this.totalRevenue()],
-      borderColor: '#7a5f45',
-      backgroundColor: 'rgba(122, 95, 69, 0.1)',
-      fill: true,
-      tension: 0.4
-    }]
-  }));
-
-  readonly clientCategoryChartData = computed<ChartData<'doughnut'>>(() => ({
-    labels: ['Electronics', 'Home Decor', 'Clothing'],
-    datasets: [{
-      data: [300, 450, 200],
-      backgroundColor: ['#a08060', '#7a5f45', '#c9b99a']
-    }]
-  }));
-
-  readonly clientSpendingChartData = computed<ChartData<'bar'>>(() => ({
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [{
-      label: 'Spent (MAD)',
-      data: [400, 600, 800, 200, 900, this.totalSpent()],
-      backgroundColor: '#a08060'
-    }]
-  }));
 
   // --- Add Product Modal State ---
   readonly showAddModal = signal(false);

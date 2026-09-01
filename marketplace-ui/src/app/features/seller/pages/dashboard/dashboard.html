@@ -1,93 +1,6 @@
 <app-navbar></app-navbar>
 
 <section class="dashboard">
-  <!-- USER / CLIENT DASHBOARD -->
-  @if (isClient()) {
-  <header class="dashboard__header">
-    <div class="dashboard__greeting">
-      <span class="dashboard__eyebrow">Client Overview</span>
-      <h1>Welcome {{ user?.firstName }}</h1>
-      <p class="dashboard__sub">Here is your spending and shopping history.</p>
-    </div>
-  </header>
-
-  <div class="stats">
-    <div class="stat-card">
-      <span class="stat-card__label">Total Spent</span>
-      <span class="stat-card__value">{{ totalSpent() | number: '1.0-2' }} MAD</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-card__label">Orders Placed</span>
-      <span class="stat-card__value">{{ orderCount() }}</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-card__label">Items Bought</span>
-      <span class="stat-card__value">{{ totalItemsBought() }}</span>
-    </div>
-  </div>
-
-  <div class="analytics-grid">
-    <div class="chart-card">
-      <div class="catalog__header">
-        <h2>Top Spending Categories</h2>
-      </div>
-      <div class="chart-container">
-        <canvas baseChart
-          [data]="clientCategoryChartData()"
-          [options]="chartOptions"
-          [type]="'doughnut'">
-        </canvas>
-      </div>
-    </div>
-
-    <div class="chart-card">
-      <div class="catalog__header">
-        <h2>Monthly Spending</h2>
-      </div>
-      <div class="chart-container">
-        <canvas baseChart
-          [data]="clientSpendingChartData()"
-          [options]="chartOptions"
-          [type]="'bar'">
-        </canvas>
-      </div>
-    </div>
-  </div>
-
-  <div class="catalog">
-    <div class="catalog__header">
-      <h2>Most Bought Products</h2>
-    </div>
-    @if (mostBoughtProducts().length === 0) {
-    <div class="empty-state">
-      <p class="empty-state__title">No purchase history</p>
-      <p class="empty-state__sub">Your most frequently purchased products will appear here.</p>
-    </div>
-    } @else {
-    <div class="catalog__grid">
-      @for (product of mostBoughtProducts(); track product.id) {
-      <article class="product-card">
-        <div class="product-card__media">
-          @if (product.imageUrls.length) {
-          <img [src]="product.imageUrls[getImageIndex(product.id)]" [alt]="product.name" loading="lazy" />
-          } @else {
-          <div class="product-card__placeholder">No image</div>
-          }
-        </div>
-        <div class="product-card__body">
-          <h3>{{ product.name }}</h3>
-          <p class="product-card__desc">{{ product.description }}</p>
-          <p class="product-card__price">{{ product.price | number: '1.0-2' }} MAD</p>
-        </div>
-      </article>
-      }
-    </div>
-    }
-  </div>
-  }
-
-  <!-- SELLER DASHBOARD -->
-  @if (isSeller()) {
   <header class="dashboard__header">
     <div class="dashboard__greeting">
       <span class="dashboard__eyebrow">Seller ledger</span>
@@ -118,34 +31,6 @@
     <div class="stat-card">
       <span class="stat-card__label">Active Products</span>
       <span class="stat-card__value">{{ products().length }}</span>
-    </div>
-  </div>
-
-  <div class="analytics-grid">
-    <div class="chart-card">
-      <div class="catalog__header">
-        <h2>Units Sold by Category</h2>
-      </div>
-      <div class="chart-container">
-        <canvas baseChart
-          [data]="sellerUnitsChartData()"
-          [options]="chartOptions"
-          [type]="'pie'">
-        </canvas>
-      </div>
-    </div>
-
-    <div class="chart-card">
-      <div class="catalog__header">
-        <h2>Revenue Trends</h2>
-      </div>
-      <div class="chart-container">
-        <canvas baseChart
-          [data]="sellerRevenueChartData()"
-          [options]="chartOptions"
-          [type]="'line'">
-        </canvas>
-      </div>
     </div>
   </div>
 
@@ -189,7 +74,6 @@
     </div>
     }
   </div>
-  }
 </section>
 
 @if (showAddModal()) {
