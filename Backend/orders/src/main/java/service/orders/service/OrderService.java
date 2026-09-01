@@ -160,7 +160,7 @@ public class OrderService {
                 throw new CartItemNotFoundException("cart Items for a seller is null");
             }
             total = cartItems.stream().mapToDouble(CartItems::getTotalPrice).sum();
-        } else if (role.equals("ROLE_BUYER")) {
+        } else if (role.equals("ROLE_CLIENT")) {
             products = getBuyerAnalytics(userId, getFromTimestamp(period));
             final List<Order> orders = orderRepository.findByUserIdAndStatus(userId, "DELIVERED");
             if (orders == null) {
