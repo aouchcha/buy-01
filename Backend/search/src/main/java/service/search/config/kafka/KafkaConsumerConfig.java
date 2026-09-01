@@ -26,15 +26,14 @@ public class KafkaConsumerConfig {
     public ConsumerFactory<String, String> consumerFactory() {
         Map<String, Object> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "media-service");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "search-service");
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         config.put(JacksonJsonDeserializer.TRUSTED_PACKAGES, "service.search.dto.kafka.*");
         config.put(JacksonJsonDeserializer.TYPE_MAPPINGS,
-                        "productCreated:service.search.dto.kafka.ProductCreated,"
-                        + "productDeleted:service.search.dto.kafka.ProductDeleted"
-                        // + "userDeleted:service.search.dto.kafka.UserDeleted"
+                        "productCreatedToES:service.search.dto.kafka.ProductCreatedToES,"
+                        + "productDeleted:service.search.dto.kafka.ProductDeletion"
                     );
         // config.put(JacksonJsonDeserializer.USE_TYPE_INFO_HEADERS, false);
         return new DefaultKafkaConsumerFactory<>(config);

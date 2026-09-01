@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import Product.Service.dto.ProductRequest;
 import Product.Service.dto.ProductResponse;
 import Product.Service.dto.kafka.ProductCreated;
+import Product.Service.dto.kafka.ProductCreatedToES;
 import Product.Service.dto.kafka.ProductDeleted;
+import Product.Service.dto.kafka.ProductDeletion;
 import Product.Service.exception.ForbiddenException;
 import Product.Service.exception.ProductNotFoundException;
 import Product.Service.model.Product;
@@ -49,13 +51,14 @@ public class ProductService {
                 .description(productRequest.description())
                 .price(productRequest.price())
                 .quantity(productRequest.quantity())
+                .category(productRequest.category())
                 .userId(userId)
                 .build();
         product = productRepository.save(product);
         ProductCreated event = new ProductCreated(product.getId(), userId);
         kafka.send("product.created", userId, event);
         System.out.println("====================================\nProduct Created Event Lunched");
-        kafka.send("product.created.ES", product.getId(), product);
+        kafka.send("product.created.ES", product.getId(), toProductCreatedToES(product));
         return toResponse(product);
     }
 
@@ -70,7 +73,7 @@ public class ProductService {
         System.out.println("====================================\nProduct Updated Event Lunched");
         System.out.println("====================================\n" + product.getImageUrls());
         product = productRepository.save(product);
-        kafka.send("product.created.ES", product.getId(), product);
+        kafka.send("product.created.ES", product.getId(), toProductCreatedToES(product));
         return toResponse(product);
     }
 
@@ -79,7 +82,7 @@ public class ProductService {
         ProductDeleted event = new ProductDeleted(id);
         kafka.send("product.deleted", id, event);
         productRepository.deleteById(id);
-        kafka.send("product.deleted.ES", id, id);
+        kafka.send("product.deleted.ES", id, toProductDeletion(id));
     }
 
     public Product addImageUrl(String productId, List<String> imageUrls) {
@@ -88,7 +91,7 @@ public class ProductService {
         // product.getImageUrls().add(imageUrl);
         product.setImageUrls(imageUrls);
         product = productRepository.save(product);
-        kafka.send("product.created.ES", product.getId(), product);
+        kafka.send("product.created.ES", product.getId(), toProductCreatedToES(product));
         return product;
     }
 
@@ -100,7 +103,7 @@ public class ProductService {
         System.out.println("====================================\nurls = " + urls);
         product.setImageUrls(urls);
         product = productRepository.save(product);
-        kafka.send("product.created.ES", product.getId(), product);
+        kafka.send("product.created.ES", product.getId(), toProductCreatedToES(product));
     }
 
 
@@ -182,7 +185,7 @@ public class ProductService {
 
             product.setQuantity(newQuantity);
             product = productRepository.save(product);
-            kafka.send("product.created.ES", product.getId(), product);
+            kafka.send("product.created.ES", product.getId(), toProductCreatedToES(product));
         }
 
         return new StockUpdateResult(true, items);
@@ -193,9 +196,27 @@ public class ProductService {
             productRepository.findById(request.productId()).ifPresent(product -> {
                 product.setQuantity(product.getQuantity() + request.quantity());
                 product = productRepository.save(product);
-                kafka.send("product.created.ES", product.getId(), product);
+                kafka.send("product.created.ES", product.getId(), toProductCreatedToES(product));
             });
         }
+    }
+
+    // create a method that maps from Product to ProductCreatedToES
+    private ProductCreatedToES toProductCreatedToES(Product product) {
+        return new ProductCreatedToES(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getQuantity(),
+                product.getUserId(),
+                product.getCategory().toString(),
+                product.getImageUrls()
+        );
+    }
+
+    private ProductDeletion toProductDeletion(String productId) {
+        return new ProductDeletion(productId);
     }
 
 }
