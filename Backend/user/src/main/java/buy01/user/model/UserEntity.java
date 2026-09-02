@@ -8,7 +8,7 @@ import lombok.Data;
 
 @Data
 @Document(collection = "users")
-public class userEntity {
+public class UserEntity {
     @UUID
     private String id;
 

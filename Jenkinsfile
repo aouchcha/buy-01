@@ -207,7 +207,7 @@ pipeline {
                     allChangedServiceNames.each { serviceName ->
                         sh """
                             IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                            docker compose --profile infra -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env build ${serviceName}
+                            docker compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env build ${serviceName}
                         """
                     }
                 }
@@ -237,7 +237,7 @@ pipeline {
                 //     allChangedServiceNames.each { serviceName ->
                 //         sh """
                 //             IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                //             docker compose -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env up -d ${serviceName}
+                //             docker compose -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env up -d ${serviceName}
                 //         """
                 //     }
                 // }
@@ -246,9 +246,9 @@ pipeline {
                     docker compose \
                       --profile infra \
                       -f docker-compose.yml \
-                      -f docker-compose.jenkins.yml \
+                      -f docker-compose.infra.yml \
                       --env-file /home/jenkins/.env \
-                      up -d --no-deps discovery gateway product user media marketplace-ui
+                      up -d --no-deps discovery gateway product user media orders marketplace-ui
                 """
             }
         }

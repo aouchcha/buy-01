@@ -12,6 +12,7 @@ import service.orders.dto.CartItemsRequest;
 import service.orders.dto.ProductResponse;
 import service.orders.exception.InsufficientStockException;
 import service.orders.exception.CartItemNotFoundException;
+import service.orders.exception.ProductNotFoundException;
 
 @Service
 @AllArgsConstructor
@@ -34,11 +35,8 @@ public class CartService {
             try {
                 ProductResponse product = productClient.getProduct(item.getProductId());
                 item.setOutOfStock(product.quantity() < item.getQuantity());
-                System.out.println("========================product.quantity() < item.getQuantity()===========================");
-                System.out.println(product.quantity() < item.getQuantity());
-
-            } catch (Exception e) {
-                item.setOutOfStock(true); 
+            } catch (ProductNotFoundException e) {
+                item.setOutOfStock(true);
             }
         }
 

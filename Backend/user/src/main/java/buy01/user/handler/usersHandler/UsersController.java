@@ -14,46 +14,46 @@ import org.springframework.web.bind.annotation.RestController;
 
 import buy01.user.dto.User.UpdateMe;
 import buy01.user.dto.User.Userdto;
-import buy01.user.service.usersService.usersService;
+import buy01.user.service.usersService.UsersService;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/users")
-public class usersController {
-    final private usersService usersService;
+public class UsersController {
+    final private UsersService UsersService;
 
-    public usersController(usersService usersService) {
-        this.usersService = usersService;
+    public UsersController(UsersService UsersService) {
+        this.UsersService = UsersService;
     }
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Userdto>> getAllUsers() {
-        List<Userdto> users = usersService.getAllUsers();
+        List<Userdto> users = UsersService.getAllUsers();
         return ResponseEntity.ok(users);
     }
 
     @GetMapping("/me")
     public ResponseEntity<Userdto> getProfile() {
-        Userdto profile = usersService.getProfile();
+        Userdto profile = UsersService.getProfile();
         return ResponseEntity.ok(profile);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Userdto> getUserById(@PathVariable String id) {
-        return ResponseEntity.ok(usersService.getUserById(id));
+        return ResponseEntity.ok(UsersService.getUserById(id));
     }
 
     @PutMapping("/me")
     public ResponseEntity<Userdto> updateAvatar(@Valid @RequestBody UpdateMe request) {
-        Userdto user = usersService.updateProfile(request);
+        Userdto user = UsersService.updateProfile(request);
         return ResponseEntity.ok().body(user);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> removeUser(@PathVariable String id) {
-        usersService.remove(id);
+        UsersService.remove(id);
         return ResponseEntity.ok("User removed with success");
     }
 

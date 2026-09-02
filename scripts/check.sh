@@ -4,7 +4,7 @@ set -euo pipefail
 
 COMPOSE_FILES=(
   -f docker-compose.yml
-  -f docker-compose.jenkins.yml
+  -f docker-compose.infra.yml
 )
 
 PROJECTS=(

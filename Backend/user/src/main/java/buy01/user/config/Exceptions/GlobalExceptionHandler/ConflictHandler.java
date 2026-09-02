@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import buy01.user.config.Exceptions.MyExeptions.Conflict;
 
 @RestControllerAdvice
-public class conflictHandler {
+public class ConflictHandler {
     @ExceptionHandler(Conflict.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ResponseEntity<String> handleConflict(Conflict ex) {

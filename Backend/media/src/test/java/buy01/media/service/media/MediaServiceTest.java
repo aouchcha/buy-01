@@ -28,6 +28,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
+import buy01.media.config.Exceptions.MyExeptions.InternalError;
 import buy01.media.config.Exceptions.MyExeptions.MyBadRequest;
 import buy01.media.config.Exceptions.MyExeptions.MyForbiden;
 import buy01.media.config.Exceptions.MyExeptions.MyNotFound;
@@ -192,9 +193,7 @@ class MediaServiceTest {
         request.setPictures(new MultipartFile[] { buildImageFile() });
 
         // The real service's try/catch around the upload loop wraps any generic
-        // exception into java.lang.InternalError (note: the code does not import
-        // the custom buy01.media...MyExeptions.InternalError, so it resolves to
-        // the JDK's java.lang.InternalError).
+        // exception into the custom buy01.media...MyExeptions.InternalError.
         assertThatThrownBy(() -> mediaService.UploadPics(request))
                 .isInstanceOf(InternalError.class);
 

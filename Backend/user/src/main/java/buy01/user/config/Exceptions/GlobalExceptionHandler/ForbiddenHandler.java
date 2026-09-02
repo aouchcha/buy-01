@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import buy01.user.config.Exceptions.MyExeptions.Myforbiden;
 
 @RestControllerAdvice
-public class forbiddenHandler {
+public class ForbiddenHandler {
     @ExceptionHandler(Myforbiden.class)
     public ResponseEntity<String> handleFrobiden(Myforbiden ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
