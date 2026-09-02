@@ -8,13 +8,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 
-import buy01.user.config.Exceptions.MyExeptions.badRequest;
+import buy01.user.config.Exceptions.MyExeptions.BadRequest;
 
 @RestControllerAdvice
-public class badRequestHandler {
-    @ExceptionHandler(badRequest.class)
+public class BadRequestHandler {
+    @ExceptionHandler(BadRequest.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<String> handleBadRequest(badRequest ex) {
+    public ResponseEntity<String> handleBadRequest(BadRequest ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 

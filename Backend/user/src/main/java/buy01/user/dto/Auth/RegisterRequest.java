@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @EqualsAndHashCode(callSuper=true)
 @NoArgsConstructor
-public class    registerRequest extends authRequest {
+public class    RegisterRequest extends AuthRequest {
 	@NotBlank(message = "First name is required")
     @Size(min = 3, max = 50, message = "First name must be between 3 and 50 characters")
     private String firstName;
@@ -25,7 +25,7 @@ public class    registerRequest extends authRequest {
 
     // private MultipartFile profilePicture;
 
-    public registerRequest(String email, String password, String firstName, String lastName, String role/*, MultipartFile profilePicture*/) {
+    public RegisterRequest(String email, String password, String firstName, String lastName, String role/*, MultipartFile profilePicture*/) {
         super(email, password);
         this.firstName = firstName;
         this.lastName = lastName;

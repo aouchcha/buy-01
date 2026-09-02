@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper=true)
-public class loginRequest extends authRequest {
-    public loginRequest(String email, String password) {
+public class LoginRequest extends AuthRequest {
+    public LoginRequest(String email, String password) {
         super(email, password);
     }
 }

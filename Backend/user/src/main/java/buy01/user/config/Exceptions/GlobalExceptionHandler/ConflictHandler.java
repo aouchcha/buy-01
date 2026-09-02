@@ -6,13 +6,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import buy01.user.config.Exceptions.MyExeptions.notFound;
+import buy01.user.config.Exceptions.MyExeptions.Conflict;
 
 @RestControllerAdvice
-public class notFoundHandler {
-    @ExceptionHandler(notFound.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<String> handleNotFoundException(notFound ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+public class ConflictHandler {
+    @ExceptionHandler(Conflict.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseEntity<String> handleConflict(Conflict ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 }

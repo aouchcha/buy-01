@@ -6,13 +6,13 @@ import org.junit.jupiter.api.Test;
 
 import buy01.user.dto.User.Userdto;
 import buy01.user.model.Roles;
-import buy01.user.model.userEntity;
+import buy01.user.model.UserEntity;
 
 class MapperTest {
 
     @Test
     void mappToUSerDto_convertsAllFieldsCorrectly() {
-        userEntity user = new userEntity();
+        UserEntity user = new UserEntity();
         user.setId("user-id-1");
         user.setFirstName("John");
         user.setLastName("Doe");
