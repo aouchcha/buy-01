@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import service.orders.models.Order;
+import service.orders.models.OrderStatus;
 
 @Repository
 public interface OrderRepository extends MongoRepository<Order, String> {
@@ -16,5 +17,5 @@ public interface OrderRepository extends MongoRepository<Order, String> {
 
     List<Order> findByUserIdAndStatus(String userId, String status);
 
-    // List<Order> finList
+    List<Order> findByStatusIn(List<OrderStatus> statuses);
 }
