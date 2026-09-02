@@ -86,7 +86,7 @@ pipeline {
                         unstash 'source-code'
                         dir('marketplace-ui') {
                             sh 'npm ci'
-                            sh 'npm test -- --watch=false --no-progress'
+                            sh 'npm test -- --watch=false --no-progress --coverage --coverage-reporters=lcov'
                             sh 'npm run build -- --configuration production'
                         }
                     }
