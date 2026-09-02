@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.stereotype.Repository;
 import service.orders.dto.BestSellingProductDTO;
+import service.orders.dto.SellerRevenueDTO;
 
 import java.util.List;
 
@@ -68,5 +69,25 @@ public class OrderStatsRepository {
 
         return mongoTemplate.aggregate(aggregation, "orders", BestSellingProductDTO.class)
                 .getMappedResults();
+    }
+
+    public Double getSellerRevenue(String sellerId, Long fromTimestamp) {
+
+        Aggregation aggregation = newAggregation(
+            match(where("created_at").gte(fromTimestamp)),
+
+            match(where("status").is("DELIVERED")),
+
+            unwind("cart_items"),
+
+            match(where("cart_items.seller_id").is(sellerId)),
+
+            group().sum("cart_items.total_price").as("total")
+        );
+
+        SellerRevenueDTO result = mongoTemplate.aggregate(aggregation, "orders", SellerRevenueDTO.class)
+                .getUniqueMappedResult();
+
+        return result != null ? result.getTotal() : 0.0;
     }
 }

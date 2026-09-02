@@ -8,13 +8,11 @@ import org.springframework.stereotype.Service;
 
 // import jakarta.ws.rs.InternalServerErrorException;
 import lombok.AllArgsConstructor;
-import service.orders.exception.CartItemNotFoundException;
 import service.orders.exception.EmptyCartException;
 import service.orders.exception.OrderNotFoundException;
 import service.orders.exception.ProductNotFoundException;
 import service.orders.models.CartItems;
 import service.orders.models.OrderStatus;
-import service.orders.repository.CartItemsRepository;
 import service.orders.repository.OrderRepository;
 import service.orders.repository.OrderStatsRepository;
 import service.orders.models.Order;
@@ -37,7 +35,6 @@ public class OrderService {
     private final CartService cartService;
     private final ProductClient productClient;
     private final OrderStatsRepository orderStatsRepository;
-    private final CartItemsRepository cartItemsRepository;
 
     public OrdersResponse createOrder(CreateOrderRequest request, String userId) {
 
@@ -155,11 +152,7 @@ public class OrderService {
         
         if (role.equals("ROLE_SELLER")) {
             products = getSellerAnalytics(userId, getFromTimestamp(period));
-            final List<CartItems> cartItems = cartItemsRepository.findBySellerId(userId);
-            if (cartItems == null) {
-                throw new CartItemNotFoundException("cart Items for a seller is null");
-            }
-            total = cartItems.stream().mapToDouble(CartItems::getTotalPrice).sum();
+            total = orderStatsRepository.getSellerRevenue(userId, getFromTimestamp(period));
         } else if (role.equals("ROLE_CLIENT")) {
             products = getBuyerAnalytics(userId, getFromTimestamp(period));
             final List<Order> orders = orderRepository.findByUserIdAndStatus(userId, "DELIVERED");
