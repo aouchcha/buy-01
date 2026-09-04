@@ -60,6 +60,8 @@ class ProductApplicationTests {
 				.category(Category.LIVE_POULTRY)
 				.build();
 
+				
+
 		request = new ProductRequest(
 				"flos",
 				"Smart flos",
