@@ -60,7 +60,7 @@ class ProductApplicationTests {
 				.category(Category.LIVE_POULTRY)
 				.build();
 
-				
+
 
 		request = new ProductRequest(
 				"flos",
@@ -142,6 +142,9 @@ class ProductApplicationTests {
 
 		when(productRepository.findByIdAndUserId("1", "user1-77"))
 				.thenReturn(Optional.of(product));
+		
+		when(productRepository.save(product))
+            .thenReturn(product);   
 
 		ProductResponse response = productService.updateProduct(request, "1", "user1-77");
 
@@ -203,6 +206,9 @@ class ProductApplicationTests {
 
 		when(productRepository.findById("1"))
 				.thenReturn(Optional.of(product));
+		
+		when(productRepository.save(product))
+            .thenReturn(product);  
 
 		List<String> images = List.of("https://a.jpg", "https://b.jpg");
 
@@ -240,6 +246,9 @@ class ProductApplicationTests {
 
         when(productRepository.findById("1"))
                 .thenReturn(Optional.of(product));
+				
+		when(productRepository.save(product))
+            .thenReturn(product);  
 
         productService.removeImageUrl("1", "https://a.jpg");
 
