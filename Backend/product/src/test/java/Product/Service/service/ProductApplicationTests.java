@@ -30,6 +30,7 @@ import Product.Service.repository.ProductRepository;
 import Product.Service.exception.ForbiddenException;
 import java.util.List;
 
+
 // @SpringBootTest
 @ExtendWith(MockitoExtension.class)
 class ProductApplicationTests {
@@ -56,6 +57,7 @@ class ProductApplicationTests {
 				.price(30)
 				.quantity(500)
 				.userId("user1")
+				.category(Category.LIVE_POULTRY)
 				.build();
 
 		request = new ProductRequest(
