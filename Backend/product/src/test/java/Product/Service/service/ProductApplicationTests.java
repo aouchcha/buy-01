@@ -24,10 +24,12 @@ import Product.Service.dto.ProductResponse;
 import Product.Service.dto.kafka.ProductCreated;
 import Product.Service.dto.kafka.ProductDeleted;
 import Product.Service.exception.ProductNotFoundException;
+import Product.Service.model.Category;
 import Product.Service.model.Product;
 import Product.Service.repository.ProductRepository;
 import Product.Service.exception.ForbiddenException;
 import java.util.List;
+
 
 // @SpringBootTest
 @ExtendWith(MockitoExtension.class)
@@ -55,13 +57,17 @@ class ProductApplicationTests {
 				.price(30)
 				.quantity(500)
 				.userId("user1")
+				.category(Category.LIVE_POULTRY)
 				.build();
+
+
 
 		request = new ProductRequest(
 				"flos",
 				"Smart flos",
 				800.0,
-				3);
+				3,
+				Category.FEED_AND_SUPPLIES);
 	}
 
 	@Test
@@ -136,6 +142,9 @@ class ProductApplicationTests {
 
 		when(productRepository.findByIdAndUserId("1", "user1-77"))
 				.thenReturn(Optional.of(product));
+		
+		when(productRepository.save(product))
+            .thenReturn(product);   
 
 		ProductResponse response = productService.updateProduct(request, "1", "user1-77");
 
@@ -197,6 +206,9 @@ class ProductApplicationTests {
 
 		when(productRepository.findById("1"))
 				.thenReturn(Optional.of(product));
+		
+		when(productRepository.save(product))
+            .thenReturn(product);  
 
 		List<String> images = List.of("https://a.jpg", "https://b.jpg");
 
@@ -220,7 +232,6 @@ class ProductApplicationTests {
 
 
 
-
     // remove ImageUrl
 
     @Test
@@ -234,6 +245,9 @@ class ProductApplicationTests {
 
         when(productRepository.findById("1"))
                 .thenReturn(Optional.of(product));
+				
+		when(productRepository.save(product))
+            .thenReturn(product);  
 
         productService.removeImageUrl("1", "https://a.jpg");
 

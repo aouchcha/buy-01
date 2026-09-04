@@ -12,9 +12,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PatchMapping;
 
 import Product.Service.dto.ProductRequest;
 import Product.Service.dto.ProductResponse;
+import Product.Service.dto.StockRequest;
+import Product.Service.dto.StockUpdateResult;
+import Product.Service.dto.StockRequest;
 import Product.Service.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -33,7 +37,8 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAllProduct() {
-        System.out.println("============================================================================\n===============++=================++++==============++=========================\n=============================\n");
+        System.out.println(
+                "============================================================================\n===============++=================++++==============++=========================\n=============================\n");
         return ResponseEntity.ok(productService.getAllProduct());
     }
 
@@ -69,5 +74,22 @@ public class ProductController {
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("product-service is running");
+    }
+
+    @PatchMapping("/update-stock")
+    public ResponseEntity<StockUpdateResult> updateStock(@RequestBody List<StockRequest> productRequests) {
+        StockUpdateResult result = productService.updateStock(productRequests);
+
+        if (!result.allSuccessful()) {
+            return ResponseEntity.badRequest().body(result);
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
+    @PatchMapping("/restock-stock")
+    public ResponseEntity<Void> restockStock(@RequestBody List<StockRequest> productRequests) {
+        productService.restockStock(productRequests);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -8,12 +8,12 @@ set -euo pipefail
 #
 # The list of valid service names is read directly from docker-compose.yml
 # (the file that contains ONLY real application services — Jenkins itself
-# lives in the separate docker-compose.jenkins.yml file), so this script
+# lives in the separate docker-compose.infra.yml file), so this script
 # never needs to be edited by hand when a service is added or removed.
 # ============================================================================
 
 APPLICATION_COMPOSE_FILE="docker-compose.yml"
-INFRASTRUCTURE_COMPOSE_FILE="docker-compose.jenkins.yml"
+INFRASTRUCTURE_COMPOSE_FILE="docker-compose.infra.yml"
 
 # The commit/branch to compare FROM. Defaults to the previous commit.
 COMPARE_FROM_REFERENCE="${1:-HEAD~1}"

@@ -1,0 +1,270 @@
+// NOTE: color tokens (--color-*, --glass-*) come from the global
+// src/styles.scss. Don't redeclare :root here.
+
+.order-details-page {
+  min-height: 100vh;
+  padding: 120px 1.5rem 4rem;
+  background: var(--color-ivory);
+}
+
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.loading-state,
+.empty-state {
+  text-align: center;
+  padding: 4rem 0;
+  color: var(--color-muted);
+}
+
+.btn-back {
+  display: inline-block;
+  margin-top: 1rem;
+  color: var(--color-taupe-deep);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+
+  h1 {
+    margin: 0 0 0.4rem;
+    font-size: 1.4rem;
+    color: var(--color-charcoal);
+  }
+
+  .order-id {
+    margin: 0;
+    font-weight: 600;
+    color: var(--color-charcoal);
+  }
+
+  .order-date {
+    margin: 0.2rem 0 0;
+    color: var(--color-muted);
+    font-size: 0.9rem;
+  }
+}
+
+.status-badge {
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  background: var(--color-beige);
+  color: var(--color-charcoal);
+
+  &.status-cancelled {
+    background: #f3d3cd;
+    color: #a3382a;
+  }
+
+  &.status-delivered {
+    background: #d7ecd9;
+    color: #2c6e3f;
+  }
+}
+
+.timeline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.timeline-step {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-muted);
+  white-space: nowrap;
+
+  &::after {
+    content: '→';
+    margin-left: 0.6rem;
+    color: var(--color-sand);
+  }
+
+  &:last-child::after {
+    content: '';
+  }
+
+  .timeline-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    border: 1px solid var(--color-sand);
+  }
+
+  &.state-done .timeline-icon {
+    background: var(--color-taupe-deep);
+    border-color: var(--color-taupe-deep);
+    color: white;
+  }
+
+  &.state-done {
+    color: var(--color-charcoal);
+  }
+
+  &.state-current .timeline-icon {
+    border-color: var(--color-taupe-deep);
+    color: var(--color-taupe-deep);
+  }
+
+  &.state-current {
+    color: var(--color-charcoal);
+    font-weight: 700;
+  }
+
+  &.state-cancelled .timeline-icon {
+    background: #a3382a;
+    border-color: #a3382a;
+    color: white;
+  }
+
+  &.state-cancelled {
+    color: #a3382a;
+    font-weight: 700;
+  }
+}
+
+.order-card {
+  background: var(--color-cream);
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-soft);
+  margin-bottom: 1.25rem;
+
+  h2 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    color: var(--color-charcoal);
+  }
+
+  p {
+    margin: 0 0 0.3rem;
+    color: var(--color-charcoal);
+  }
+}
+
+.order-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.order-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 0.75rem;
+  color: var(--color-charcoal);
+}
+
+.item-qty,
+.item-unit-price {
+  color: var(--color-muted);
+}
+
+.item-subtotal {
+  font-weight: 600;
+  color: var(--color-taupe-deep);
+  text-align: right;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.35rem 0;
+  color: var(--color-muted);
+
+  &.summary-total {
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-beige);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-charcoal);
+  }
+}
+
+.order-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-outline,
+.btn-primary,
+.btn-danger {
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.btn-outline {
+  border: 1px solid var(--color-taupe);
+  color: var(--color-taupe);
+
+  &:hover {
+    background: var(--color-taupe);
+    color: white;
+  }
+}
+
+.btn-primary {
+  border: none;
+  background: var(--color-taupe-deep);
+  color: white;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.btn-danger {
+  border: 1px solid #a3382a;
+  background: transparent;
+  color: #a3382a;
+
+  &:hover:not(:disabled) {
+    background: #a3382a;
+    color: white;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+@media (max-width: 640px) {
+  .order-actions {
+    flex-direction: column;
+  }
+
+  .order-item {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'name subtotal'
+      'qty price';
+  }
+}

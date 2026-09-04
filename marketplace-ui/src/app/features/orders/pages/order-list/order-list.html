@@ -1,0 +1,29 @@
+<app-navbar></app-navbar>
+
+<section class="order-list-page">
+  <div class="container">
+    <h1>My Orders</h1>
+
+    @if (loading()) {
+      <p class="loading-state">Loading your orders...</p>
+    } @else if (orders().length === 0) {
+      <div class="empty-state">
+        <p>You haven't placed any orders yet.</p>
+        <a routerLink="/" class="btn-back">← Continue shopping</a>
+      </div>
+    } @else {
+      <div class="order-list">
+        @for (order of orders(); track order.id) {
+          <a class="order-row" [routerLink]="['/orders', order.id]">
+            <div class="order-row-info">
+              <span class="order-row-id">Order #{{ order.id }}</span>
+              <span class="order-row-date">{{ order.createdAt | date:'medium' }}</span>
+            </div>
+            <span class="status-badge" [class]="'status-' + order.status.toLowerCase()">{{ order.status }}</span>
+            <span class="order-row-total">{{ order.totalAmount | number:'1.0-2' }} DH</span>
+          </a>
+        }
+      </div>
+    }
+  </div>
+</section>

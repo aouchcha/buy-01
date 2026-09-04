@@ -19,6 +19,8 @@
     "@angular/material": "^21.2.14",
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
+    "chart.js": "^4.5.1",
+    "ng2-charts": "^10.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -26,6 +28,7 @@
     "@angular/build": "^21.2.15",
     "@angular/cli": "^21.0.4",
     "@angular/compiler-cli": "^21.2.0",
+    "@vitest/coverage-v8": "^4.1.11",
     "jsdom": "^28.0.0",
     "prettier": "^3.8.1",
     "typescript": "~5.9.2",

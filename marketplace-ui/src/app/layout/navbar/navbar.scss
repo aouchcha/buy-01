@@ -66,7 +66,41 @@
 
 .actions {
   display: flex;
+  align-items: center;
   gap: 1rem;
+}
+
+
+
+
+
+.cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #e63946; /* High-contrast background color */
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+
+  /* Perfect centering for numbers */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 0 0 2px var(--color-ivory, #fff); /* Outer ring to detach from icon background */
+  pointer-events: none;
+}
+.cart-btn,
+a[routerLink="/cart"] { 
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn {

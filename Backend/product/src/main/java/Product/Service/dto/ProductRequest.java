@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import Product.Service.model.Category;
 
 public record ProductRequest(
         @NotBlank(message = "Name is required") @Size(min = 2, max = 100, message = "name must be between 2 and 100 characters") String name,
@@ -19,9 +20,9 @@ public record ProductRequest(
 
         @NotNull(message = "quantity is required")
         @Min(value = 1, message = "Quantity must be greater than 0")
-        Integer quantity
+        Integer quantity,
 
-        // List<String> imageUrls
+        @NotNull(message = "category is required") Category category
 
 ) {
 }

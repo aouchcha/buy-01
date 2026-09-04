@@ -1,0 +1,285 @@
+services:
+  users-mongodb:
+    image: mongo:8.0
+    profiles:
+      - infra
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${USERS_DB_NAME}
+      GLIBC_TUNABLES: "glibc.pthread.rseq=1"
+    volumes:
+      - users_mongo_data:/data/db
+    expose:
+      - "27017"
+    healthcheck:
+      test: >
+        mongosh --quiet
+        -u $$MONGO_INITDB_ROOT_USERNAME
+        -p $$MONGO_INITDB_ROOT_PASSWORD
+        --authenticationDatabase admin
+        --eval "db.adminCommand('ping')"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - buy01-network
+
+  products-mongodb:
+    image: mongo:8.0
+    profiles:
+      - infra
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${PRODUCTS_DB_NAME}
+      GLIBC_TUNABLES: "glibc.pthread.rseq=1"
+    volumes:
+      - products_mongo_data:/data/db
+    expose:
+      - "27017"
+    healthcheck:
+      test: >
+        mongosh --quiet
+        -u $$MONGO_INITDB_ROOT_USERNAME
+        -p $$MONGO_INITDB_ROOT_PASSWORD
+        --authenticationDatabase admin
+        --eval "db.adminCommand('ping')"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - buy01-network
+
+  media-mongodb:
+    image: mongo:8.0
+    profiles:
+      - infra
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MEDIA_DB_NAME}
+      GLIBC_TUNABLES: "glibc.pthread.rseq=1"
+    volumes:
+      - media_mongo_data:/data/db
+    expose:
+      - "27017"
+    healthcheck:
+      test: >
+        mongosh --quiet
+        -u $$MONGO_INITDB_ROOT_USERNAME
+        -p $$MONGO_INITDB_ROOT_PASSWORD
+        --authenticationDatabase admin
+        --eval "db.adminCommand('ping')"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - buy01-network
+    
+  orders-mongodb:
+    image: mongo:8.0
+    profiles:
+      - infra
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${ORDERS_DB_NAME}
+      GLIBC_TUNABLES: "glibc.pthread.rseq=1"
+    volumes:
+      - orders_mongo_data:/data/db
+    expose:
+      - "27017"
+    healthcheck:
+      test: >
+        mongosh --quiet
+        -u $$MONGO_INITDB_ROOT_USERNAME
+        -p $$MONGO_INITDB_ROOT_PASSWORD
+        --authenticationDatabase admin
+        --eval "db.adminCommand('ping')"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    networks:
+      - buy01-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    profiles:
+      - infra
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      KAFKA_HEAP_OPTS: "-Xmx256m -Xms256m"
+    expose:
+      - "2181"
+    networks:
+      - buy01-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    profiles:
+      - infra
+    depends_on:
+      - zookeeper
+    expose:
+      - "29092"
+    restart: unless-stopped
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_HEAP_OPTS: "-Xmx512m -Xms256m"
+    networks:
+      - buy01-network
+    
+  jenkins-master:
+    build: ./Backend/jenkins/master
+    profiles:
+      - infra
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+      - "50000"
+    networks:
+      - buy01-network
+    volumes:
+      - jenkins_home:/var/jenkins_home # Persistent Jenkins data
+      - /run/user/${USER_ID}/docker.sock:/var/run/docker.sock
+
+  backend-slave:
+    build: ./Backend/jenkins/backend-slave
+    profiles:
+      - infra
+    env_file:
+      - .env
+    environment:
+      JENKINS_URL: http://jenkins-master:8080
+      JENKINS_AGENT_NAME: backend-slave
+      JENKINS_SECRET: ${BACKEND_SLAVE_SECRET}
+    volumes:
+      - /run/user/${USER_ID}/docker.sock:/var/run/docker.sock
+      - ./.env:/home/jenkins/.env
+    group_add:
+      - "55297"
+    depends_on:
+      jenkins-master:
+        condition: service_started
+    networks:
+      - buy01-network
+
+  frontend-slave:
+    build: ./Backend/jenkins/frontend-slave
+    profiles:
+      - infra
+    env_file:
+      - .env
+    environment:
+      JENKINS_URL: http://jenkins-master:8080
+      JENKINS_AGENT_NAME: frontend-slave
+      JENKINS_SECRET: ${FRONTEND_SLAVE_SECRET}
+    volumes:
+      - /run/user/${USER_ID}/docker.sock:/var/run/docker.sock
+      - ./.env:/home/jenkins/.env
+    group_add:
+      - "55297"
+    depends_on:
+      jenkins-master:
+        condition: service_started
+    networks:
+      - buy01-network
+
+  sonarqube-db:
+    image: postgres:17
+    profiles:
+      - infra
+    environment:
+      - POSTGRES_USER=${SONARQUBE_DB_USERNAME}
+      - POSTGRES_PASSWORD=${SONARQUBE_DB_PASSWORD}
+      - POSTGRES_DB=${SONARQUBE_DB_NAME}
+    volumes:
+      - sonarqube_db_data:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    networks:
+      - buy01-network
+
+  sonarqube:
+    image: sonarqube:latest
+    profiles:
+      - infra
+    depends_on:
+      - sonarqube-db
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+      - SONAR_JDBC_URL=${SONARQUBE_DB_URI}
+      - SONAR_JDBC_USERNAME=${SONARQUBE_DB_USERNAME}
+      - SONAR_JDBC_PASSWORD=${SONARQUBE_DB_PASSWORD}
+      - SONAR_SEARCH_JAVAOPTS=-Xmx512m -Xms512m
+    restart: unless-stopped
+    ports:
+      - "9001:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_extensions:/opt/sonarqube/extensions
+    networks:
+      - buy01-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    profiles:
+      - infra
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    expose:
+      - 9200
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    networks:
+      - buy01-network
+
+networks:
+  buy01-network:
+    driver: bridge
+
+volumes:
+  users_mongo_data:
+  products_mongo_data:
+  media_mongo_data:
+  jenkins_home:
+  sonarqube_db_data:
+  sonarqube_data:
+  sonarqube_logs:
+  sonarqube_extensions:
+  orders_mongo_data:
+  es_data:

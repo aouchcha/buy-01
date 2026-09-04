@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { Product } from './product';
-import { ProductDto, ProductRequest } from '../models/product';
+import { Category, ProductDto, ProductRequest } from '../models/product';
 import { environment } from '../../../environments/environment';
 
 describe('Product service', () => {
@@ -18,6 +18,7 @@ describe('Product service', () => {
     price: 1200,
     quantity: 5,
     userId: 'user-1',
+    category: Category.FEED_AND_SUPPLIES,
     imageUrls: [],
   };
 
@@ -26,6 +27,7 @@ describe('Product service', () => {
     description: 'A great laptop',
     price: 1200,
     quantity: 5,
+    category: Category.FEED_AND_SUPPLIES,
   };
 
   beforeEach(() => {

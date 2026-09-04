@@ -14,10 +14,33 @@ import { Unauthorized } from './features/errors/pages/unauthorized/unauthorized'
 import { ServerError } from './features/errors/pages/server-error/server-error';
 import { NotFound } from './features/errors/pages/not-found/not-found';
 import { ProductDetails } from './features/products/pages/product-details/product-details';
+import { Cart } from './features/cart/pages/cart/cart';
+import { Checkout } from './features/checkout/pages/checkout/checkout';
+import { OrderDetails } from './features/orders/pages/order-details/order-details';
+import { OrderList } from './features/orders/pages/order-list/order-list';
 export const routes: Routes = [
     {
     path: '',
         component: ProductList
+    },
+    {
+        path: 'cart',
+        component: Cart
+    },
+    {
+        path: 'checkout',
+        component: Checkout,
+        canActivate: [authGuard],
+    },
+    {
+        path: 'orders',
+        component: OrderList,
+        canActivate: [authGuard],
+    },
+    {
+        path: 'orders/:id',
+        component: OrderDetails,
+        canActivate: [authGuard],
     },
     {
         path: 'login',

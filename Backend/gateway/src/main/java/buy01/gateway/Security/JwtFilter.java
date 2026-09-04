@@ -73,6 +73,12 @@ public class JwtFilter implements GlobalFilter, Ordered {
                 System.out.println(">>>>>>>>>>>>>>> skip 2");
                 return chain.filter(exchange);
             }
+
+            // Public product search
+            if (path.equals("/api/search/products")) {
+                System.out.println(">>>>>>>>>>>>>>> skip 3");
+                return chain.filter(exchange);
+            }
         }
         // if (path.startsWith("/api/auth/")
         // || (path.startsWith("/api/product")
