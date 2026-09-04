@@ -28,7 +28,7 @@ public class OrderStatsRepository {
         Aggregation aggregation = newAggregation(
             match(where("created_at").gte(fromTimestamp)),
 
-            match(where("status").is("PENDING")),
+            match(where("status").is("DELIVERED")),
 
             unwind("cart_items"),
 
