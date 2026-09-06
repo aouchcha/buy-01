@@ -56,7 +56,9 @@ pipeline {
                             env.CHANGED_SERVICE_NAMES.contains('gateway') ||
                             env.CHANGED_SERVICE_NAMES.contains('media') ||
                             env.CHANGED_SERVICE_NAMES.contains('product') ||
-                            env.CHANGED_SERVICE_NAMES.contains('user')
+                            env.CHANGED_SERVICE_NAMES.contains('user') ||
+                            env.CHANGED_SERVICE_NAMES.contains('orders') ||
+                            env.CHANGED_SERVICE_NAMES.contains('search')
                         }
                     }
                     steps {
@@ -64,7 +66,7 @@ pipeline {
                         script {
                             def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
                             def changedBackendServiceNames = allChangedServiceNames.findAll {
-                                it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user'
+                                it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders' || it == 'search'
                             }
 
                             changedBackendServiceNames.each { serviceName ->
@@ -106,7 +108,9 @@ pipeline {
                             env.CHANGED_SERVICE_NAMES.contains('gateway') ||
                             env.CHANGED_SERVICE_NAMES.contains('media') ||
                             env.CHANGED_SERVICE_NAMES.contains('product') ||
-                            env.CHANGED_SERVICE_NAMES.contains('user')
+                            env.CHANGED_SERVICE_NAMES.contains('user') ||
+                            env.CHANGED_SERVICE_NAMES.contains('orders') ||
+                            env.CHANGED_SERVICE_NAMES.contains('search')
                         }
                     }
                     steps {
@@ -114,7 +118,7 @@ pipeline {
                         script {
                             def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
                             def changedBackendServiceNames = allChangedServiceNames.findAll {
-                                it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user'
+                                it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders' || it == 'search'
                             }
                             withSonarQubeEnv('sonarqube-server') {
                                 // sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar -Dsonar.projectKey=buy01-backend'
@@ -248,7 +252,7 @@ pipeline {
                       -f docker-compose.yml \
                       -f docker-compose.infra.yml \
                       --env-file /home/jenkins/.env \
-                      up -d --no-deps discovery gateway product user media orders marketplace-ui
+                      up -d --no-deps discovery gateway product user media search orders marketplace-ui
                 """
             }
         }
