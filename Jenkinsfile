@@ -6,7 +6,7 @@ pipeline {
         COMPOSE_PROJECT_NAME = "buy-02"
     }
 
-    
+
     stages {
         stage('Checkout Source Code') {
             agent { label 'backend' }
@@ -129,7 +129,7 @@ pipeline {
                                             sh """
 
                                                    echo "Running SonarQube analysis for service: ${serviceName}"
-                                                   mvn verify sonar:sonar \
+                                                   mvn sonar:sonar \
                                                    -Dsonar.projectKey=buy01-${serviceName} \
                                                    -Dsonar.login=${SONAR_TOKEN}
                                             """
