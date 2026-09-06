@@ -34,6 +34,8 @@ export class Navbar implements OnInit {
     console.log(role);
 
     this.isSeller.set(Role.SELLER === role)
+    console.log(this.isSeller());
+    
 
     if (token) {
       this.cartService.load().subscribe({ error: () => {} });
