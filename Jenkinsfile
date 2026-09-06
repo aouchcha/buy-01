@@ -3,9 +3,10 @@ pipeline {
 
     environment {
         NOTIFICATION_EMAIL_RECIPIENT = 'yahyakhaldy2@gmail.com, ouchchatea@gmail.com'
-        COMPOSE_PROJECT_NAME = "buy02"
+        COMPOSE_PROJECT_NAME = "buy-02"
     }
 
+    
     stages {
         stage('Checkout Source Code') {
             agent { label 'backend' }
