@@ -60,9 +60,9 @@ public class OrderStatsRepository {
 
             group("cart_items.product_id")
                 .first("cart_items.product_name").as("productName")
-                .sum("cart_items.quantity").as("totalUnitsBuyed"),
+                .sum("cart_items.quantity").as("totalUnitsSold"),
 
-            sort(DESC, "totalUnitsBuyed"),
+            sort(DESC, "totalUnitsSold"),
 
             limit(limit)
         );
