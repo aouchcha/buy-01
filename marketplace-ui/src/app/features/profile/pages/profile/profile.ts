@@ -10,8 +10,7 @@ import { Auth } from '../../../../core/services/auth';
 import { User, Role } from '../../../../core/models/user';
 import { Navbar } from '../../../../layout/navbar/navbar';
 import { ToastService } from '../../../../core/services/toast.service';
-import { Product } from '../../../../core/services/product';
-import { ProductDto } from '../../../../core/models/product';
+import { CATEGORY_LABELS, Category } from '../../../../core/models/product';
 import { RouterLink } from '@angular/router';
 import { OrderService } from '../../../../core/services/order';
 import { Analytics, ANALYTICS_PERIOD_OPTIONS, AnalyticsPeriod } from '../../../../core/models/analytics';
@@ -31,12 +30,7 @@ export class Profile implements OnInit {
   private readonly mediaService = inject(Media);
   private readonly auth = inject(Auth);
   private readonly toast = inject(ToastService);
-  private readonly productService = inject(Product);
   private readonly orderService = inject(OrderService);
-
-
-  readonly products = signal<ProductDto[]>([]);
-  readonly productsLoading = signal(true);
 
   // --- Analytics ---
   readonly periodOptions = ANALYTICS_PERIOD_OPTIONS;
@@ -70,6 +64,20 @@ export class Profile implements OnInit {
     (this.analytics()?.bestSellingProducts ?? []).reduce((sum, p) => sum + (p.totalUnitsSold ?? 0), 0)
   );
 
+  readonly topCategoriesChartData = computed<ChartData<'bar'>>(() => {
+    const items = this.analytics()?.topCategories ?? [];
+    return {
+      labels: items.map((c) => CATEGORY_LABELS[c.category as Category] ?? c.category),
+      datasets: [
+        {
+          label: 'Units bought',
+          data: items.map((c) => c.totalUnitsBought ?? 0),
+          backgroundColor: '#7c9473',
+        },
+      ],
+    };
+  });
+
   readonly Role = Role;
 
   readonly loading = signal(true);
@@ -84,11 +92,6 @@ export class Profile implements OnInit {
 
   readonly selectedEditFiles = signal<File | null>(null);
   readonly avatarPreviewUrl = signal<string | null>(null);
-  readonly imageIndexes = signal<Record<string, number>>({});
-
-  getImageIndex(productId: string): number {
-    return this.imageIndexes()[productId] ?? 0;
-  }
 
 
   readonly defaultAvatar =
@@ -104,7 +107,6 @@ export class Profile implements OnInit {
 
   ngOnInit(): void {
     this.loadProfile();
-    this.fetchProducts();
     this.fetchAnalytics();
   }
 
@@ -478,40 +480,6 @@ export class Profile implements OnInit {
 
 
 
-  private fetchProducts(): void {
-
-    this.productsLoading.set(true);
-
-
-
-    this.productService.getMyProducts()
-      .subscribe({
-
-        next: (products) => {
-
-          this.products.set(products);
-
-          this.productsLoading.set(false);
-
-        },
-
-
-        error: (err) => {
-
-          this.productsLoading.set(false);
-
-          this.toast.error(
-            err.error ||
-            'Unable to load your products.'
-          );
-
-        }
-
-      });
-
-  }
-
-
   public sellerEarnings(): number {
 
     return this.analytics()?.total ?? 0;
@@ -521,12 +489,6 @@ export class Profile implements OnInit {
   public totalMoneySpent(): number {
 
     return this.analytics()?.total ?? 0;
-
-  }
-
-  public bestProducts(): ProductDto[] {
-
-    return [];
 
   }
 

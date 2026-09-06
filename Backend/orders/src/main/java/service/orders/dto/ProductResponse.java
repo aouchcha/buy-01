@@ -9,6 +9,7 @@ public record ProductResponse(
     double price,
     Integer quantity,
     String userId,
+    String category,
     List<String> imageUrls
 ) {
 

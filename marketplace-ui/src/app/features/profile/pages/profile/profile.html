@@ -194,27 +194,21 @@
           }
 
           <div class="catalog__header" style="margin-top: 2rem;">
-            <h2>Top Recommended Products</h2>
+            <h2>Top Categories</h2>
           </div>
 
-          @if (bestProducts().length > 0) {
-          <div class="catalog__grid">
-            @for (product of bestProducts(); track product.id) {
-            <article class="product-card">
-              <div class="product-card__media">
-                @if (product.imageUrls.length) {
-                <img [src]="product.imageUrls[getImageIndex(product.id)]" [alt]="product.name" loading="lazy" />
-                } @else {
-                <div class="product-card__placeholder">No image</div>
-                }
-              </div>
-              <div class="product-card__body">
-                <h3>{{ product.name }}</h3>
-                <p class="product-card__desc">{{ product.description }}</p>
-                <p class="product-card__price">{{ product.price | number: '1.0-2' }} MAD</p>
-              </div>
-            </article>
-            }
+          @if (analyticsLoading()) {
+          <p class="state-message">Loading analytics...</p>
+          } @else if (analyticsError()) {
+          <p class="state-message error">{{ analyticsError() }}</p>
+          } @else if ((analytics()?.topCategories ?? []).length === 0) {
+          <div class="empty-state">
+            <p class="empty-state__title">No purchase history</p>
+            <p class="empty-state__sub">Categories you buy from will appear here.</p>
+          </div>
+          } @else {
+          <div class="chart-container">
+            <canvas baseChart [data]="topCategoriesChartData()" [options]="chartOptions" [type]="'bar'"></canvas>
           </div>
           }
 

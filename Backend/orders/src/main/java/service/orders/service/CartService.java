@@ -68,6 +68,7 @@ public class CartService {
                     .sellerId(product.userId())
                     .productId(product.id())
                     .productName(product.name())
+                    .category(product.category())
                     .price(product.price())
                     .quantity(cartItemRequest.quantity())
                     .totalPrice(product.price() * cartItemRequest.quantity())
