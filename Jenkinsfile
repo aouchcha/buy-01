@@ -6,6 +6,7 @@ pipeline {
         COMPOSE_PROJECT_NAME = "buy-02"
     }
 
+    
     stages {
         stage('Checkout Source Code') {
             agent { label 'backend' }
