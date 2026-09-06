@@ -12,31 +12,31 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
-import buy01.user.config.Exceptions.MyExeptions.unauthorized;
+import buy01.user.config.Exceptions.MyExeptions.Unauthorized;
 import buy01.user.config.Jwt.Jwt;
-import buy01.user.dto.Auth.authRequest;
-import buy01.user.dto.Auth.authResponse;
+import buy01.user.dto.Auth.AuthRequest;
+import buy01.user.dto.Auth.AuthResponse;
 import buy01.user.model.Roles;
-import buy01.user.model.userEntity;
-import buy01.user.repository.userRepository;
+import buy01.user.model.UserEntity;
+import buy01.user.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
 class LoginServiceTest {
 
     private Jwt jwt;
-    private userRepository repository;
-    private loginService loginService;
+    private UserRepository repository;
+    private LoginService LoginService;
 
     private static final String RAW_PASSWORD = "correctPassword123";
-    private userEntity existingUser;
+    private UserEntity existingUser;
 
     @BeforeEach
     void setUp() {
         jwt = mock(Jwt.class);
-        repository = mock(userRepository.class);
-        loginService = new loginService(jwt, repository);
+        repository = mock(UserRepository.class);
+        LoginService = new LoginService(jwt, repository);
 
-        existingUser = new userEntity();
+        existingUser = new UserEntity();
         existingUser.setId("user-id-1");
         existingUser.setFirstName("John");
         existingUser.setLastName("Doe");
@@ -48,11 +48,11 @@ class LoginServiceTest {
 
     @Test
     void login_withCorrectCredentials_returnsToken() {
-        authRequest request = new authRequest(existingUser.getEmail(), RAW_PASSWORD);
+        AuthRequest request = new AuthRequest(existingUser.getEmail(), RAW_PASSWORD);
         when(repository.findByEmail(existingUser.getEmail())).thenReturn(existingUser);
         when(jwt.GenerateToken(anyString(), anyString(), anyString())).thenReturn("generated-jwt-token");
 
-        authResponse response = loginService.login(request);
+        AuthResponse response = LoginService.login(request);
 
         assertThat(response).isNotNull();
         assertThat(response.getToken()).isEqualTo("generated-jwt-token");
@@ -64,19 +64,19 @@ class LoginServiceTest {
 
     @Test
     void login_withUnknownUser_throwsUnauthorized() {
-        authRequest request = new authRequest("unknown@example.com", RAW_PASSWORD);
+        AuthRequest request = new AuthRequest("unknown@example.com", RAW_PASSWORD);
         when(repository.findByEmail("unknown@example.com")).thenReturn(null);
 
-        assertThatThrownBy(() -> loginService.login(request))
-                .isInstanceOf(unauthorized.class);
+        assertThatThrownBy(() -> LoginService.login(request))
+                .isInstanceOf(Unauthorized.class);
     }
 
     @Test
     void login_withWrongPassword_throwsUnauthorized() {
-        authRequest request = new authRequest(existingUser.getEmail(), "wrongPassword");
+        AuthRequest request = new AuthRequest(existingUser.getEmail(), "wrongPassword");
         when(repository.findByEmail(existingUser.getEmail())).thenReturn(existingUser);
 
-        assertThatThrownBy(() -> loginService.login(request))
-                .isInstanceOf(unauthorized.class);
+        assertThatThrownBy(() -> LoginService.login(request))
+                .isInstanceOf(Unauthorized.class);
     }
 }

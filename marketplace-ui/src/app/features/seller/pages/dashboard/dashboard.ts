@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Auth } from '../../../../core/services/auth';
 import { Product } from '../../../../core/services/product';
-import { ProductDto } from '../../../../core/models/product';
+import { CATEGORY_LABELS, CATEGORY_OPTIONS, Category, ProductDto } from '../../../../core/models/product';
 import { Media } from '../../../../core/services/media';
 import { Navbar } from '../../../../layout/navbar/navbar';
 import { ConfirmService } from '../../../../core/services/confirm';
@@ -14,7 +14,13 @@ import { MatIconModule } from '@angular/material/icon';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, Navbar, MatIconModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    ReactiveFormsModule,
+    Navbar,
+    MatIconModule
+  ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
@@ -26,12 +32,18 @@ export class Dashboard implements OnInit {
   private readonly confirmService = inject(ConfirmService);
   private readonly toast = inject(ToastService);
 
-  readonly seller = this.auth.getCurrentUser();
+  readonly user = this.auth.getCurrentUser();
+  readonly seller = this.user;
 
+  // --- Product State ---
   readonly products = signal<ProductDto[]>([]);
   readonly loading = signal<boolean>(true);
   readonly deletingId = signal<string | null>(null);
   readonly imageIndexes = signal<Record<string, number>>({});
+
+  categoryLabel(category: Category): string {
+    return CATEGORY_LABELS[category];
+  }
 
   getImageIndex(productId: string): number {
     return this.imageIndexes()[productId] ?? 0;
@@ -49,21 +61,37 @@ export class Dashboard implements OnInit {
     this.imageIndexes.update(m => ({ ...m, [product.id]: (current - 1 + product.imageUrls.length) % product.imageUrls.length }));
   }
 
-  // --- Add product modal state ---
+  // --- Seller Dashboard Metrics & Lists ---
+  readonly totalRevenue = computed(() =>
+    this.products().reduce((sum, p) => sum + (p.price * (p.quantity || 0)), 0)
+  );
+
+  readonly totalUnitsSold = computed(() =>
+    this.products().reduce((sum, p) => sum + (p.quantity || 0), 0)
+  );
+
+  readonly bestSellingProducts = computed(() =>
+    [...this.products()].sort((a, b) => (b.quantity || 0) - (a.quantity || 0))
+  );
+
+  // --- Add Product Modal State ---
   readonly showAddModal = signal(false);
   readonly submitting = signal(false);
   readonly selectedFiles = signal<File[]>([]);
   readonly imagePreviewUrls = signal<string[]>([]);
   readonly fileError = signal<string | null>(null);
 
+  readonly categoryOptions = CATEGORY_OPTIONS;
+
   readonly addProductForm = this.fb.group({
     name: ['', Validators.required],
     description: ['', Validators.required],
     price: [null as number | null, [Validators.required, Validators.min(0.01)]],
     quantity: [null as number | null, [Validators.required, Validators.min(1)]],
+    category: [null as Category | null, Validators.required],
   });
 
-  // --- Edit product modal state ---
+  // --- Edit Product Modal State ---
   readonly showEditModal = signal(false);
   readonly submittingEdit = signal(false);
   readonly editingProduct = signal<ProductDto | null>(null);
@@ -77,15 +105,8 @@ export class Dashboard implements OnInit {
     description: ['', Validators.required],
     price: [null as number | null, [Validators.required, Validators.min(0.01)]],
     quantity: [null as number | null, [Validators.required, Validators.min(1)]],
+    category: [null as Category | null, Validators.required],
   });
-
-  readonly totalValue = computed(() =>
-    this.products().reduce((sum, p) => sum + p.price * p.quantity, 0)
-  );
-
-  readonly withImages = computed(() =>
-    this.products().filter(p => p.imageUrls?.length > 0).length
-  );
 
   ngOnInit(): void {
     this.fetchProducts();
@@ -133,10 +154,14 @@ export class Dashboard implements OnInit {
       });
   }
 
-  // --- Add product modal ---
+  // --- Add Product Modal ---
 
   openAddModal(): void {
     this.showAddModal.set(true);
+  }
+
+  onAddBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) this.closeAddModal();
   }
 
   closeAddModal(): void {
@@ -195,7 +220,7 @@ export class Dashboard implements OnInit {
     }
 
     this.submitting.set(true);
-    const { name, description, price, quantity } = this.addProductForm.getRawValue();
+    const { name, description, price, quantity, category } = this.addProductForm.getRawValue();
 
     this.productService
       .create({
@@ -203,10 +228,11 @@ export class Dashboard implements OnInit {
         description: description!,
         price: price!,
         quantity: quantity!,
+        category: category!,
       })
       .subscribe({
         next: (product) => {
-          this.toast.success("product upload with success")
+          this.toast.success("Product upload with success");
           const files = this.selectedFiles();
           const localPreviews = this.imagePreviewUrls();
 
@@ -217,7 +243,6 @@ export class Dashboard implements OnInit {
             return;
           }
 
-          // Optimistic update avec previews locaux
           this.products.update((list) => [{ ...product, imageUrls: localPreviews }, ...list]);
 
           this.mediaService.uploadImage(product.userId, product.id, files, 'Product').then((observable) => {
@@ -229,35 +254,29 @@ export class Dashboard implements OnInit {
                   )
                 );
                 this.submitting.set(false);
-                this.toast.success("picture upload with success")
+                this.toast.success("Picture upload with success");
                 this.closeAddModal();
               },
               error: (err) => {
-                console.log(err);
-                // this.products.update((list) =>
-                //   list.map((p) =>
-                //     p.id === product.id ? { ...p, imageUrls: [] } : p
-                //   )
-                // );
                 this.submitting.set(false);
                 this.toast.error(err.error || 'Product created, but images failed to upload.');
                 this.closeAddModal();
               },
             });
-          })
+          });
         },
         error: (err) => {
-          console.log(err);
-
           this.submitting.set(false);
-          this.toast.error(
-            err.error || 'Unable to create product.'
-          );
+          this.toast.error(err.error || 'Unable to create product.');
         },
       });
   }
 
-  // --- Edit product modal ---
+  // --- Edit Product Modal ---
+
+  onEditBackdropClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) this.closeEditModal();
+  }
 
   openEditModal(product: ProductDto): void {
     this.editingProduct.set(product);
@@ -266,6 +285,7 @@ export class Dashboard implements OnInit {
       description: product.description,
       price: product.price,
       quantity: product.quantity,
+      category: product.category,
     });
     this.existingImageUrls.set(product.imageUrls ?? []);
     this.selectedEditFiles.set([]);
@@ -348,7 +368,7 @@ export class Dashboard implements OnInit {
     if (!current) return;
 
     this.submittingEdit.set(true);
-    const { name, description, price, quantity } = this.editProductForm.getRawValue();
+    const { name, description, price, quantity, category } = this.editProductForm.getRawValue();
 
     this.productService
       .update(current.id, {
@@ -356,59 +376,49 @@ export class Dashboard implements OnInit {
         description: description!,
         price: price!,
         quantity: quantity!,
+        category: category!,
       })
       .subscribe({
         next: (updated) => {
-          this.toast.success("product update with success")
+          this.toast.success("Product update with success");
           const files = this.selectedEditFiles();
           const existingUrls = this.existingImageUrls();
           const deletedUrls = current.imageUrls.filter(
             url => !existingUrls.includes(url)
           );
-          console.log({ deletedUrls });
-          console.log({ existingUrls });
-
-
           const localPreviews = this.selectedEditFilePreviews();
 
           if (!files.length) {
             this.products.update((list) =>
               list.map((p) => (p.id === current.id ? { ...p, ...updated, imageUrls: existingUrls } : p))
             );
-            // this.submittingEdit.set(false);
-            // this.closeEditModal();
-            // return;
           }
 
-          // Optimistic update
           const optimisticUrls = [...existingUrls, ...localPreviews];
           this.products.update((list) =>
             list.map((p) => (p.id === current.id ? { ...p, ...updated, imageUrls: optimisticUrls } : p))
           );
+
           if (!files.length && !deletedUrls.length) {
+            this.submittingEdit.set(false);
             return this.closeEditModal();
           }
+
           this.mediaService.updateImages(current.userId, current.id, deletedUrls, files, 'Product').subscribe({
             next: (images) => {
               this.products.update(list =>
                 list.map(p =>
                   p.id === current.id
-                    ? {
-                      ...p,
-                      imageUrls: images.map(img => img.url),
-                    }
+                    ? { ...p, imageUrls: images.map(img => img.url) }
                     : p
                 )
               );
 
-
-              this.toast.success("picture update with success")
+              this.toast.success("Picture update with success");
               this.submittingEdit.set(false);
               this.closeEditModal();
             },
             error: (err) => {
-              console.log(err);
-
               this.products.update(list =>
                 list.map(p =>
                   p.id === current.id

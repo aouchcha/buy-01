@@ -16,44 +16,44 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DuplicateKeyException;
 
 import buy01.user.config.Exceptions.MyExeptions.Conflict;
-import buy01.user.config.Exceptions.MyExeptions.badRequest;
+import buy01.user.config.Exceptions.MyExeptions.BadRequest;
 import buy01.user.config.Jwt.Jwt;
-import buy01.user.dto.Auth.authResponse;
-import buy01.user.dto.Auth.registerRequest;
+import buy01.user.dto.Auth.AuthResponse;
+import buy01.user.dto.Auth.RegisterRequest;
 import buy01.user.model.Roles;
-import buy01.user.model.userEntity;
-import buy01.user.repository.userRepository;
+import buy01.user.model.UserEntity;
+import buy01.user.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
 class RegisterServiceTest {
 
-    private userRepository repository;
+    private UserRepository repository;
     private Jwt jwtService;
-    private registerService registerService;
+    private RegisterService RegisterService;
 
     @BeforeEach
     void setUp() {
-        repository = mock(userRepository.class);
+        repository = mock(UserRepository.class);
         jwtService = mock(Jwt.class);
-        registerService = new registerService(repository, jwtService);
+        RegisterService = new RegisterService(repository, jwtService);
     }
 
     @Test
     void signUp_withValidData_returnsToken() {
-        registerRequest request = new registerRequest(
+        RegisterRequest request = new RegisterRequest(
                 "jane.doe@example.com", "SecurePass1", "Jane", "Doe", Roles.BUYER.toString());
 
-        userEntity saved = new userEntity();
+        UserEntity saved = new UserEntity();
         saved.setId("generated-id");
         saved.setFirstName("Jane");
         saved.setLastName("Doe");
         saved.setEmail("jane.doe@example.com");
         saved.setRole(Roles.BUYER.toString());
 
-        when(repository.save(any(userEntity.class))).thenReturn(saved);
+        when(repository.save(any(UserEntity.class))).thenReturn(saved);
         when(jwtService.GenerateToken(anyString(), anyString(), anyString())).thenReturn("generated-jwt-token");
 
-        authResponse response = registerService.signUp(request);
+        AuthResponse response = RegisterService.signUp(request);
 
         assertThat(response).isNotNull();
         assertThat(response.getToken()).isEqualTo("generated-jwt-token");
@@ -63,34 +63,34 @@ class RegisterServiceTest {
 
     @Test
     void signUp_withAdminRole_throwsBadRequest() {
-        registerRequest request = new registerRequest(
+        RegisterRequest request = new RegisterRequest(
                 "admin@example.com", "SecurePass1", "Admin", "User", Roles.ADMIN.toString());
 
-        assertThatThrownBy(() -> registerService.signUp(request))
-                .isInstanceOf(badRequest.class);
+        assertThatThrownBy(() -> RegisterService.signUp(request))
+                .isInstanceOf(BadRequest.class);
 
-        verify(repository, never()).save(any(userEntity.class));
+        verify(repository, never()).save(any(UserEntity.class));
     }
 
     @Test
     void signUp_withDuplicateEmail_throwsConflict() {
-        registerRequest request = new registerRequest(
+        RegisterRequest request = new RegisterRequest(
                 "duplicate@example.com", "SecurePass1", "Jane", "Doe", Roles.BUYER.toString());
 
-        when(repository.save(any(userEntity.class))).thenThrow(new DuplicateKeyException("duplicate key"));
+        when(repository.save(any(UserEntity.class))).thenThrow(new DuplicateKeyException("duplicate key"));
 
-        assertThatThrownBy(() -> registerService.signUp(request))
+        assertThatThrownBy(() -> RegisterService.signUp(request))
                 .isInstanceOf(Conflict.class);
     }
 
     @Test
     void signUp_whenSaveThrowsOtherException_throwsBadRequest() {
-        registerRequest request = new registerRequest(
+        RegisterRequest request = new RegisterRequest(
                 "jane.doe@example.com", "SecurePass1", "Jane", "Doe", Roles.BUYER.toString());
 
-        when(repository.save(any(userEntity.class))).thenThrow(new RuntimeException("db down"));
+        when(repository.save(any(UserEntity.class))).thenThrow(new RuntimeException("db down"));
 
-        assertThatThrownBy(() -> registerService.signUp(request))
-                .isInstanceOf(badRequest.class);
+        assertThatThrownBy(() -> RegisterService.signUp(request))
+                .isInstanceOf(BadRequest.class);
     }
 }

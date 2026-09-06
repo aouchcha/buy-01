@@ -54,6 +54,8 @@
       <div class="details-info">
         <a routerLink="/" class="back-link">← Back to catalog</a>
 
+        <span class="category-badge">{{ categoryLabel(product()!.category) }}</span>
+
         <h1>{{ product()!.name }}</h1>
 
         <div class="price-row">
@@ -66,6 +68,28 @@
         <div class="divider"></div>
 
         <p class="description">{{ product()!.description }}</p>
+
+        <div class="divider"></div>
+        @if (isLogin() && !isSeller()) {
+        @if (product()!.quantity > 0) {
+          <div class="add-to-cart-row">
+            <div class="quantity-control">
+              <button (click)="decrementQuantity()" aria-label="Decrease quantity">−</button>
+              <span>{{ selectedQuantity() }}</span>
+              <button
+                (click)="incrementQuantity()"
+                [disabled]="selectedQuantity() >= product()!.quantity"
+                aria-label="Increase quantity"
+              >
+                +
+              </button>
+            </div>
+            <button class="btn-add-cart" (click)="addToCart()">Add to cart</button>
+          </div>
+        } @else {
+          <p class="out-of-stock">Out of stock</p>
+        }
+        }
 
         <div class="divider"></div>
 

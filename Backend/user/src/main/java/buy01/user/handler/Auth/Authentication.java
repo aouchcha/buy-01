@@ -7,33 +7,33 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import buy01.user.dto.Auth.authResponse;
-import buy01.user.dto.Auth.loginRequest;
-import buy01.user.dto.Auth.registerRequest;
-import buy01.user.service.Auth.loginService;
-import buy01.user.service.Auth.registerService;
+import buy01.user.dto.Auth.AuthResponse;
+import buy01.user.dto.Auth.LoginRequest;
+import buy01.user.dto.Auth.RegisterRequest;
+import buy01.user.service.Auth.LoginService;
+import buy01.user.service.Auth.RegisterService;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
 public class Authentication {
-    private final registerService registerService;
-    private final loginService loginService;
+    private final RegisterService RegisterService;
+    private final LoginService LoginService;
 
-    public Authentication(registerService registerService, loginService loginService) {
-        this.registerService = registerService;
-        this.loginService = loginService;
+    public Authentication(RegisterService RegisterService, LoginService LoginService) {
+        this.RegisterService = RegisterService;
+        this.LoginService = LoginService;
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<authResponse> signUp(@Valid @RequestBody registerRequest request) {
-        authResponse response = registerService.signUp(request);
+    public ResponseEntity<AuthResponse> signUp(@Valid @RequestBody RegisterRequest request) {
+        AuthResponse response = RegisterService.signUp(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<authResponse> login(@Valid @RequestBody loginRequest request) {
-        authResponse response = loginService.login(request);
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        AuthResponse response = LoginService.login(request);
         return ResponseEntity.ok(response);
     }
 }

@@ -10,20 +10,20 @@
 // import org.springframework.security.core.userdetails.UsernameNotFoundException;
 // import org.springframework.stereotype.Component;
 
-// import buy01.user.model.Auth.userEntity;
-// import buy01.user.repository.Auth.userRepository;
+// import buy01.user.model.Auth.UserEntity;
+// import buy01.user.repository.Auth.UserRepository;
 
 // @Component
 // public class UserDetailsServiceImpl implements UserDetailsService {
-//     private final userRepository userRepository;
+//     private final UserRepository UserRepository;
 
-//     public UserDetailsServiceImpl(userRepository userRepository) {
-//         this.userRepository = userRepository;
+//     public UserDetailsServiceImpl(UserRepository UserRepository) {
+//         this.UserRepository = UserRepository;
 //     }
 
 //     @Override
 //     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-//         userEntity user = userRepository.findByEmail(email);
+//         UserEntity user = UserRepository.findByEmail(email);
 
 //         if (user == null) {
 //             throw new UsernameNotFoundException("User not found with email: " + email);

@@ -1,0 +1,149 @@
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Router, RouterLink } from '@angular/router';
+
+import { Navbar } from '../../../../layout/navbar/navbar';
+import { CartService } from '../../../../core/services/cart';
+import { OrderService } from '../../../../core/services/order';
+import { ToastService } from '../../../../core/services/toast.service';
+import { CreateOrderRequest, PaymentMethod } from '../../../../core/models/order';
+
+interface ApiErrorResponse {
+  status: number;
+  error: string;
+  message: string;
+  outOfStockItems?: string[];
+}
+
+type CheckoutStep = 'address' | 'review' | 'payment';
+
+@Component({
+  selector: 'app-checkout',
+  imports: [Navbar, RouterLink, ReactiveFormsModule, DecimalPipe],
+  templateUrl: './checkout.html',
+  styleUrl: './checkout.scss',
+})
+export class Checkout implements OnInit {
+  private readonly cartService = inject(CartService);
+  private readonly orderService = inject(OrderService);
+  private readonly toastService = inject(ToastService);
+  private readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
+
+  readonly PaymentMethod = PaymentMethod;
+
+  readonly items = this.cartService.items;
+  readonly subtotal = this.cartService.total;
+  readonly delivery = 0;
+  readonly total = computed(() => this.subtotal() + this.delivery);
+
+  readonly step = signal<CheckoutStep>('address');
+  readonly submitting = signal(false);
+
+  readonly addressForm = this.fb.group({
+    fullName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+    phoneNumber: ['', [Validators.required, Validators.pattern(/^\+?[0-9 ()-]{8,20}$/)]],
+    city: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+    postalCode: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(20)]],
+    address: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(255)]],
+  });
+
+  ngOnInit(): void {
+    this.cartService.load().subscribe({
+      next: () => {
+        if (this.items().length === 0) {
+          this.router.navigate(['/cart']);
+        }
+      },
+      error: () => this.router.navigate(['/cart']),
+    });
+  }
+
+  continueFromAddress(): void {
+    if (this.addressForm.invalid) {
+      this.addressForm.markAllAsTouched();
+      return;
+    }
+    this.step.set('review');
+  }
+
+  backToAddress(): void {
+    this.step.set('address');
+  }
+
+  continueFromReview(): void {
+    this.step.set('payment');
+  }
+
+  backToReview(): void {
+    this.step.set('review');
+  }
+
+  placeOrder(): void {
+    if (this.submitting()) {
+      return;
+    }
+    if (this.addressForm.invalid || this.items().length === 0) {
+      this.toastService.error('Your order could not be submitted. Please check your details.');
+      return;
+    }
+
+    this.submitting.set(true);
+
+    const { fullName, phoneNumber, city, postalCode, address } = this.addressForm.getRawValue();
+
+    const request: CreateOrderRequest = {
+      shippingAddress: {
+        fullName: fullName!,
+        phone: phoneNumber!,
+        city: city!,
+        postalCode: postalCode!,
+        address: address!,
+      },
+      paymentMethod: PaymentMethod.CASH_ON_DELIVERY,
+    };
+
+    this.orderService.create(request).subscribe({
+      next: (order) => {
+        this.cartService.reset();
+        this.toastService.success('Order placed successfully.');
+        this.router.navigate(['/orders', order.id]);
+      },
+      error: (err: HttpErrorResponse) => {
+        console.log(err);
+
+
+        this.submitting.set(false);
+        const message = this.mapOrderError(err);
+        if (message) {
+          this.toastService.error(message);
+        }
+      },
+    });
+  }
+
+  private mapOrderError(err: HttpErrorResponse): string | null {
+    const apiError = err.error as ApiErrorResponse | undefined;
+
+    switch (err.status) {
+      case 400: {
+        if (apiError?.message) {
+          return apiError.message;
+        }
+        return 'Please check your order details and try again.';
+      }
+      case 404:
+        return 'Some products in your cart are no longer available.';
+      case 409:
+        return 'Insufficient stock for one or more items.';
+      case 401:
+      case 403:
+      case 0:
+        return null;
+      default:
+        return 'Unable to create the order. Please try again.';
+    }
+  }
+}

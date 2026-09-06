@@ -2,163 +2,227 @@
 
 <section class="profile-page">
   <div class="profile-wrapper">
-  <div class="profile-card">
+    <div class="profile-card">
 
-    <div class="profile-banner">
-      <img src="assets/images/background.png" alt="" class="banner-img" />
+      <div class="profile-banner">
+        <img src="assets/images/background.png" alt="" class="banner-img" />
 
-      <div class="banner-overlay">
-        <h1>My Profile</h1>
-        <p class="subtitle">
-          Manage your account information and profile picture.
+        <div class="banner-overlay">
+          <h1>My Profile</h1>
+          <p class="subtitle">
+            Manage your account information and profile picture.
+          </p>
+        </div>
+      </div>
+
+      <div class="banner-seam"></div>
+
+      <div class="profile-content">
+
+        @if (loading()) {
+        <p class="state-message">Loading profile...</p>
+        }
+
+        @else if (error()) {
+        <p class="state-message error">
+          {{ error() }}
         </p>
-      </div>
-    </div>
+        }
 
-    <div class="banner-seam"></div>
+        @else if (profile(); as user) {
 
-    <div class="profile-content">
+        <div class="avatar-section avatar-overlap">
+          <img [src]="avatarPreviewUrl() || user.profilePictureUrl || defaultAvatar" (error)="onAvatarError($event)" alt="Profile picture"
+            class="avatar" />
+          @if (isEditing()) {
+          <label class="upload-btn">
+            Change photo
+            <input type="file" accept="image/*" hidden (change)="onAvatarSelected($event)" />
+          </label>
+          }
+        </div>
 
-      @if (loading()) {
-      <p class="state-message">Loading profile...</p>
-      }
+        <div class="edit-toggle">
+          @if (!isEditing()) {
+          <button type="button" class="btn-edit" (click)="startEditing()">
+            ✎ Edit profile
+          </button>
+          } @else {
+          <button type="button" class="btn-cancel" (click)="cancelEditing()">
+            Cancel
+          </button>
+          }
+        </div>
 
-      @else if (error()) {
-      <p class="state-message error">
-        {{ error() }}
-      </p>
-      }
+        <div class="form-grid">
 
-      @else if (profile(); as user) {
+          <div class="form-group">
+            <label>First name</label>
 
-      <div class="avatar-section avatar-overlap">
-        <img [src]="avatarPreviewUrl() || user.profilePictureUrl || defaultAvatar" (error)="onAvatarError($event)" alt="Profile picture"
-          class="avatar" />
+            <input type="text" [ngModel]="user.firstName" (ngModelChange)="updateFirstName($event)"
+              [readonly]="!isEditing()" [class.readonly]="!isEditing()" />
+          </div>
+
+          <div class="form-group">
+            <label>Last name</label>
+
+            <input type="text" [ngModel]="user.lastName" (ngModelChange)="updateLastName($event)"
+              [readonly]="!isEditing()" [class.readonly]="!isEditing()" />
+          </div>
+
+          <div class="form-group full-width">
+            <label>Email</label>
+            <input type="email" [ngModel]="user.email" readonly class="readonly" />
+          </div>
+
+          <div class="form-group full-width">
+            <label>Role</label>
+
+            <div class="role-picker">
+              @if(user.role === Role.CLIENT){
+              <button type="button" class="role-option" [class.active]="user.role === Role.CLIENT" disabled>
+                Buyer
+              </button>
+              } @else{
+              <button type="button" class="role-option" [class.active]="user.role === Role.SELLER" disabled>
+                Seller
+              </button>
+              }
+            </div>
+          </div>
+
+        </div>
+
         @if (isEditing()) {
-        <label class="upload-btn">
-          Change photo
-          <input type="file" accept="image/*" hidden (change)="onAvatarSelected($event)" />
-        </label>
+        @if (saveError()) {
+        <p class="save-error">{{ saveError() }}</p>
         }
-      </div>
-
-      <div class="edit-toggle">
-        @if (!isEditing()) {
-        <button type="button" class="btn-edit" (click)="startEditing()">
-          ✎ Edit profile
+        <button class="btn-save" [disabled]="saving()" (click)="saveProfile()">
+          {{ saving() ? 'Saving...' : 'Save Changes' }}
         </button>
+        }
+
         } @else {
-        <button type="button" class="btn-cancel" (click)="cancelEditing()">
-          Cancel
-        </button>
+        <p class="state-message">
+          Profile not found.
+        </p>
         }
+
       </div>
 
-      <div class="form-grid">
+      @if (profile(); as user) {
 
-        <div class="form-group">
-          <label>First name</label>
-
-          <input type="text" [ngModel]="user.firstName" (ngModelChange)="updateFirstName($event)"
-            [readonly]="!isEditing()" [class.readonly]="!isEditing()" />
+        <div class="period-picker">
+          <label for="analytics-period">Analytics period</label>
+          <select id="analytics-period" [ngModel]="analyticsPeriod()" (ngModelChange)="onPeriodChange($event)">
+            @for (option of periodOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
         </div>
 
-        <div class="form-group">
-          <label>Last name</label>
+        <!-- ================= SELLER SECTION ================= -->
+        @if (user.role === Role.SELLER) {
+        <div class="catalog-section">
+          
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <span class="metric-card__title">Revenue</span>
+              <span class="metric-card__value">{{ sellerEarnings() | number: '1.0-2' }} MAD</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-card__title">Units Sold</span>
+              <span class="metric-card__value">{{ unitsSoldTotal() }}</span>
+            </div>
+          </div>
 
-          <input type="text" [ngModel]="user.lastName" (ngModelChange)="updateLastName($event)"
-            [readonly]="!isEditing()" [class.readonly]="!isEditing()" />
+          <div class="catalog__header">
+            <h2>Best-Selling Products</h2>
+          </div>
+
+          @if (analyticsLoading()) {
+          <p class="state-message">Loading analytics...</p>
+          } @else if (analyticsError()) {
+          <p class="state-message error">{{ analyticsError() }}</p>
+          } @else if ((analytics()?.bestSellingProducts ?? []).length === 0) {
+          <div class="empty-state">
+            <p class="empty-state__title">No sales data yet</p>
+            <p class="empty-state__sub">Your best-selling products will appear here as orders come in.</p>
+          </div>
+          } @else {
+          <div class="chart-container">
+            <canvas baseChart [data]="bestSellingChartData()" [options]="chartOptions" [type]="'bar'"></canvas>
+          </div>
+          }
+
         </div>
+        }
 
-        <div class="form-group full-width">
-          <label>Email</label>
-          <input type="email" [ngModel]="user.email" readonly class="readonly" />
-        </div>
+        <!-- ================= CLIENT SECTION ================= -->
+        @if (user.role === Role.CLIENT) {
+        <div class="catalog-section">
+          <div class="my_orders">
+            <a routerLink="/orders" class="orders-link">
+              <span class="orders-link__text">View Order History</span>
+              <span class="orders-link__icon">&#8250;</span>
+            </a>
+          </div>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <span class="metric-card__title">Total Spent</span>
+              <span class="metric-card__value">{{ totalMoneySpent() | number: '1.0-2' }} MAD</span>
+            </div>
+          </div>
 
-        <div class="form-group full-width">
-          <label>Role</label>
+          <div class="catalog__header">
+            <h2>Most Bought Products</h2>
+          </div>
 
-          <div class="role-picker">
-            @if(user.role === Role.CLIENT){
-            <button type="button" class="role-option" [class.active]="user.role === Role.CLIENT" disabled>
-              Buyer
-            </button>
-            } @else{
-            <button type="button" class="role-option" [class.active]="user.role === Role.SELLER" disabled>
-              Seller
-            </button>
+          @if (analyticsLoading()) {
+          <p class="state-message">Loading analytics...</p>
+          } @else if (analyticsError()) {
+          <p class="state-message error">{{ analyticsError() }}</p>
+          } @else if ((analytics()?.bestSellingProducts ?? []).length === 0) {
+          <div class="empty-state">
+            <p class="empty-state__title">No purchase history</p>
+            <p class="empty-state__sub">Products you purchase frequently will appear here.</p>
+          </div>
+          } @else {
+          <div class="chart-container">
+            <canvas baseChart [data]="bestSellingChartData()" [options]="chartOptions" [type]="'bar'"></canvas>
+          </div>
+          }
+
+          <div class="catalog__header" style="margin-top: 2rem;">
+            <h2>Top Recommended Products</h2>
+          </div>
+
+          @if (bestProducts().length > 0) {
+          <div class="catalog__grid">
+            @for (product of bestProducts(); track product.id) {
+            <article class="product-card">
+              <div class="product-card__media">
+                @if (product.imageUrls.length) {
+                <img [src]="product.imageUrls[getImageIndex(product.id)]" [alt]="product.name" loading="lazy" />
+                } @else {
+                <div class="product-card__placeholder">No image</div>
+                }
+              </div>
+              <div class="product-card__body">
+                <h3>{{ product.name }}</h3>
+                <p class="product-card__desc">{{ product.description }}</p>
+                <p class="product-card__price">{{ product.price | number: '1.0-2' }} MAD</p>
+              </div>
+            </article>
             }
           </div>
-        </div>
-
-      </div>
-
-      @if (isEditing()) {
-      @if (saveError()) {
-      <p class="save-error">{{ saveError() }}</p>
-      }
-      <button class="btn-save" [disabled]="saving()" (click)="saveProfile()">
-        {{ saving() ? 'Saving...' : 'Save Changes' }}
-      </button>
-      }
-
-      } @else {
-      <p class="state-message">
-        Profile not found.
-      </p>
-      }
-
-    </div>
-
-    @if (profile()) {
-    <div class="catalog-section">
-      <div class="catalog__header">
-        <h2>Your products</h2>
-      </div>
-
-    @if (productsLoading()) {
-    <div class="catalog__grid">
-      @for (i of [1, 2, 3]; track i) {
-      <div class="product-card product-card--skeleton"></div>
-      }
-    </div>
-    } @else if (products().length === 0) {
-    <div class="empty-state">
-      <p class="empty-state__title">No products yet</p>
-      <p class="empty-state__sub">Your listed products will appear here.</p>
-    </div>
-    } @else {
-    <div class="catalog__grid">
-      @for (product of products(); track product.id) {
-      <article class="product-card">
-        <div class="product-card__media">
-          @if (product.imageUrls.length) {
-          <img [src]="product.imageUrls[getImageIndex(product.id)]" [alt]="product.name" loading="lazy" />
-          @if (product.imageUrls.length > 1) {
-          <button class="carousel-btn carousel-btn--prev" (click)="prevImage(product, $event)" aria-label="Previous image">&#8249;</button>
-          <button class="carousel-btn carousel-btn--next" (click)="nextImage(product, $event)" aria-label="Next image">&#8250;</button>
-          <span class="carousel-dots">
-            @for (url of product.imageUrls; track url; let i = $index) {
-            <span class="carousel-dot" [class.active]="i === getImageIndex(product.id)"></span>
-            }
-          </span>
           }
-          } @else {
-          <div class="product-card__placeholder">No image</div>
-          }
-        </div>
-        <div class="product-card__body">
-          <h3>{{ product.name }}</h3>
-          <p class="product-card__desc">{{ product.description }}</p>
-          <p class="product-card__price">{{ product.price | number: '1.0-2' }} MAD</p>
-        </div>
-      </article>
-      }
-    </div>
-    }
-    </div>
-    }
 
-  </div>
+        </div>
+        }
+
+      }
+
+    </div>
   </div>
 </section>

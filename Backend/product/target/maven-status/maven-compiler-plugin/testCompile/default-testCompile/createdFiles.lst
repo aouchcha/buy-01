@@ -1,0 +1,4 @@
+Product/Service/ProductServiceTest.class
+Product/Service/controller/ProductControllerTest.class
+Product/Service/service/ProductApplicationTests.class
+Product/Service/service/kafka/ProductMediaEventConsumerTest.class

@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         NOTIFICATION_EMAIL_RECIPIENT = 'yahyakhaldy2@gmail.com, ouchchatea@gmail.com'
-        COMPOSE_PROJECT_NAME = "safe-zone"
+        COMPOSE_PROJECT_NAME = "buy02"
     }
 
     stages {
@@ -86,7 +86,7 @@ pipeline {
                         unstash 'source-code'
                         dir('marketplace-ui') {
                             sh 'npm ci'
-                            sh 'npm test -- --watch=false --no-progress'
+                            sh 'npm test -- --watch=false --no-progress --coverage --coverage-reporters=lcov'
                             sh 'npm run build -- --configuration production'
                         }
                     }
@@ -207,7 +207,7 @@ pipeline {
                     allChangedServiceNames.each { serviceName ->
                         sh """
                             IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                            docker compose --profile infra -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env build ${serviceName}
+                            docker compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env build ${serviceName}
                         """
                     }
                 }
@@ -237,7 +237,7 @@ pipeline {
                 //     allChangedServiceNames.each { serviceName ->
                 //         sh """
                 //             IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                //             docker compose -f docker-compose.yml -f docker-compose.jenkins.yml --env-file /home/jenkins/.env up -d ${serviceName}
+                //             docker compose -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env up -d ${serviceName}
                 //         """
                 //     }
                 // }
@@ -246,9 +246,9 @@ pipeline {
                     docker compose \
                       --profile infra \
                       -f docker-compose.yml \
-                      -f docker-compose.jenkins.yml \
+                      -f docker-compose.infra.yml \
                       --env-file /home/jenkins/.env \
-                      up -d --no-deps discovery gateway product user media marketplace-ui
+                      up -d --no-deps discovery gateway product user media orders marketplace-ui
                 """
             }
         }

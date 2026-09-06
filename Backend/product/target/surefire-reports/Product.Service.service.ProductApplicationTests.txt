@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: Product.Service.service.ProductApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.382 s -- in Product.Service.service.ProductApplicationTests

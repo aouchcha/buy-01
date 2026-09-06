@@ -170,6 +170,64 @@
   color: var(--color-charcoal);
 }
 
+/* Search & filters */
+
+.search-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 2.5rem;
+}
+
+.search-input {
+  flex: 2 1 260px;
+}
+
+.filter-select,
+.filter-input {
+  flex: 1 1 150px;
+}
+
+.search-input,
+.filter-select,
+.filter-input {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-beige);
+  background: white;
+  color: var(--color-charcoal);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-sand);
+    outline-offset: 2px;
+  }
+}
+
+.btn-clear-filters {
+  border: 1px solid var(--color-taupe);
+  background: transparent;
+  color: var(--color-taupe-deep);
+  padding: 0.7rem 1.2rem;
+  border-radius: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 280ms var(--ease-apple), color 280ms var(--ease-apple);
+
+  &:hover {
+    background: var(--color-taupe);
+    color: white;
+  }
+}
+
+.load-more {
+  display: flex;
+  justify-content: center;
+  margin-top: 2.5rem;
+}
+
 /* Status states (loading / error / empty) */
 
 .status-message {
@@ -237,6 +295,20 @@
   padding: 1.5rem;
 }
 
+.card-category {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-taupe-deep);
+  background: var(--color-cream);
+  border: 1px solid var(--color-beige);
+  border-radius: 999px;
+  padding: 3px 9px;
+  margin-bottom: 0.5rem;
+}
+
 .card-body h3 {
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -255,12 +327,41 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
 }
 
 .price {
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--color-taupe-deep);
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.btn-add-cart {
+  border: 1px solid var(--color-taupe);
+  background: transparent;
+  color: var(--color-taupe-deep);
+  padding: 0.7rem 1rem;
+  border-radius: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 280ms var(--ease-apple), color 280ms var(--ease-apple);
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: var(--color-taupe);
+    color: white;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .btn-view {

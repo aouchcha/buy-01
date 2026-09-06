@@ -183,6 +183,20 @@
   &:hover { color: #1d1b19; }
 }
 
+.category-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b5643;
+  background: #f2ece1;
+  border: 1px solid #e4d9c6;
+  border-radius: 999px;
+  padding: 4px 11px;
+}
+
 h1 {
   font-size: clamp(1.6rem, 3vw, 2.2rem);
   font-weight: 650;
@@ -220,6 +234,60 @@ h1 {
 .divider {
   height: 1px;
   background: #e8dfd0;
+}
+
+.add-to-cart-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  button {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #c9b99a;
+    background: #fafaf8;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    &:hover:not(:disabled) {
+      background: #e8dfd0;
+    }
+  }
+}
+
+.btn-add-cart {
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: none;
+  background: #7c5f44;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 200ms;
+
+  &:hover {
+    background: #5c4432;
+  }
+}
+
+.out-of-stock {
+  font-weight: 600;
+  color: #a3382a;
+  margin: 0;
 }
 
 .description {

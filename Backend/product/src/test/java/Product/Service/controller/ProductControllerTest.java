@@ -32,6 +32,7 @@ import Product.Service.dto.ProductResponse;
 import Product.Service.exception.ForbiddenException;
 import Product.Service.exception.GlobalExceptionHandler;
 import Product.Service.exception.ProductNotFoundException;
+import Product.Service.model.Category;
 import Product.Service.service.ProductService;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,8 +58,8 @@ class ProductControllerTest {
 
         objectMapper = new ObjectMapper();
 
-        productResponse = new ProductResponse("1", "Laptop", "A powerful laptop for developers", 1200.0, 5, "user1", List.of());
-        validRequest = new ProductRequest("Laptop", "A powerful laptop for developers", 1200.0, 5);
+        productResponse = new ProductResponse("1", "Laptop", "A powerful laptop for developers", 1200.0, 5, "user1", Category.FEED_AND_SUPPLIES, List.of());
+        validRequest = new ProductRequest("Laptop", "A powerful laptop for developers", 1200.0, 5, Category.FEED_AND_SUPPLIES);
     }
 
     // GET /api/product/{id}
