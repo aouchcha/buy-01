@@ -15,7 +15,6 @@
       <div class="actions">
         @if (!isSeller() && isLogin()) {
         <a class="btn btn-primary" routerLink="/cart" (click)="closeMenu()">
-          <!-- <span aria-hidden="true">🛒</span> -->
           <mat-icon>shopping_cart</mat-icon>
           <span>Cart</span>
           @if (cartItemCount() > 0) {
@@ -28,11 +27,11 @@
         <a routerLink="/profile" (click)="closeMenu()" class="btn btn-primary">
           Profile
         </a>
-
+        @if (isSeller()) {
         <a routerLink="/seller" class="btn btn-primary" (click)="closeMenu()">
           Dashboard
         </a>
-
+        }
 
         <a class="btn btn-primary" (click)="logout()">
           Logout
