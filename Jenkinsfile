@@ -252,7 +252,7 @@ pipeline {
                       -f docker-compose.yml \
                       -f docker-compose.infra.yml \
                       --env-file /home/jenkins/.env \
-                      up -d --no-deps discovery gateway product user media orders search marketplace-ui
+                      up -d --no-deps discovery gateway product user media search orders marketplace-ui
                 """
             }
         }
