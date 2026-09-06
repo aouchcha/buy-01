@@ -22,6 +22,8 @@ public class OrderStatsRepository {
     private static final String STATUS_DELIVERED = "DELIVERED";
     private static final String FIELD_CART_ITEMS = "cart_items";
     private static final String FIELD_CART_ITEMS_QUANTITY = "cart_items.quantity";
+    private static final String TOTAL_UNITS_SOLD = "totalUnitsSold";
+
 
     private final MongoTemplate mongoTemplate;
 
@@ -43,9 +45,9 @@ public class OrderStatsRepository {
 
             group("cart_items.product_id")
                 .first("cart_items.product_name").as("productName")
-                .sum(FIELD_CART_ITEMS_QUANTITY).as("totalUnitsSold"),
+                .sum(FIELD_CART_ITEMS_QUANTITY).as(TOTAL_UNITS_SOLD),
 
-            sort(DESC, "totalUnitsSold"),
+            sort(DESC, TOTAL_UNITS_SOLD),
 
             limit(limit)
         );
@@ -67,9 +69,9 @@ public class OrderStatsRepository {
 
             group("cart_items.product_id")
                 .first("cart_items.product_name").as("productName")
-                .sum(FIELD_CART_ITEMS_QUANTITY).as("totalUnitsSold"),
+                .sum(FIELD_CART_ITEMS_QUANTITY).as(TOTAL_UNITS_SOLD),
 
-            sort(DESC, "totalUnitsSold"),
+            sort(DESC, TOTAL_UNITS_SOLD),
 
             limit(limit)
         );
