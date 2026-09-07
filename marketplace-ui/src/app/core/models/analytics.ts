@@ -12,7 +12,13 @@ export interface BestSellingProduct {
   totalUnitsSold: number | null;
 }
 
+export interface CategoryStat {
+  category: string;
+  totalUnitsBought: number | null;
+}
+
 export interface Analytics {
   bestSellingProducts: BestSellingProduct[];
+  topCategories: CategoryStat[];
   total: number;
 }

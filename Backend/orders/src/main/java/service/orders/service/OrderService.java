@@ -19,6 +19,7 @@ import service.orders.models.Order;
 import service.orders.client.ProductClient;
 import service.orders.dto.Analytics;
 import service.orders.dto.BestSellingProductDTO;
+import service.orders.dto.CategoryStatsDTO;
 import service.orders.dto.CreateOrderRequest;
 import service.orders.dto.OrderItemResponse;
 import service.orders.dto.OrdersResponse;
@@ -148,13 +149,15 @@ public class OrderService {
         }
 
         List<BestSellingProductDTO> products = new ArrayList<>();
+        List<CategoryStatsDTO> categories = new ArrayList<>();
         double total = 0.0;
-        
+
         if (role.equals("ROLE_SELLER")) {
             products = getSellerAnalytics(userId, getFromTimestamp(period));
             total = orderStatsRepository.getSellerRevenue(userId, getFromTimestamp(period));
         } else if (role.equals("ROLE_CLIENT")) {
             products = getBuyerAnalytics(userId, getFromTimestamp(period));
+            categories = orderStatsRepository.getTopCategoriesByUser(userId, getFromTimestamp(period), 5);
             final List<Order> orders = orderRepository.findByUserIdAndStatus(userId, "DELIVERED");
             if (orders == null) {
                 throw new OrderNotFoundException("orders for a client is null");
@@ -166,6 +169,7 @@ public class OrderService {
         }
         Analytics analytics = Analytics.builder()
                 .bestSellingProducts(products)
+                .topCategories(categories)
                 .total(total)
                 .build();
         System.out.println("===***********************************************************************************************===");

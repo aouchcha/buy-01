@@ -30,6 +30,9 @@ public class CartItems {
     @Field("product_name")
     private String productName;
 
+    @Field("category")
+    private String category;
+
     @Field("price")
     private Double price;
 
