@@ -257,6 +257,14 @@ pipeline {
                 """
             }
         }
+
+        stage('Cleanup Docker Images') {
+            agent { label 'backend' }
+            when { branch 'main' }
+            steps {
+                sh 'docker image prune -af --filter "until=72h" || true'
+            }
+        }
     }
 
     post {
