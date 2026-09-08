@@ -13,6 +13,11 @@ services:
       - "9000"
     environment:
       JAVA_TOOL_OPTIONS: "-Xmx256m -Xms128m"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -35,6 +40,11 @@ services:
     environment:
       CORS_ALLOWED_ORIGIN: ${CORS_ALLOWED_ORIGIN:-http://localhost:4200}
       JAVA_TOOL_OPTIONS: "-Xmx256m -Xms128m"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -62,6 +72,11 @@ services:
       JWT_EXPIRATION: ${JWT_EXPIRATION}
       SPRING_MONGODB_URI: ${USER_DB_URI}
       JAVA_TOOL_OPTIONS: "-Xmx256m -Xms128m"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -92,6 +107,11 @@ services:
       R2_PUBLIC_URL: ${R2_PUBLIC_URL}
       SPRING_MONGODB_URI: ${MEDIA_DB_URI}
       JAVA_TOOL_OPTIONS: "-Xmx256m -Xms128m"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -118,6 +138,11 @@ services:
     environment:
       SPRING_MONGODB_URI: ${PRODUCT_DB_URI}
       JAVA_TOOL_OPTIONS: "-Xmx256m -Xms128m"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -143,6 +168,11 @@ services:
     environment:
       SPRING_MONGODB_URI: ${ORDERS_DB_URI}
       JAVA_TOOL_OPTIONS: "-Xmx256m -Xms128m"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -159,6 +189,11 @@ services:
     depends_on:
       gateway:
         condition: service_started
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
   
@@ -184,6 +219,11 @@ services:
     environment:
       SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
       JAVA_TOOL_OPTIONS: "-Xmx256m -Xms128m"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 

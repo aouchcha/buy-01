@@ -22,6 +22,11 @@ services:
       timeout: 5s
       retries: 20
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -48,6 +53,11 @@ services:
       timeout: 5s
       retries: 20
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -74,6 +84,11 @@ services:
       timeout: 5s
       retries: 20
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -100,6 +115,11 @@ services:
       timeout: 5s
       retries: 20
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -111,6 +131,11 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     expose:
       - "2181"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -128,6 +153,11 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -139,6 +169,11 @@ services:
     expose:
       - "8761"
       - "9000"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -158,6 +193,11 @@ services:
       - .env
     environment:
       CORS_ALLOWED_ORIGIN: ${CORS_ALLOWED_ORIGIN:-http://localhost:4200}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -182,6 +222,11 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
       SPRING_MONGODB_URI: ${USER_DB_URI}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -209,6 +254,11 @@ services:
       R2_ENDPOINT: ${R2_ENDPOINT}
       R2_PUBLIC_URL: ${R2_PUBLIC_URL}
       SPRING_MONGODB_URI: ${MEDIA_DB_URI}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -231,6 +281,11 @@ services:
       - .env
     environment:
       SPRING_MONGODB_URI: ${PRODUCT_DB_URI}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -253,6 +308,11 @@ services:
       - .env
     environment:
       SPRING_MONGODB_URI: ${ORDERS_DB_URI}
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -267,6 +327,11 @@ services:
     depends_on:
       gateway:
         condition: service_started
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 

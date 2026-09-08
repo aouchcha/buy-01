@@ -25,6 +25,11 @@ services:
       timeout: 5s
       retries: 20
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -54,6 +59,11 @@ services:
       timeout: 5s
       retries: 20
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -83,6 +93,11 @@ services:
       timeout: 5s
       retries: 20
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
     
@@ -112,6 +127,11 @@ services:
       timeout: 5s
       retries: 20
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -126,6 +146,11 @@ services:
       KAFKA_HEAP_OPTS: "-Xmx256m -Xms256m"
     expose:
       - "2181"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -146,6 +171,11 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_HEAP_OPTS: "-Xmx512m -Xms256m"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
     
@@ -161,6 +191,11 @@ services:
     expose:
       - "8080"
       - "50000"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
     volumes:
@@ -185,6 +220,11 @@ services:
     depends_on:
       jenkins-master:
         condition: service_started
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -206,6 +246,11 @@ services:
     depends_on:
       jenkins-master:
         condition: service_started
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -221,6 +266,11 @@ services:
       - sonarqube_db_data:/var/lib/postgresql/data
     expose:
       - "5432"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -243,6 +293,11 @@ services:
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_logs:/opt/sonarqube/logs
       - sonarqube_extensions:/opt/sonarqube/extensions
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -265,6 +320,11 @@ services:
       - 9200
     volumes:
       - es_data:/usr/share/elasticsearch/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
