@@ -3,8 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Navbar } from '../../../../layout/navbar/navbar';
-import { CATEGORY_LABELS, CATEGORY_OPTIONS, Category, ProductDto } from '../../../../core/models/product';
-import { Product as ProductService } from '../../../../core/services/product';
+import { CATEGORY_LABELS, CATEGORY_OPTIONS, Category } from '../../../../core/models/product';
 import { CartService } from '../../../../core/services/cart';
 import { ToastService } from '../../../../core/services/toast.service';
 import { Auth } from '../../../../core/services/auth';
@@ -30,7 +29,6 @@ const PAGE_SIZE = 12;
   styleUrl: './product-list.scss',
 })
 export class ProductList implements OnInit {
-  private readonly productService = inject(ProductService);
   private readonly searchService = inject(SearchService);
   private readonly router = inject(Router);
   private readonly cartService = inject(CartService);
@@ -39,9 +37,6 @@ export class ProductList implements OnInit {
 
   private debounceHandle: ReturnType<typeof setTimeout> | null = null;
 
-  readonly products = signal<ProductDto[]>([]);
-  readonly loading = signal(true);
-  readonly error = signal<string | null>(null);
   readonly imageIndexes = signal<Record<string, number>>({});
   readonly isLogin = computed(() => this.authService.isLoggedIn());
   readonly isSeller = computed(() => this.authService.isSeller());
@@ -55,39 +50,23 @@ export class ProductList implements OnInit {
   readonly maxPrice = signal<number | null>(null);
   readonly sortBy = signal<SortBy | ''>('');
 
-  readonly searchActive = computed(() =>
-    !!this.keyword().trim() || !!this.selectedCategory() || this.minPrice() != null || this.maxPrice() != null || !!this.sortBy()
+  readonly filtersActive = computed(
+    () =>
+      !!this.keyword().trim() ||
+      !!this.selectedCategory() ||
+      this.minPrice() != null ||
+      this.maxPrice() != null ||
+      !!this.sortBy(),
   );
 
-  readonly searchResults = signal<ProductCardVm[]>([]);
-  readonly searchLoading = signal(false);
-  readonly searchError = signal<string | null>(null);
+  readonly displayItems = signal<ProductCardVm[]>([]);
+  readonly loading = signal(true);
+  readonly error = signal<string | null>(null);
   readonly page = signal(0);
   readonly hasMore = signal(true);
 
-  readonly displayItems = computed<ProductCardVm[]>(() =>
-    this.searchActive()
-      ? this.searchResults()
-      : this.products().map((p) => this.fromProductDto(p))
-  );
-
   ngOnInit(): void {
-    this.loadAll();
-  }
-
-  private loadAll(): void {
-    this.loading.set(true);
-    this.error.set(null);
-    this.productService.getAll().subscribe({
-      next: (products) => {
-        this.products.set(products);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.error.set('Could not load birds right now. Please try again later.');
-        this.loading.set(false);
-      },
-    });
+    this.runSearch(true);
   }
 
   onFilterChange(): void {
@@ -101,30 +80,23 @@ export class ProductList implements OnInit {
     this.minPrice.set(null);
     this.maxPrice.set(null);
     this.sortBy.set('');
-    this.searchResults.set([]);
-    this.searchError.set(null);
-    this.page.set(0);
+    this.runSearch(true);
   }
 
   loadMore(): void {
-    if (!this.hasMore() || this.searchLoading()) return;
+    if (!this.hasMore() || this.loading()) return;
     this.page.update((p) => p + 1);
     this.runSearch(false);
   }
 
   private runSearch(reset: boolean): void {
-    if (!this.searchActive()) {
-      this.searchResults.set([]);
-      return;
-    }
-
     if (reset) {
       this.page.set(0);
       this.hasMore.set(true);
     }
 
-    this.searchLoading.set(true);
-    this.searchError.set(null);
+    this.loading.set(true);
+    this.error.set(null);
 
     this.searchService
       .search({
@@ -139,30 +111,26 @@ export class ProductList implements OnInit {
       .subscribe({
         next: (docs) => {
           const items = docs.map((d) => this.fromProductDocument(d));
-          this.searchResults.update((existing) => (reset ? items : [...existing, ...items]));
+          this.displayItems.update((existing) => (reset ? items : [...existing, ...items]));
           this.hasMore.set(items.length === PAGE_SIZE);
-          this.searchLoading.set(false);
+          this.loading.set(false);
         },
         error: () => {
-          this.searchError.set('Search is unavailable right now. Please try again later.');
-          this.searchLoading.set(false);
+          this.error.set('Could not load birds right now. Please try again later.');
+          this.loading.set(false);
         },
       });
   }
 
-  private fromProductDto(p: ProductDto): ProductCardVm {
-    return {
-      id: p.id,
-      name: p.name,
-      description: p.description,
-      price: p.price,
-      quantity: p.quantity,
-      category: p.category,
-      imageUrls: p.imageUrls,
-    };
-  }
-
-  private fromProductDocument(d: { id: string; productName: string; description: string; price: number; quantity: number; category: string; imageUrls: string[] }): ProductCardVm {
+  private fromProductDocument(d: {
+    id: string;
+    productName: string;
+    description: string;
+    price: number;
+    quantity: number;
+    category: string;
+    imageUrls: string[];
+  }): ProductCardVm {
     return {
       id: d.id,
       name: d.productName,
@@ -185,13 +153,19 @@ export class ProductList implements OnInit {
   nextImage(product: ProductCardVm, event: Event): void {
     event.stopPropagation();
     const current = this.getImageIndex(product.id);
-    this.imageIndexes.update(m => ({ ...m, [product.id]: (current + 1) % product.imageUrls.length }));
+    this.imageIndexes.update((m) => ({
+      ...m,
+      [product.id]: (current + 1) % product.imageUrls.length,
+    }));
   }
 
   prevImage(product: ProductCardVm, event: Event): void {
     event.stopPropagation();
     const current = this.getImageIndex(product.id);
-    this.imageIndexes.update(m => ({ ...m, [product.id]: (current - 1 + product.imageUrls.length) % product.imageUrls.length }));
+    this.imageIndexes.update((m) => ({
+      ...m,
+      [product.id]: (current - 1 + product.imageUrls.length) % product.imageUrls.length,
+    }));
   }
 
   goToProduct(id: string): void {
