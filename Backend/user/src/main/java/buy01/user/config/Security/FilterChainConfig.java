@@ -36,10 +36,10 @@ public class FilterChainConfig {
                 .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(headerAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/auth/**").permitAll()
-                    .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.GET, "/api/users/all").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.GET, "/api/users/{id}").permitAll()
+                    .antMatchers("/api/auth/**").permitAll()
+                    .antMatchers(HttpMethod.DELETE, "/api/users/{id}").hasRole("ADMIN")
+                    .antMatchers(HttpMethod.GET, "/api/users/all").hasRole("ADMIN")
+                    .antMatchers(HttpMethod.GET, "/api/users/{id}").permitAll()
                     .requestMatchers(EndpointRequest.to("health")).permitAll()
                     .anyRequest().authenticated());
         return http.build();

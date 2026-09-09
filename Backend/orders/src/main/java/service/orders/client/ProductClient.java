@@ -1,5 +1,8 @@
 package service.orders.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -16,6 +19,7 @@ import service.orders.exception.PartialOutOfStockException;
 public class ProductClient {
 
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
     public ProductResponse getProduct(String productId) {
         try {
@@ -36,7 +40,12 @@ public class ProductClient {
                     StockUpdateResult.class);
         } catch (HttpClientErrorException.BadRequest e) {
             // Deserialize the JSON body containing partial/full failure details
-            StockUpdateResult result = e.getResponseBodyAs(StockUpdateResult.class);
+            StockUpdateResult result;
+            try {
+                result = objectMapper.readValue(e.getResponseBodyAsString(), StockUpdateResult.class);
+            } catch (JsonProcessingException parseException) {
+                throw new PartialOutOfStockException("Some items in cart are out of stock", null);
+            }
             throw new PartialOutOfStockException("Some items in cart are out of stock", result);
         }
     }
