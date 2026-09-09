@@ -288,33 +288,6 @@ services:
     networks:
       - buy01-network
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.2
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
-      start_period: 30s
-    profiles:
-      - infra
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
-    expose:
-      - 9200
-    volumes:
-      - es_data:/usr/share/elasticsearch/data
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-    networks:
-      - buy01-network
-
   nexus:
     image: sonatype/nexus3:latest
     profiles:
@@ -356,4 +329,3 @@ volumes:
   sonarqube_logs:
   sonarqube_extensions:
   orders_mongo_data:
-  es_data:

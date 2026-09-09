@@ -1,18 +1,23 @@
 package Product.Service.service;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import Product.Service.dto.ProductRequest;
 import Product.Service.dto.ProductResponse;
 import Product.Service.dto.kafka.ProductCreated;
-import Product.Service.dto.kafka.ProductCreatedToES;
 import Product.Service.dto.kafka.ProductDeleted;
-import Product.Service.dto.kafka.ProductDeletion;
 import Product.Service.exception.ForbiddenException;
 import Product.Service.exception.ProductNotFoundException;
+import Product.Service.model.Category;
 import Product.Service.model.Product;
 import Product.Service.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +34,7 @@ public class ProductService {
     private static final String PRODUCT_NOT_FOUND = "Product not found";
 
     private final ProductRepository productRepository;
+    private final MongoTemplate mongoTemplate;
 
     private final KafkaTemplate<String, Object> kafka;
 
@@ -45,6 +51,46 @@ public class ProductService {
                 .toList();
     }
 
+    public List<ProductResponse> searchProducts(
+            String keyword, Category category, Double minPrice, Double maxPrice,
+            String sortBy, int page, int size) {
+        Query query = new Query();
+
+        if (keyword != null && !keyword.isBlank()) {
+            String pattern = Pattern.quote(keyword.trim());
+            query.addCriteria(new Criteria().orOperator(
+                    Criteria.where("name").regex(pattern, "i"),
+                    Criteria.where("description").regex(pattern, "i")));
+        }
+
+        if (category != null) {
+            query.addCriteria(Criteria.where("category").is(category));
+        }
+
+        if (minPrice != null || maxPrice != null) {
+            Criteria priceCriteria = Criteria.where("price");
+            if (minPrice != null) {
+                priceCriteria = priceCriteria.gte(minPrice);
+            }
+            if (maxPrice != null) {
+                priceCriteria = priceCriteria.lte(maxPrice);
+            }
+            query.addCriteria(priceCriteria);
+        }
+
+        Sort sort = switch (sortBy == null ? "" : sortBy) {
+            case "price_desc" -> Sort.by(Sort.Direction.DESC, "price");
+            case "newest" -> Sort.by(Sort.Direction.DESC, "createdAt");
+            default -> Sort.by(Sort.Direction.ASC, "price");
+        };
+
+        query.with(sort).with(PageRequest.of(page, size));
+
+        return mongoTemplate.find(query, Product.class).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     public ProductResponse createProduct(ProductRequest productRequest, String userId) {
         Product product = Product.builder()
                 .name(productRequest.name())
@@ -57,8 +103,6 @@ public class ProductService {
         product = productRepository.save(product);
         ProductCreated event = new ProductCreated(product.getId(), userId);
         kafka.send("product.created", userId, event);
-        System.out.println("====================================\nProduct Created Event Lunched");
-        kafka.send("product.created.ES", product.getId(), toProductCreatedToES(product));
         return toResponse(product);
     }
 
@@ -70,10 +114,7 @@ public class ProductService {
         product.setPrice(productRequest.price());
         product.setQuantity(productRequest.quantity());
         product.setCategory(productRequest.category());
-        System.out.println("====================================\nProduct Updated Event Lunched");
-        System.out.println("====================================\n" + product.getImageUrls());
         product = productRepository.save(product);
-        kafka.send("product.created.ES", product.getId(), toProductCreatedToES(product));
         return toResponse(product);
     }
 
@@ -82,17 +123,13 @@ public class ProductService {
         ProductDeleted event = new ProductDeleted(id);
         kafka.send("product.deleted", id, event);
         productRepository.deleteById(id);
-        kafka.send("product.deleted.ES", id, toProductDeletion(id));
     }
 
     public Product addImageUrl(String productId, List<String> imageUrls) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND));
-        // product.getImageUrls().add(imageUrl);
         product.setImageUrls(imageUrls);
-        product = productRepository.save(product);
-        kafka.send("product.created.ES", product.getId(), toProductCreatedToES(product));
-        return product;
+        return productRepository.save(product);
     }
 
     public void removeImageUrl(String productId, String url) {
@@ -100,10 +137,8 @@ public class ProductService {
                 .orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND));
         List<String> urls = product.getImageUrls();
         urls.remove(url);
-        System.out.println("====================================\nurls = " + urls);
         product.setImageUrls(urls);
-        product = productRepository.save(product);
-        kafka.send("product.created.ES", product.getId(), toProductCreatedToES(product));
+        productRepository.save(product);
     }
 
 
@@ -184,8 +219,7 @@ public class ProductService {
             int newQuantity = product.getQuantity() - request.quantity();
 
             product.setQuantity(newQuantity);
-            product = productRepository.save(product);
-            kafka.send("product.created.ES", product.getId(), toProductCreatedToES(product));
+            productRepository.save(product);
         }
 
         return new StockUpdateResult(true, items);
@@ -195,28 +229,9 @@ public class ProductService {
         for (StockRequest request : stockRequests) {
             productRepository.findById(request.productId()).ifPresent(product -> {
                 product.setQuantity(product.getQuantity() + request.quantity());
-                product = productRepository.save(product);
-                kafka.send("product.created.ES", product.getId(), toProductCreatedToES(product));
+                productRepository.save(product);
             });
         }
-    }
-
-    // create a method that maps from Product to ProductCreatedToES
-    private ProductCreatedToES toProductCreatedToES(Product product) {
-        return new ProductCreatedToES(
-                product.getId(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice(),
-                product.getQuantity(),
-                product.getUserId(),
-                product.getCategory().toString(),
-                product.getImageUrls()
-        );
-    }
-
-    private ProductDeletion toProductDeletion(String productId) {
-        return new ProductDeletion(productId);
     }
 
 }

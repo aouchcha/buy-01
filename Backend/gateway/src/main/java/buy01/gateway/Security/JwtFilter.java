@@ -68,15 +68,9 @@ public class JwtFilter implements GlobalFilter, Ordered {
                 return chain.filter(exchange);
             }
 
-            // Public product details: /api/product/{id}
+            // Public product details: /api/product/{id}, and /api/product/search
             if (path.startsWith("/api/product") && !path.equals("/api/product/myProducts")) {
                 System.out.println(">>>>>>>>>>>>>>> skip 2");
-                return chain.filter(exchange);
-            }
-
-            // Public product search
-            if (path.equals("/api/search/products")) {
-                System.out.println(">>>>>>>>>>>>>>> skip 3");
                 return chain.filter(exchange);
             }
         }

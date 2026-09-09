@@ -3,22 +3,19 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Navbar } from '../../../../layout/navbar/navbar';
-import { CATEGORY_LABELS, CATEGORY_OPTIONS, Category } from '../../../../core/models/product';
+import {
+  CATEGORY_LABELS,
+  CATEGORY_OPTIONS,
+  Category,
+  ProductDto,
+} from '../../../../core/models/product';
 import { CartService } from '../../../../core/services/cart';
 import { ToastService } from '../../../../core/services/toast.service';
 import { Auth } from '../../../../core/services/auth';
 import { SearchService } from '../../../../core/services/search';
 import { SORT_OPTIONS, SortBy } from '../../../../core/models/search';
 
-interface ProductCardVm {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  quantity: number;
-  category: Category;
-  imageUrls: string[];
-}
+type ProductCardVm = ProductDto;
 
 const PAGE_SIZE = 12;
 
@@ -109,8 +106,7 @@ export class ProductList implements OnInit {
         size: PAGE_SIZE,
       })
       .subscribe({
-        next: (docs) => {
-          const items = docs.map((d) => this.fromProductDocument(d));
+        next: (items) => {
           this.displayItems.update((existing) => (reset ? items : [...existing, ...items]));
           this.hasMore.set(items.length === PAGE_SIZE);
           this.loading.set(false);
@@ -120,26 +116,6 @@ export class ProductList implements OnInit {
           this.loading.set(false);
         },
       });
-  }
-
-  private fromProductDocument(d: {
-    id: string;
-    productName: string;
-    description: string;
-    price: number;
-    quantity: number;
-    category: string;
-    imageUrls: string[];
-  }): ProductCardVm {
-    return {
-      id: d.id,
-      name: d.productName,
-      description: d.description,
-      price: d.price,
-      quantity: d.quantity,
-      category: d.category as Category,
-      imageUrls: d.imageUrls,
-    };
   }
 
   categoryLabel(category: Category): string {

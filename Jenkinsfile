@@ -58,8 +58,7 @@ pipeline {
                             env.CHANGED_SERVICE_NAMES.contains('media') ||
                             env.CHANGED_SERVICE_NAMES.contains('product') ||
                             env.CHANGED_SERVICE_NAMES.contains('user') ||
-                            env.CHANGED_SERVICE_NAMES.contains('orders') ||
-                            env.CHANGED_SERVICE_NAMES.contains('search')
+                            env.CHANGED_SERVICE_NAMES.contains('orders')
                         }
                     }
                     steps {
@@ -67,7 +66,7 @@ pipeline {
                         script {
                             def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
                             def changedBackendServiceNames = allChangedServiceNames.findAll {
-                                it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders' || it == 'search'
+                                it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders'
                             }
 
                             changedBackendServiceNames.each { serviceName ->
@@ -110,8 +109,7 @@ pipeline {
                             env.CHANGED_SERVICE_NAMES.contains('media') ||
                             env.CHANGED_SERVICE_NAMES.contains('product') ||
                             env.CHANGED_SERVICE_NAMES.contains('user') ||
-                            env.CHANGED_SERVICE_NAMES.contains('orders') ||
-                            env.CHANGED_SERVICE_NAMES.contains('search')
+                            env.CHANGED_SERVICE_NAMES.contains('orders')
                         }
                     }
                     steps {
@@ -119,7 +117,7 @@ pipeline {
                         script {
                             def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
                             def changedBackendServiceNames = allChangedServiceNames.findAll {
-                                it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders' || it == 'search'
+                                it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders'
                             }
                             withSonarQubeEnv('sonarqube-server') {
                                 // sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar -Dsonar.projectKey=buy01-backend'
@@ -211,8 +209,7 @@ pipeline {
                         env.CHANGED_SERVICE_NAMES.contains('media') ||
                         env.CHANGED_SERVICE_NAMES.contains('product') ||
                         env.CHANGED_SERVICE_NAMES.contains('user') ||
-                        env.CHANGED_SERVICE_NAMES.contains('orders') ||
-                        env.CHANGED_SERVICE_NAMES.contains('search')
+                        env.CHANGED_SERVICE_NAMES.contains('orders')
                     )
                 }
             }
@@ -224,7 +221,7 @@ pipeline {
                 script {
                     def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
                     def changedBackendServiceNames = allChangedServiceNames.findAll {
-                        it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders' || it == 'search'
+                        it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders'
                     }
                     withCredentials([usernamePassword(credentialsId: 'nexus-ci-credentials', usernameVariable: 'NEXUS_CI_USER', passwordVariable: 'NEXUS_CI_PASSWORD')]) {
                         changedBackendServiceNames.each { serviceName ->
@@ -299,7 +296,7 @@ pipeline {
                       -f docker-compose.yml \
                       -f docker-compose.infra.yml \
                       --env-file /home/jenkins/.env \
-                      up -d --no-deps discovery gateway product user media search orders marketplace-ui
+                      up -d --no-deps discovery gateway product user media orders marketplace-ui
                 """
             }
         }

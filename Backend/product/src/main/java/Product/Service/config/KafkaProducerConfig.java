@@ -30,9 +30,7 @@ public class KafkaProducerConfig {
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         config.put(JsonSerializer.TYPE_MAPPINGS,
             "productCreated:Product.Service.dto.kafka.ProductCreated,"
-            + "productDeleted:Product.Service.dto.kafka.ProductDeleted,"
-            + "productCreatedToES:Product.Service.dto.kafka.ProductCreatedToES,"
-            + "productDeleted:Product.Service.dto.kafka.ProductDeletion"
+            + "productDeleted:Product.Service.dto.kafka.ProductDeleted"
         );
         return new DefaultKafkaProducerFactory<>(config);
     }
