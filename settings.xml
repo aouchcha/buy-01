@@ -1,0 +1,32 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 http://maven.apache.org/xsd/settings-1.2.0.xsd">
+
+  <!-- Consumed via `mvn -s settings.xml ...`. Credentials are read from the
+       environment so nothing secret is committed here — see NEXUS.md. -->
+
+  <servers>
+    <server>
+      <id>nexus-releases</id>
+      <username>${env.NEXUS_CI_USER}</username>
+      <password>${env.NEXUS_CI_PASSWORD}</password>
+    </server>
+    <server>
+      <id>nexus-snapshots</id>
+      <username>${env.NEXUS_CI_USER}</username>
+      <password>${env.NEXUS_CI_PASSWORD}</password>
+    </server>
+  </servers>
+
+  <mirrors>
+    <!-- Force ALL dependency resolution through the Nexus maven-public group
+         (hosted releases/snapshots + the maven-central proxy cache), per the
+         "resolve dependencies exclusively through Nexus" requirement. -->
+    <mirror>
+      <id>nexus-public</id>
+      <mirrorOf>*</mirrorOf>
+      <url>${env.NEXUS_URL}/repository/maven-public/</url>
+    </mirror>
+  </mirrors>
+
+</settings>

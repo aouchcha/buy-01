@@ -201,6 +201,46 @@ pipeline {
             }
         }
 
+        stage('Publish Backend Artifacts to Nexus') {
+            agent { label 'backend' }
+            when {
+                expression {
+                    env.CHANGED_SERVICE_NAMES?.trim() && (
+                        env.CHANGED_SERVICE_NAMES.contains('discovery') ||
+                        env.CHANGED_SERVICE_NAMES.contains('gateway') ||
+                        env.CHANGED_SERVICE_NAMES.contains('media') ||
+                        env.CHANGED_SERVICE_NAMES.contains('product') ||
+                        env.CHANGED_SERVICE_NAMES.contains('user') ||
+                        env.CHANGED_SERVICE_NAMES.contains('orders') ||
+                        env.CHANGED_SERVICE_NAMES.contains('search')
+                    )
+                }
+            }
+            environment {
+                NEXUS_URL = 'http://nexus:8081'
+            }
+            steps {
+                unstash 'source-code'
+                script {
+                    def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
+                    def changedBackendServiceNames = allChangedServiceNames.findAll {
+                        it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders' || it == 'search'
+                    }
+                    withCredentials([usernamePassword(credentialsId: 'nexus-ci-credentials', usernameVariable: 'NEXUS_CI_USER', passwordVariable: 'NEXUS_CI_PASSWORD')]) {
+                        changedBackendServiceNames.each { serviceName ->
+                            dir("Backend/${serviceName}") {
+                                sh """
+                                    mvn -s ../../settings.xml org.codehaus.mojo:versions-maven-plugin:2.16.2:set \
+                                        -DnewVersion=${env.CURRENT_COMMIT_SHORT_HASH} -DgenerateBackupPoms=false
+                                    mvn -s ../../settings.xml -DskipTests deploy
+                                """
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         stage('Build Docker Images') {
             agent { label 'backend' }
             when { expression { env.CHANGED_SERVICE_NAMES?.trim() } }
@@ -209,11 +249,17 @@ pipeline {
                 script {
                     def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
 
-                    allChangedServiceNames.each { serviceName ->
-                        sh """
-                            IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                            docker compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env build ${serviceName}
-                        """
+                    withCredentials([usernamePassword(credentialsId: 'nexus-ci-credentials', usernameVariable: 'NEXUS_CI_USER', passwordVariable: 'NEXUS_CI_PASSWORD')]) {
+                        allChangedServiceNames.each { serviceName ->
+                            sh """
+                                IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
+                                docker compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env build ${serviceName}
+
+                                echo "\$NEXUS_CI_PASSWORD" | docker login nexus:8082 -u "\$NEXUS_CI_USER" --password-stdin
+                                docker tag ${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH} nexus:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
+                                docker push nexus:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
+                            """
+                        }
                     }
                 }
             }

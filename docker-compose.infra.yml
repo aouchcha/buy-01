@@ -328,6 +328,32 @@ services:
     networks:
       - buy01-network
 
+  nexus:
+    image: sonatype/nexus3:latest
+    profiles:
+      - infra
+    restart: unless-stopped
+    # The sonatype/nexus3 image already runs as its built-in "nexus" user
+    # (uid/gid 200), not root — pinned explicitly here so it's auditable.
+    user: "200:200"
+    environment:
+      - INSTALL4J_ADD_VM_PARAMS=-Xms1200m -Xmx1200m -XX:MaxDirectMemorySize=2g
+    ports:
+      - "8081:8081"   # Nexus UI + Maven repositories (maven-public, maven-releases, maven-snapshots)
+      - "8082:8082"   # docker-hosted repository connector (docker login/push/pull)
+    expose:
+      - "8081"
+      - "8082"
+    volumes:
+      - nexus_data:/nexus-data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - buy01-network
+
 networks:
   buy01-network:
     driver: bridge
@@ -339,6 +365,7 @@ volumes:
   jenkins_home:
   sonarqube_db_data:
   sonarqube_data:
+  nexus_data:
   sonarqube_logs:
   sonarqube_extensions:
   orders_mongo_data:
