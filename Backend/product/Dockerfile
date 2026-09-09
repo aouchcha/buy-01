@@ -1,5 +1,5 @@
 # --- Build stage ---
-FROM maven:3.9-eclipse-temurin-21 AS build
+FROM maven:3.9-eclipse-temurin-11 AS build
 WORKDIR /app
 
 # Cache dependencies first
@@ -15,7 +15,7 @@ FROM build AS test
 CMD ["mvn", "test"]
 
 # --- Runtime stage ---
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:11-jre-alpine
 WORKDIR /app
 
 RUN addgroup -S spring && adduser -S spring -G spring

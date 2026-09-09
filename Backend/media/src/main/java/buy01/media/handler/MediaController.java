@@ -18,7 +18,7 @@ import buy01.media.dto.media.UpdateMedia;
 import buy01.media.dto.media.UploadRequest;
 import buy01.media.service.media.MediaService;
 // import buy01.media.service.media.Upload;
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/media")

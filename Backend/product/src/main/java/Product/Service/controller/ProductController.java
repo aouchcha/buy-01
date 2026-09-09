@@ -20,7 +20,7 @@ import Product.Service.dto.StockRequest;
 import Product.Service.dto.StockUpdateResult;
 import Product.Service.dto.StockRequest;
 import Product.Service.service.ProductService;
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @RestController
