@@ -78,11 +78,14 @@ public class ProductService {
             query.addCriteria(priceCriteria);
         }
 
-        Sort sort = switch (sortBy == null ? "" : sortBy) {
-            case "price_desc" -> Sort.by(Sort.Direction.DESC, "price");
-            case "newest" -> Sort.by(Sort.Direction.DESC, "createdAt");
-            default -> Sort.by(Sort.Direction.ASC, "price");
-        };
+        Sort sort;
+        if ("price_desc".equals(sortBy)) {
+            sort = Sort.by(Sort.Direction.DESC, "price");
+        } else if ("newest".equals(sortBy)) {
+            sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        } else {
+            sort = Sort.by(Sort.Direction.ASC, "price");
+        }
 
         query.with(sort).with(PageRequest.of(page, size));
 

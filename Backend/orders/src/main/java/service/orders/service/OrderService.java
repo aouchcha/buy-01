@@ -191,11 +191,15 @@ public class OrderService {
 
     private long getFromTimestamp(String period) {
         long now = System.currentTimeMillis();
-        return switch (period) {
-            case "today" -> now - 24L * 60 * 60 * 1000;
-            case "week"  -> now - 7L * 24 * 60 * 60 * 1000;
-            case "month" -> now - 30L * 24 * 60 * 60 * 1000;
-            default -> throw new IllegalArgumentException("Invalid period: " + period);
-        };
+        switch (period) {
+            case "today":
+                return now - 24L * 60 * 60 * 1000;
+            case "week":
+                return now - 7L * 24 * 60 * 60 * 1000;
+            case "month":
+                return now - 30L * 24 * 60 * 60 * 1000;
+            default:
+                throw new IllegalArgumentException("Invalid period: " + period);
+        }
     }
 }
