@@ -2,6 +2,7 @@ package service.orders.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -73,7 +74,7 @@ public class OrderService {
     public List<OrdersResponse> getOrdersByUserId(String userId) {
         return orderRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
                 .map(this::toResponse)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public OrdersResponse getOrderByIdAndUserId(String orderId, String userId) {
@@ -85,7 +86,7 @@ public class OrderService {
     private List<stockRequests> toStockRequests(List<CartItems> cartItems) {
         return cartItems.stream()
                 .map(item -> new stockRequests(item.getProductId(), item.getQuantity()))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private OrdersResponse toResponse(Order order) {
@@ -97,7 +98,7 @@ public class OrderService {
                         item.getPrice(),
                         item.getQuantity(),
                         item.getTotalPrice()))
-                .toList();
+                .collect(Collectors.toList());
 
         return new OrdersResponse(
                 order.getId(),

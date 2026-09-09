@@ -2,6 +2,7 @@ package service.orders.exception;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,7 +49,7 @@ public class GlobalExceptionHandler {
         List<String> outOfStockIds = e.getResult().items().stream()
                 .filter(item -> !item.success())
                 .map(ItemStockStatus::productId)
-                .toList();
+                .collect(Collectors.toList());
 
         Map<String, Object> body = Map.of(
                 "status", HttpStatus.BAD_REQUEST.value(),

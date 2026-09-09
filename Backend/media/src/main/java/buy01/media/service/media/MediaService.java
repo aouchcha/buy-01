@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.tika.Tika;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -92,7 +93,8 @@ public class MediaService {
                         pictures.getProductId(), urls);
                 kafkaTemplate.send("product.upload.success", pictures.getProductId(), success);
             }
-            List<MediaResponse> response = medias.stream().map(m -> Mappers.mapperToMEdiaResponse(m)).toList();
+            List<MediaResponse> response = medias.stream().map(m -> Mappers.mapperToMEdiaResponse(m))
+                    .collect(Collectors.toList());
             return response;
         } catch (Exception e) {
             throw new InternalError(e.getMessage());
@@ -189,9 +191,9 @@ public class MediaService {
                                     request.getUserId(),
                                     request.getProductId(),
                                     medias.stream()
-                                            .map(m -> m.getUrl()).toList()));
+                                            .map(m -> m.getUrl()).collect(Collectors.toList())));
                     return medias.stream().map(Mappers::mapperToMEdiaResponse)
-                            .toList();
+                            .collect(Collectors.toList());
                 }
 
             } catch (Exception e) {
@@ -240,7 +242,8 @@ public class MediaService {
         if (medias == null) {
             return new ArrayList<>();
         }
-        List<MediaResponse> urls = medias.stream().map(m -> Mappers.mapperToMEdiaResponse(m)).toList();
+        List<MediaResponse> urls = medias.stream().map(m -> Mappers.mapperToMEdiaResponse(m))
+                .collect(Collectors.toList());
         return urls;
     }
 

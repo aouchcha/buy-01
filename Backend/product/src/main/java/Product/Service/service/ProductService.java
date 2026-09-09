@@ -2,6 +2,7 @@ package Product.Service.service;
 
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -48,7 +49,7 @@ public class ProductService {
     public List<ProductResponse> getAllProduct() {
         return productRepository.findAll().stream()
                 .map(this::toResponse)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public List<ProductResponse> searchProducts(
@@ -91,7 +92,7 @@ public class ProductService {
 
         return mongoTemplate.find(query, Product.class).stream()
                 .map(this::toResponse)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public ProductResponse createProduct(ProductRequest productRequest, String userId) {
@@ -148,7 +149,7 @@ public class ProductService {
     public List<ProductResponse> getMyProduct(String userId) {
         return productRepository.findByUserId(userId).stream()
                 .map(this::toResponse)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private Product ownedProductOrThrow(String id, String userId) {
