@@ -120,14 +120,13 @@ pipeline {
                                 it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders'
                             }
                             withSonarQubeEnv('sonarqube-server') {
-                                // sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar -Dsonar.projectKey=buy01-backend'
                                 changedBackendServiceNames.each { serviceName ->
                                     dir("Backend/${serviceName}") {
                                         withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
                                             sh """
                             
                                                    echo "Running SonarQube analysis for service: ${serviceName}"
-                                                   mvn sonar:sonar \
+                                                   mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar \
                                                    -Dsonar.projectKey=buy01-${serviceName} \
                                                    -Dsonar.login=${SONAR_TOKEN}
                                             """
