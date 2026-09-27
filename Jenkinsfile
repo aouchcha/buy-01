@@ -153,40 +153,6 @@ pipeline {
                     }
                 }
             }
-
-            // steps {
-            //     script {
-            //         def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it?.trim() }
-            //         def backendServiceNames = allChangedServiceNames.findAll {
-            //             it == 'discovery' || it == 'gateway' || it == 'user' || it == 'media' || it == 'product'
-            //         }
-            //         def frontendChanged = allChangedServiceNames.contains('marketplace-ui')
-                    
-            //         if (backendServiceNames) {
-            //             node('backend') {
-            //                 unstash 'source-code'
-            //                 withSonarQubeEnv('sonarqube-server') {
-            //                     backendServiceNames.each { serviceName ->
-            //                         dir("Backend/${serviceName}") {
-            //                             sh 'mvn sonar:sonar'
-            //                         }
-            //                     }
-            //                 }
-            //             }
-            //         }
-
-            //         if (frontendChanged) {
-            //             node('frontend') {
-            //                 unstash 'source-code'
-            //                 withSonarQubeEnv('sonarqube-server') {
-            //                     dir('marketplace-ui') {
-            //                         sh 'sonar-scanner'
-            //                     }
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
         }
 
         stage('Quality Gate') {
@@ -251,9 +217,9 @@ pipeline {
                                 IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
                                 docker compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env build ${serviceName}
 
-                                echo "\$NEXUS_CI_PASSWORD" | docker login nexus:8082 -u "\$NEXUS_CI_USER" --password-stdin
-                                docker tag ${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH} nexus:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
-                                docker push nexus:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
+                                echo "\$NEXUS_CI_PASSWORD" | docker login localhost:8082 -u "\$NEXUS_CI_USER" --password-stdin
+                                docker tag ${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH} localhost:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
+                                docker push localhost:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
                             """
                         }
                     }
@@ -274,20 +240,6 @@ pipeline {
                 unstash 'source-code'
                 sh 'cp /home/jenkins/.env .env'
 
-                // sh '''
-                //     mkdir -p ssl
-                //     cp -r /home/jenkins/ssl/* ssl/ || true
-                // '''
-                // script {
-                //     def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it.trim() }
-
-                //     allChangedServiceNames.each { serviceName ->
-                //         sh """
-                //             IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                //             docker compose -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env up -d ${serviceName}
-                //         """
-                //     }
-                // }
                 sh """
                     IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
                     docker compose \
