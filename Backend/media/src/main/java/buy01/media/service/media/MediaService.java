@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.tika.Tika;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -51,7 +52,6 @@ public class MediaService {
     }
 
     public List<MediaResponse> UploadPics(UploadRequest pictures) {
-        System.out.println("=========================================================\nUploading Media");
         if (!CanUploadToR2(pictures.getPictures())) {
             throw new MyBadRequest("One Of the images is not valid image");
         }
@@ -76,7 +76,6 @@ public class MediaService {
                 String fileName = pictures.getType() + "/" + UUID.randomUUID().toString();
                 String contenType = tika.detect(pic.getBytes());
                 String url = r2.upload(fileName, contenType, pic.getBytes());
-                System.out.println("uuuuuuuuuuuuuuuuuuuuuuuuuuuu" + url);
                 urls.add(url);
                 MediaEntity media = new MediaEntity();
                 media.setOwnerId(pictures.getUserId());
@@ -90,12 +89,12 @@ public class MediaService {
                 AcceptedUpload success = new AcceptedUpload(pictures.getUserId(), urls);
                 kafkaTemplate.send("avatar.upload.success", pictures.getUserId(), success);
             } else {
-                System.out.println("PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP");
                 ProductImageUploadedEvent success = new ProductImageUploadedEvent(pictures.getUserId(),
                         pictures.getProductId(), urls);
                 kafkaTemplate.send("product.upload.success", pictures.getProductId(), success);
             }
-            List<MediaResponse> response = medias.stream().map(m -> Mappers.mapperToMEdiaResponse(m)).toList();
+            List<MediaResponse> response = medias.stream().map(m -> Mappers.mapperToMEdiaResponse(m))
+                    .collect(Collectors.toList());
             return response;
         } catch (Exception e) {
             throw new InternalError(e.getMessage());
@@ -121,15 +120,9 @@ public class MediaService {
                         request.getUserId())) {
             throw new MyForbiden("Product not found or you are not the owner.");
         }
-        // System.out.println(request.getProductId());
-        // System.out.println(request.getUserId());
-        // System.out.println(request.getType());
-        // System.out.println(request.getDeletedUrls());
-        // System.out.println(request.getNewImages());
         if (request.getDeletedUrls() != null) {
 
             for (String url : request.getDeletedUrls()) {
-                System.out.println("Deleting media with URL: " + url);
                 MediaEntity media = mediaRepository.findByUrl(url);
 
                 if (media == null) {
@@ -143,10 +136,7 @@ public class MediaService {
         MultipartFile[] images = request.getNewImages();
 
         if (images != null && images.length > 0) {
-            System.out.println("=============================================\n"+request.getProductId());
             List<MediaEntity> existingMedia = mediaRepository.findByProductIdAndType(request.getProductId(), "Product");
-            System.out.println("=============================================\n"+existingMedia.size());
-            System.out.println("=============================================\n"+images.length);
 
             if (existingMedia.size() + images.length > 3) {
                 throw new MyBadRequest("You can upload a maximum of 3 images for a product.");
@@ -172,7 +162,6 @@ public class MediaService {
                             contentType,
                             image.getBytes());
 
-                    // System.out.println("Uploaded media with URL: " + url);
                     MediaEntity media = new MediaEntity();
                     media.setOwnerId(request.getUserId());
                     media.setProductId(request.getProductId());
@@ -182,7 +171,6 @@ public class MediaService {
                     media = mediaRepository.save(media);
                     // uploadedUrls.add(url);
                 }
-                // System.out.println("Uploaded media URLs: " + uploadedUrls);
 
                 if ("Avatar".equals(type)) {
                     MediaEntity media = mediaRepository.findByOwnerIdAndType(request.getUserId(), "Avatar");
@@ -203,9 +191,9 @@ public class MediaService {
                                     request.getUserId(),
                                     request.getProductId(),
                                     medias.stream()
-                                            .map(m -> m.getUrl()).toList()));
+                                            .map(m -> m.getUrl()).collect(Collectors.toList())));
                     return medias.stream().map(Mappers::mapperToMEdiaResponse)
-                            .toList();
+                            .collect(Collectors.toList());
                 }
 
             } catch (Exception e) {
@@ -236,8 +224,6 @@ public class MediaService {
 
     private boolean CanUploadToR2(MultipartFile[] pics) throws RuntimeException {
         for (MultipartFile pic : pics) {
-            System.out.println("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKk" + pic.getName());
-
             try {
                 String detectedType = tika.detect(pic.getBytes());
                 if (!detectedType.startsWith("image/")) {
@@ -256,7 +242,8 @@ public class MediaService {
         if (medias == null) {
             return new ArrayList<>();
         }
-        List<MediaResponse> urls = medias.stream().map(m -> Mappers.mapperToMEdiaResponse(m)).toList();
+        List<MediaResponse> urls = medias.stream().map(m -> Mappers.mapperToMEdiaResponse(m))
+                .collect(Collectors.toList());
         return urls;
     }
 
@@ -281,10 +268,8 @@ public class MediaService {
         r2.delete(media.getUrl());
         if (media.getType().equals("Avatar")) {
             AvatarDeleted event = new AvatarDeleted(userId);
-            System.out.println("=============================================================\n avatar deleted published");
             kafkaTemplate.send("avatar.deleted", media.getOwnerId(), event);
         } else {
-            System.out.println("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM " + media.getUrl());
             DeleteEvent event = new DeleteEvent(media.getProductId(), media.getOwnerId(), media.getUrl());
             kafkaTemplate.send("product.media.deleted", media.getProductId(), event);
         }

@@ -17,15 +17,3 @@ export interface SearchParams {
   page?: number;
   size?: number;
 }
-
-export interface ProductDocument {
-  id: string;
-  productName: string;
-  description: string;
-  category: string;
-  sellerId: string;
-  price: number;
-  createdAt: string;
-  imageUrls: string[];
-  quantity: number;
-}

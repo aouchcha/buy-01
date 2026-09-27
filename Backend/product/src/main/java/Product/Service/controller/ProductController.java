@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PatchMapping;
 
@@ -19,8 +20,9 @@ import Product.Service.dto.ProductResponse;
 import Product.Service.dto.StockRequest;
 import Product.Service.dto.StockUpdateResult;
 import Product.Service.dto.StockRequest;
+import Product.Service.model.Category;
 import Product.Service.service.ProductService;
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @RestController
@@ -37,9 +39,20 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAllProduct() {
-        System.out.println(
-                "============================================================================\n===============++=================++++==============++=========================\n=============================\n");
         return ResponseEntity.ok(productService.getAllProduct());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ProductResponse>> searchProducts(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Category category,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size) {
+        return ResponseEntity.ok(
+                productService.searchProducts(keyword, category, minPrice, maxPrice, sortBy, page, size));
     }
 
     @PostMapping

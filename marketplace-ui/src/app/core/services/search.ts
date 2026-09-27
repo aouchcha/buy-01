@@ -3,16 +3,17 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { ProductDocument, SearchParams } from '../models/search';
+import { ProductDto } from '../models/product';
+import { SearchParams } from '../models/search';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SearchService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/search/products`;
+  private readonly apiUrl = `${environment.apiUrl}/product/search`;
 
-  search(params: SearchParams): Observable<ProductDocument[]> {
+  search(params: SearchParams): Observable<ProductDto[]> {
     let httpParams = new HttpParams();
     if (params.keyword) httpParams = httpParams.set('keyword', params.keyword);
     if (params.category) httpParams = httpParams.set('category', params.category);
@@ -22,6 +23,6 @@ export class SearchService {
     httpParams = httpParams.set('page', params.page ?? 0);
     httpParams = httpParams.set('size', params.size ?? 12);
 
-    return this.http.get<ProductDocument[]>(this.apiUrl, { params: httpParams });
+    return this.http.get<ProductDto[]>(this.apiUrl, { params: httpParams });
   }
 }

@@ -1,1 +1,0 @@
-export USER_ID=`id -u`

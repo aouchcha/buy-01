@@ -1,6 +1,6 @@
 package buy01.user.config.Security;
 
-import org.springframework.boot.security.autoconfigure.actuate.web.servlet.EndpointRequest;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -36,10 +36,10 @@ public class FilterChainConfig {
                 .sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(headerAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/auth/**").permitAll()
-                    .requestMatchers(HttpMethod.DELETE, "/api/users/{id}").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.GET, "/api/users/all").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.GET, "/api/users/{id}").permitAll()
+                    .antMatchers("/api/auth/**").permitAll()
+                    .antMatchers(HttpMethod.DELETE, "/api/users/{id}").hasRole("ADMIN")
+                    .antMatchers(HttpMethod.GET, "/api/users/all").hasRole("ADMIN")
+                    .antMatchers(HttpMethod.GET, "/api/users/{id}").permitAll()
                     .requestMatchers(EndpointRequest.to("health")).permitAll()
                     .anyRequest().authenticated());
         return http.build();

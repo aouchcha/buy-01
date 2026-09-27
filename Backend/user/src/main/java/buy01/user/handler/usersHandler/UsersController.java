@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import buy01.user.dto.User.UpdateMe;
 import buy01.user.dto.User.Userdto;
 import buy01.user.service.usersService.UsersService;
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/users")

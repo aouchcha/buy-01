@@ -36,9 +36,7 @@ public class R2StorageService {
     }
 
     public void delete(String fileName) {
-        System.out.println(fileName);
         fileName = fileName.substring(publicUrl.length()+1);
-        System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" + fileName);
         s3Client.deleteObject(
             DeleteObjectRequest.builder()
             .bucket(bucket)

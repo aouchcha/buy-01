@@ -25,6 +25,11 @@ services:
       timeout: 5s
       retries: 20
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -54,6 +59,11 @@ services:
       timeout: 5s
       retries: 20
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -83,6 +93,11 @@ services:
       timeout: 5s
       retries: 20
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
     
@@ -112,40 +127,42 @@ services:
       timeout: 5s
       retries: 20
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.4.0
-    profiles:
-      - infra
-    restart: unless-stopped
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-      KAFKA_HEAP_OPTS: "-Xmx256m -Xms256m"
-    expose:
-      - "2181"
-    networks:
-      - buy01-network
-
+  # KRaft mode: Kafka acts as its own metadata quorum (combined broker +
+  # controller, single node) — no Zookeeper service needed.
   kafka:
-    image: confluentinc/cp-kafka:7.4.0
+    image: confluentinc/cp-kafka:7.6.1
     profiles:
       - infra
-    depends_on:
-      - zookeeper
     expose:
       - "29092"
     restart: unless-stopped
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      # Fixed cluster ID for this single dev broker (same well-known example
+      # value used in Apache Kafka's own KRaft quickstart docs).
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
       KAFKA_HEAP_OPTS: "-Xmx512m -Xms256m"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
     
@@ -161,6 +178,11 @@ services:
     expose:
       - "8080"
       - "50000"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
     volumes:
@@ -180,11 +202,18 @@ services:
     volumes:
       - /run/user/${USER_ID}/docker.sock:/var/run/docker.sock
       - ./.env:/home/jenkins/.env
+    userns_mode: "host"
+    user: root
     group_add:
-      - "999"
+      - "55297"
     depends_on:
       jenkins-master:
         condition: service_started
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -201,11 +230,18 @@ services:
     volumes:
       - /run/user/${USER_ID}/docker.sock:/var/run/docker.sock
       - ./.env:/home/jenkins/.env
+    userns_mode: "host"
+    user: root
     group_add:
-      - "999"
+      - "55297"
     depends_on:
       jenkins-master:
         condition: service_started
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -221,6 +257,11 @@ services:
       - sonarqube_db_data:/var/lib/postgresql/data
     expose:
       - "5432"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -243,28 +284,37 @@ services:
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_logs:/opt/sonarqube/logs
       - sonarqube_extensions:/opt/sonarqube/extensions
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:9.5.2
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
-      start_period: 30s
+  nexus:
+    image: sonatype/nexus3:latest
     profiles:
       - infra
+    restart: unless-stopped
+    # The sonatype/nexus3 image already runs as its built-in "nexus" user
+    # (uid/gid 200), not root — pinned explicitly here so it's auditable.
+    user: "200:200"
     environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - INSTALL4J_ADD_VM_PARAMS=-Xms1200m -Xmx1200m -XX:MaxDirectMemorySize=2g
+    ports:
+      - "8081:8081"   # Nexus UI + Maven repositories (maven-public, maven-releases, maven-snapshots)
+      - "8082:8082"   # docker-hosted repository connector (docker login/push/pull)
     expose:
-      - 9200
+      - "8081"
+      - "8082"
     volumes:
-      - es_data:/usr/share/elasticsearch/data
+      - nexus_data:/nexus-data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - buy01-network
 
@@ -279,7 +329,7 @@ volumes:
   jenkins_home:
   sonarqube_db_data:
   sonarqube_data:
+  nexus_data:
   sonarqube_logs:
   sonarqube_extensions:
   orders_mongo_data:
-  es_data:

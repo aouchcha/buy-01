@@ -1,6 +1,7 @@
 package buy01.user.service.usersService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,7 +35,7 @@ public class UsersService {
     }
 
     public List<Userdto> getAllUsers() {
-        return UserRepository.findAll().stream().map(user -> Mapper.MappToUSerDto(user)).toList();
+        return UserRepository.findAll().stream().map(user -> Mapper.MappToUSerDto(user)).collect(Collectors.toList());
     }
 
     public Userdto getUserById(String id) {

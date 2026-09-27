@@ -58,8 +58,7 @@ pipeline {
                             env.CHANGED_SERVICE_NAMES.contains('media') ||
                             env.CHANGED_SERVICE_NAMES.contains('product') ||
                             env.CHANGED_SERVICE_NAMES.contains('user') ||
-                            env.CHANGED_SERVICE_NAMES.contains('orders') ||
-                            env.CHANGED_SERVICE_NAMES.contains('search')
+                            env.CHANGED_SERVICE_NAMES.contains('orders')
                         }
                     }
                     steps {
@@ -67,7 +66,7 @@ pipeline {
                         script {
                             def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
                             def changedBackendServiceNames = allChangedServiceNames.findAll {
-                                it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders' || it == 'search'
+                                it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders'
                             }
 
                             changedBackendServiceNames.each { serviceName ->
@@ -110,8 +109,7 @@ pipeline {
                             env.CHANGED_SERVICE_NAMES.contains('media') ||
                             env.CHANGED_SERVICE_NAMES.contains('product') ||
                             env.CHANGED_SERVICE_NAMES.contains('user') ||
-                            env.CHANGED_SERVICE_NAMES.contains('orders') ||
-                            env.CHANGED_SERVICE_NAMES.contains('search')
+                            env.CHANGED_SERVICE_NAMES.contains('orders')
                         }
                     }
                     steps {
@@ -119,17 +117,16 @@ pipeline {
                         script {
                             def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
                             def changedBackendServiceNames = allChangedServiceNames.findAll {
-                                it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders' || it == 'search'
+                                it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders'
                             }
                             withSonarQubeEnv('sonarqube-server') {
-                                // sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar -Dsonar.projectKey=buy01-backend'
                                 changedBackendServiceNames.each { serviceName ->
                                     dir("Backend/${serviceName}") {
                                         withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
                                             sh """
                             
                                                    echo "Running SonarQube analysis for service: ${serviceName}"
-                                                   mvn sonar:sonar \
+                                                   mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar \
                                                    -Dsonar.projectKey=buy01-${serviceName} \
                                                    -Dsonar.login=${SONAR_TOKEN}
                                             """
@@ -156,40 +153,6 @@ pipeline {
                     }
                 }
             }
-
-            // steps {
-            //     script {
-            //         def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it?.trim() }
-            //         def backendServiceNames = allChangedServiceNames.findAll {
-            //             it == 'discovery' || it == 'gateway' || it == 'user' || it == 'media' || it == 'product'
-            //         }
-            //         def frontendChanged = allChangedServiceNames.contains('marketplace-ui')
-                    
-            //         if (backendServiceNames) {
-            //             node('backend') {
-            //                 unstash 'source-code'
-            //                 withSonarQubeEnv('sonarqube-server') {
-            //                     backendServiceNames.each { serviceName ->
-            //                         dir("Backend/${serviceName}") {
-            //                             sh 'mvn sonar:sonar'
-            //                         }
-            //                     }
-            //                 }
-            //             }
-            //         }
-
-            //         if (frontendChanged) {
-            //             node('frontend') {
-            //                 unstash 'source-code'
-            //                 withSonarQubeEnv('sonarqube-server') {
-            //                     dir('marketplace-ui') {
-            //                         sh 'sonar-scanner'
-            //                     }
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
         }
 
         stage('Quality Gate') {
@@ -197,6 +160,45 @@ pipeline {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Publish Backend Artifacts to Nexus') {
+            agent { label 'backend' }
+            when {
+                expression {
+                    env.CHANGED_SERVICE_NAMES?.trim() && (
+                        env.CHANGED_SERVICE_NAMES.contains('discovery') ||
+                        env.CHANGED_SERVICE_NAMES.contains('gateway') ||
+                        env.CHANGED_SERVICE_NAMES.contains('media') ||
+                        env.CHANGED_SERVICE_NAMES.contains('product') ||
+                        env.CHANGED_SERVICE_NAMES.contains('user') ||
+                        env.CHANGED_SERVICE_NAMES.contains('orders')
+                    )
+                }
+            }
+            environment {
+                NEXUS_URL = 'http://nexus:8081'
+            }
+            steps {
+                unstash 'source-code'
+                script {
+                    def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
+                    def changedBackendServiceNames = allChangedServiceNames.findAll {
+                        it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders'
+                    }
+                    withCredentials([usernamePassword(credentialsId: 'nexus-ci-credentials', usernameVariable: 'NEXUS_CI_USER', passwordVariable: 'NEXUS_CI_PASSWORD')]) {
+                        changedBackendServiceNames.each { serviceName ->
+                            dir("Backend/${serviceName}") {
+                                sh """
+                                    mvn -s ../../settings.xml org.codehaus.mojo:versions-maven-plugin:2.16.2:set \
+                                        -DnewVersion=${env.CURRENT_COMMIT_SHORT_HASH} -DgenerateBackupPoms=false
+                                    mvn -s ../../settings.xml -DskipTests deploy
+                                """
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -209,11 +211,17 @@ pipeline {
                 script {
                     def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
 
-                    allChangedServiceNames.each { serviceName ->
-                        sh """
-                            IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                            docker compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env build ${serviceName}
-                        """
+                    withCredentials([usernamePassword(credentialsId: 'nexus-ci-credentials', usernameVariable: 'NEXUS_CI_USER', passwordVariable: 'NEXUS_CI_PASSWORD')]) {
+                        allChangedServiceNames.each { serviceName ->
+                            sh """
+                                IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
+                                docker compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env build ${serviceName}
+
+                                echo "\$NEXUS_CI_PASSWORD" | docker login localhost:8082 -u "\$NEXUS_CI_USER" --password-stdin
+                                docker tag ${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH} localhost:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
+                                docker push localhost:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
+                            """
+                        }
                     }
                 }
             }
@@ -232,20 +240,6 @@ pipeline {
                 unstash 'source-code'
                 sh 'cp /home/jenkins/.env .env'
 
-                // sh '''
-                //     mkdir -p ssl
-                //     cp -r /home/jenkins/ssl/* ssl/ || true
-                // '''
-                // script {
-                //     def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',').findAll { it.trim() }
-
-                //     allChangedServiceNames.each { serviceName ->
-                //         sh """
-                //             IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                //             docker compose -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env up -d ${serviceName}
-                //         """
-                //     }
-                // }
                 sh """
                     IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
                     docker compose \
@@ -253,8 +247,16 @@ pipeline {
                       -f docker-compose.yml \
                       -f docker-compose.infra.yml \
                       --env-file /home/jenkins/.env \
-                      up -d --no-deps discovery gateway product user media search orders marketplace-ui
+                      up -d --no-deps discovery gateway product user media orders marketplace-ui
                 """
+            }
+        }
+
+        stage('Cleanup Docker Images') {
+            agent { label 'backend' }
+            when { branch 'main' }
+            steps {
+                sh 'docker image prune -af --filter "until=72h" || true'
             }
         }
     }

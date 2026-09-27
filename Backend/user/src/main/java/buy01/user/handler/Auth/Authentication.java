@@ -12,7 +12,7 @@ import buy01.user.dto.Auth.LoginRequest;
 import buy01.user.dto.Auth.RegisterRequest;
 import buy01.user.service.Auth.LoginService;
 import buy01.user.service.Auth.RegisterService;
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
