@@ -58,7 +58,7 @@ credentials:
             id: "nexus-ci-credentials"
             username: "${NEXUS_CI_USERNAME}"
             password: "${NEXUS_CI_PASSWORD}"
-            description: "Nexus service account used by CI to publish Maven artifacts and Docker images."
+            description: "Nexus service account used by CI to publish Maven artifacts and Docker images"
           - string:
               scope: GLOBAL
               id: "sonarqube-token"
