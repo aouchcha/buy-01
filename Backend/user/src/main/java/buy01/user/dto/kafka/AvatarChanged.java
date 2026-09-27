@@ -19,7 +19,15 @@ public final class AvatarChanged {
         return userId;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
     public String url() {
+        return url;
+    }
+
+    public String getUrl() {
         return url;
     }
 

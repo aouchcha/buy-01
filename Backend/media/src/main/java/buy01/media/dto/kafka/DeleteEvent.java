@@ -24,11 +24,24 @@ public final class DeleteEvent {
         return productId;
     }
 
+    public String getProductId() {
+        return productId;
+    }
+
     public String userId() {
         return userId;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
     public String MediaUrl() {
+        return MediaUrl;
+    }
+
+    @JsonProperty("MediaUrl")
+    public String getMediaUrl() {
         return MediaUrl;
     }
 

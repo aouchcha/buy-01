@@ -49,7 +49,15 @@ public final class ShippingAddressRequest {
         return fullName;
     }
 
+    public String getFullName() {
+        return fullName;
+    }
+
     public String address() {
+        return address;
+    }
+
+    public String getAddress() {
         return address;
     }
 
@@ -57,11 +65,23 @@ public final class ShippingAddressRequest {
         return city;
     }
 
+    public String getCity() {
+        return city;
+    }
+
     public String postalCode() {
         return postalCode;
     }
 
+    public String getPostalCode() {
+        return postalCode;
+    }
+
     public String phone() {
+        return phone;
+    }
+
+    public String getPhone() {
         return phone;
     }
 

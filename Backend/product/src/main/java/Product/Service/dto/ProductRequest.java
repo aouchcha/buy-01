@@ -54,7 +54,15 @@ public final class ProductRequest {
         return name;
     }
 
+    public String getName() {
+        return name;
+    }
+
     public String description() {
+        return description;
+    }
+
+    public String getDescription() {
         return description;
     }
 
@@ -62,11 +70,23 @@ public final class ProductRequest {
         return price;
     }
 
+    public Double getPrice() {
+        return price;
+    }
+
     public Integer quantity() {
         return quantity;
     }
 
+    public Integer getQuantity() {
+        return quantity;
+    }
+
     public Category category() {
+        return category;
+    }
+
+    public Category getCategory() {
         return category;
     }
 

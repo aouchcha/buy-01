@@ -19,7 +19,15 @@ public final class ProductCreated {
         return productId;
     }
 
+    public String getProductId() {
+        return productId;
+    }
+
     public String ownerId() {
+        return ownerId;
+    }
+
+    public String getOwnerId() {
         return ownerId;
     }
 

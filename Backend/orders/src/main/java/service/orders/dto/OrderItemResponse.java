@@ -33,7 +33,15 @@ public final class OrderItemResponse {
         return productId;
     }
 
+    public String getProductId() {
+        return productId;
+    }
+
     public String productName() {
+        return productName;
+    }
+
+    public String getProductName() {
         return productName;
     }
 
@@ -41,7 +49,15 @@ public final class OrderItemResponse {
         return sellerId;
     }
 
+    public String getSellerId() {
+        return sellerId;
+    }
+
     public double price() {
+        return price;
+    }
+
+    public double getPrice() {
         return price;
     }
 
@@ -49,7 +65,15 @@ public final class OrderItemResponse {
         return quantity;
     }
 
+    public int getQuantity() {
+        return quantity;
+    }
+
     public double totalPrice() {
+        return totalPrice;
+    }
+
+    public double getTotalPrice() {
         return totalPrice;
     }
 

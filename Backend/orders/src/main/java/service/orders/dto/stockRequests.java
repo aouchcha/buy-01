@@ -19,7 +19,15 @@ public final class stockRequests {
         return productId;
     }
 
+    public String getProductId() {
+        return productId;
+    }
+
     public int quantity() {
+        return quantity;
+    }
+
+    public int getQuantity() {
         return quantity;
     }
 

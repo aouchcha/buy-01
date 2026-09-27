@@ -3,11 +3,13 @@ package Product.Service.dto;
 import java.util.List;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import Product.Service.model.Category;
 
+@JsonAutoDetect (fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public final class ProductResponse {
     private final String id;
     private final String name;
@@ -42,7 +44,15 @@ public final class ProductResponse {
         return id;
     }
 
+    public String getId() {
+        return id;
+    }
+
     public String name() {
+        return name;
+    }
+
+    public String getName() {
         return name;
     }
 
@@ -50,7 +60,15 @@ public final class ProductResponse {
         return description;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     public double price() {
+        return price;
+    }
+
+    public double getPrice() {
         return price;
     }
 
@@ -58,7 +76,15 @@ public final class ProductResponse {
         return quantity;
     }
 
+    public Integer getQuantity() {
+        return quantity;
+    }
+
     public String userId() {
+        return userId;
+    }
+
+    public String getUserId() {
         return userId;
     }
 
@@ -66,7 +92,15 @@ public final class ProductResponse {
         return category;
     }
 
+    public Category getCategory() {
+        return category;
+    }
+
     public List<String> imageUrls() {
+        return imageUrls;
+    }
+
+    public List<String> getImageUrls() {
         return imageUrls;
     }
 

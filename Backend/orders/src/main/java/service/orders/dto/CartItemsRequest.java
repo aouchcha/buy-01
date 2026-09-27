@@ -28,7 +28,15 @@ public final class CartItemsRequest {
         return productId;
     }
 
+    public String getProductId() {
+        return productId;
+    }
+
     public Integer quantity() {
+        return quantity;
+    }
+
+    public Integer getQuantity() {
         return quantity;
     }
 

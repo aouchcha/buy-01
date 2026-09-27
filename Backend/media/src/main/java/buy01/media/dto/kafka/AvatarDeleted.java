@@ -17,6 +17,10 @@ public final class AvatarDeleted {
         return userId;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

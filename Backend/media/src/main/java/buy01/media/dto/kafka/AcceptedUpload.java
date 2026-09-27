@@ -20,7 +20,16 @@ public final class AcceptedUpload {
         return userId;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
     public List<String> MediaUrls() {
+        return MediaUrls;
+    }
+
+    @JsonProperty("MediaUrls")
+    public List<String> getMediaUrls() {
         return MediaUrls;
     }
 

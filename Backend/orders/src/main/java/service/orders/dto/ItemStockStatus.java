@@ -30,7 +30,15 @@ public final class ItemStockStatus {
         return productId;
     }
 
+    public String getProductId() {
+        return productId;
+    }
+
     public boolean success() {
+        return success;
+    }
+
+    public boolean getSuccess() {
         return success;
     }
 
@@ -38,11 +46,23 @@ public final class ItemStockStatus {
         return requestedQuantity;
     }
 
+    public int getRequestedQuantity() {
+        return requestedQuantity;
+    }
+
     public int availableStock() {
         return availableStock;
     }
 
+    public int getAvailableStock() {
+        return availableStock;
+    }
+
     public String message() {
+        return message;
+    }
+
+    public String getMessage() {
         return message;
     }
 

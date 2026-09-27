@@ -122,9 +122,7 @@ class ProductControllerTest {
 
     @Test
     void shouldReturn400_whenCreateRequestBodyIsInvalid() throws Exception {
-        String invalidJson = """
-                {"name": "", "description": "short", "price": -1.0, "quantity": 0}
-                """;
+        String invalidJson = "{\"name\": \"\", \"description\": \"short\", \"price\": -1.0, \"quantity\": 0}";
 
         mockMvc.perform(post("/api/product")
                         .contentType(MediaType.APPLICATION_JSON)

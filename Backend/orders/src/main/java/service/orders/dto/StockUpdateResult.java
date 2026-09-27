@@ -22,7 +22,15 @@ public final class StockUpdateResult {
         return allSuccessful;
     }
 
+    public boolean getAllSuccessful() {
+        return allSuccessful;
+    }
+
     public List<ItemStockStatus> items() {
+        return items;
+    }
+
+    public List<ItemStockStatus> getItems() {
         return items;
     }
 

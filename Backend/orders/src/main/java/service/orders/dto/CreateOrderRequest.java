@@ -31,7 +31,15 @@ public final class CreateOrderRequest {
         return shippingAddress;
     }
 
+    public ShippingAddressRequest getShippingAddress() {
+        return shippingAddress;
+    }
+
     public PaymentMethod paymentMethod() {
+        return paymentMethod;
+    }
+
+    public PaymentMethod getPaymentMethod() {
         return paymentMethod;
     }
 

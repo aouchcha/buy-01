@@ -25,11 +25,23 @@ public final class ProductImageUploadedEvent {
         return userId;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
     public String productId() {
         return productId;
     }
 
+    public String getProductId() {
+        return productId;
+    }
+
     public List<String> imageUrls() {
+        return imageUrls;
+    }
+
+    public List<String> getImageUrls() {
         return imageUrls;
     }
 

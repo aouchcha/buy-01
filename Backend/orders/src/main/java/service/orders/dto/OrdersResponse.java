@@ -52,7 +52,15 @@ public final class OrdersResponse {
         return id;
     }
 
+    public String getId() {
+        return id;
+    }
+
     public String userId() {
+        return userId;
+    }
+
+    public String getUserId() {
         return userId;
     }
 
@@ -60,7 +68,15 @@ public final class OrdersResponse {
         return fullName;
     }
 
+    public String getFullName() {
+        return fullName;
+    }
+
     public String phoneNumber() {
+        return phoneNumber;
+    }
+
+    public String getPhoneNumber() {
         return phoneNumber;
     }
 
@@ -68,7 +84,15 @@ public final class OrdersResponse {
         return city;
     }
 
+    public String getCity() {
+        return city;
+    }
+
     public String address() {
+        return address;
+    }
+
+    public String getAddress() {
         return address;
     }
 
@@ -76,7 +100,15 @@ public final class OrdersResponse {
         return postalCode;
     }
 
+    public String getPostalCode() {
+        return postalCode;
+    }
+
     public String status() {
+        return status;
+    }
+
+    public String getStatus() {
         return status;
     }
 
@@ -84,7 +116,15 @@ public final class OrdersResponse {
         return paymentMethod;
     }
 
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
     public long createdAt() {
+        return createdAt;
+    }
+
+    public long getCreatedAt() {
         return createdAt;
     }
 
@@ -92,7 +132,15 @@ public final class OrdersResponse {
         return totalAmount;
     }
 
+    public double getTotalAmount() {
+        return totalAmount;
+    }
+
     public List<OrderItemResponse> cartItems() {
+        return cartItems;
+    }
+
+    public List<OrderItemResponse> getCartItems() {
         return cartItems;
     }
 

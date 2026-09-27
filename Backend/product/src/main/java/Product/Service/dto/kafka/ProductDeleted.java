@@ -17,6 +17,10 @@ public final class ProductDeleted {
         return productId;
     }
 
+    public String getProductId() {
+        return productId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
