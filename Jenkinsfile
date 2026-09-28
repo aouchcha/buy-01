@@ -1,6 +1,10 @@
 pipeline {
     agent none
 
+    options {
+        skipDefaultCheckout(true)
+    }
+
     environment {
         NOTIFICATION_EMAIL_RECIPIENT = 'yahyakhaldy2@gmail.com, ouchchatea@gmail.com'
         COMPOSE_PROJECT_NAME = "buy-02"
@@ -52,6 +56,7 @@ pipeline {
                 stage('Backend Services') {
                     agent { label 'backend' }
                     when {
+                        beforeAgent true
                         expression {
                             env.CHANGED_SERVICE_NAMES.contains('discovery') ||
                             env.CHANGED_SERVICE_NAMES.contains('gateway') ||
@@ -82,6 +87,7 @@ pipeline {
                 stage('Frontend Application') {
                     agent { label 'frontend' }
                     when {
+                        beforeAgent true
                         expression { env.CHANGED_SERVICE_NAMES.contains('marketplace-ui') }
                     }
                     steps {
@@ -103,6 +109,7 @@ pipeline {
                 stage('Backend SonarQube Analysis') {
                     agent { label 'backend' }
                     when {
+                        beforeAgent true
                         expression {
                             env.CHANGED_SERVICE_NAMES.contains('discovery') ||
                             env.CHANGED_SERVICE_NAMES.contains('gateway') ||
@@ -141,6 +148,7 @@ pipeline {
                 stage('Frontend SonarQube Analysis') {
                     agent { label 'frontend' }
                     when {
+                        beforeAgent true
                         expression { env.CHANGED_SERVICE_NAMES.contains('marketplace-ui') }
                     }
                     steps {
@@ -167,6 +175,7 @@ pipeline {
         stage('Publish Backend Artifacts to Nexus') {
             agent { label 'backend' }
             when {
+                beforeAgent true
                 expression {
                     env.CHANGED_SERVICE_NAMES?.trim() && (
                         env.CHANGED_SERVICE_NAMES.contains('discovery') ||
@@ -205,7 +214,10 @@ pipeline {
 
         stage('Build Container Images') {
             agent { label 'backend' }
-            when { expression { env.CHANGED_SERVICE_NAMES?.trim() } }
+            when {
+                beforeAgent true
+                expression { env.CHANGED_SERVICE_NAMES?.trim() }
+            }
             steps {
                 unstash 'source-code'
                 script {
@@ -230,6 +242,7 @@ pipeline {
         stage('Deploy To Main Environment') {
             agent { label 'backend' }
             when {
+                beforeAgent true
                 allOf {
                     branch 'main'
                     // expression { env.CHANGED_SERVICE_NAMES?.trim() }
@@ -254,7 +267,10 @@ pipeline {
 
         stage('Cleanup Unused Container Images') {
             agent { label 'backend' }
-            when { branch 'main' }
+            when {
+                beforeAgent true
+                branch 'main'
+            }
             steps {
                 sh 'podman image prune -af --filter "until=72h" || true'
             }
