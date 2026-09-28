@@ -1,12 +1,12 @@
 # Nexus Repository Manager — Setup & Integration
 
 Artifact management for buy-01: Nexus stores Maven artifacts (JARs) for the
-7 Spring Boot services and Docker images for all 8 services (7 backend +
+7 Spring Boot services and container images for all 8 services (7 backend +
 `marketplace-ui`), and acts as a caching proxy for Maven Central so builds
 don't depend on the public internet at build time.
 
 > **Status**: written and syntax-checked, **not verified end-to-end** — no
-> Docker daemon was available in the environment this was built in, so
+> live Podman engine was available when this was originally written, so
 > nothing here has actually been run against a live Nexus instance. Follow
 > the verification commands in each section before trusting this in CI.
 
@@ -16,7 +16,7 @@ Nexus runs as a service in `docker-compose.infra.yml`, alongside SonarQube
 and Elasticsearch, under the `infra` profile.
 
 ```bash
-docker compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml \
+podman compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml \
   --env-file .env up -d nexus
 ```
 
@@ -25,7 +25,7 @@ docker compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml
   satisfying the project constraint.
 - Data persists in the `nexus_data` named volume (`/nexus-data`).
 - Ports: `8081` (UI + Maven repositories), `8082` (Docker hosted repository
-  connector — separate port because Docker's registry protocol needs its own
+  connector — separate port because the registry protocol needs its own
   HTTP connector in Nexus).
 - Give it 2-3 minutes on first boot — Nexus is a JVM app and is slow to start.
 
@@ -48,7 +48,7 @@ Nexus 3 ships 4 Maven repositories by default — nothing to create:
 
 `docker-hosted` does **not** exist by default and is created by the
 provisioning script below, together with the Docker Bearer Token realm
-(required for `docker login`/push/pull against Nexus) and RBAC.
+(required for Podman login/push/pull against Nexus) and RBAC.
 
 ### Provisioning script
 
@@ -105,7 +105,7 @@ NEXUS_URL=http://localhost:8081 NEXUS_CI_USER=ci NEXUS_CI_PASSWORD='<...>' \
 Services were left at `0.0.1-SNAPSHOT` in `pom.xml` — that value is never
 published as-is. In CI, `versions-maven-plugin` rewrites the version to the
 7-character Git commit hash (`env.CURRENT_COMMIT_SHORT_HASH`, already
-computed in the `Checkout Source Code` stage and already used to tag Docker
+computed in the `Checkout Source Code` stage and already used to tag container
 images) immediately before `mvn deploy`:
 
 ```bash
@@ -113,7 +113,7 @@ mvn -s ../../settings.xml org.codehaus.mojo:versions-maven-plugin:2.16.2:set \
   -DnewVersion=<commit-hash> -DgenerateBackupPoms=false
 ```
 
-This means a Docker image tag and the Maven artifact version inside it are
+This means a container image tag and the Maven artifact version inside it are
 always the same string — you can go from a running container back to the
 exact JAR (and commit) it was built from, which is the traceability/rollback
 requirement in the brief. To pull an older version:
@@ -123,13 +123,13 @@ curl -u ci:<password> -O \
   http://localhost:8081/repository/maven-releases/Product/Product/<commit-hash>/Product-<commit-hash>.jar
 ```
 
-## 4. Docker integration
+## 4. Podman integration
 
 ```bash
-docker login localhost:8082 -u ci
-docker tag product:<tag> localhost:8082/product:<tag>
-docker push localhost:8082/product:<tag>
-docker pull localhost:8082/product:<tag>   # from any machine that can reach Nexus
+podman login localhost:8082 -u ci
+podman tag product:<tag> localhost:8082/product:<tag>
+podman push localhost:8082/product:<tag>
+podman pull localhost:8082/product:<tag>   # from any machine that can reach Nexus
 ```
 
 ## 5. CI/CD pipeline (Jenkinsfile)
@@ -139,7 +139,7 @@ nothing broken or failing SonarQube's gate gets published:
 
 - **`Publish Backend Artifacts to Nexus`** — for each changed backend
   service: bump the version to the commit hash, then `mvn deploy`.
-- **`Build Docker Images`** (extended) — after `docker compose build`, tag
+- **`Build Container Images`** (extended) — after `podman compose build`, tag
   and push the image to `nexus:8082` for every changed service (backend
   *and* `marketplace-ui`).
 

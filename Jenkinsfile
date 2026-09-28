@@ -203,7 +203,7 @@ pipeline {
             }
         }
 
-        stage('Build Docker Images') {
+        stage('Build Container Images') {
             agent { label 'backend' }
             when { expression { env.CHANGED_SERVICE_NAMES?.trim() } }
             steps {
@@ -215,11 +215,11 @@ pipeline {
                         allChangedServiceNames.each { serviceName ->
                             sh """
                                 IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                                docker compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env build ${serviceName}
+                                podman compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env build ${serviceName}
 
-                                echo "\$NEXUS_CI_PASSWORD" | docker login localhost:8082 -u "\$NEXUS_CI_USER" --password-stdin
-                                docker tag ${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH} localhost:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
-                                docker push localhost:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
+                                echo "\$NEXUS_CI_PASSWORD" | podman login localhost:8082 -u "\$NEXUS_CI_USER" --password-stdin
+                                podman tag ${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH} localhost:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
+                                podman push localhost:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
                             """
                         }
                     }
@@ -242,7 +242,7 @@ pipeline {
 
                 sh """
                     IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                    docker compose \
+                    podman compose \
                       --profile infra \
                       -f docker-compose.yml \
                       -f docker-compose.infra.yml \
@@ -252,11 +252,11 @@ pipeline {
             }
         }
 
-        stage('Cleanup Docker Images') {
+        stage('Cleanup Unused Container Images') {
             agent { label 'backend' }
             when { branch 'main' }
             steps {
-                sh 'docker image prune -af --filter "until=72h" || true'
+                sh 'podman image prune -af --filter "until=72h" || true'
             }
         }
     }

@@ -187,7 +187,6 @@ services:
       - buy01-network
     volumes:
       - jenkins_home:/var/jenkins_home # Persistent Jenkins data
-      - /run/user/${USER_ID}/docker.sock:/var/run/docker.sock
 
   backend-slave:
     build: ./Backend/jenkins/backend-slave
@@ -199,13 +198,12 @@ services:
       JENKINS_URL: http://jenkins-master:8080
       JENKINS_AGENT_NAME: backend-slave
       JENKINS_SECRET: ${BACKEND_SLAVE_SECRET}
+      CONTAINER_HOST: unix:///var/run/podman/podman.sock
+      PODMAN_COMPOSE_PROVIDER: podman-compose
     volumes:
-      - /run/user/${USER_ID}/docker.sock:/var/run/docker.sock
+      - /run/user/${USER_ID}/podman/podman.sock:/var/run/podman/podman.sock
       - ./.env:/home/jenkins/.env
-    userns_mode: "host"
     user: root
-    group_add:
-      - "55297"
     depends_on:
       jenkins-master:
         condition: service_started
@@ -228,12 +226,7 @@ services:
       JENKINS_AGENT_NAME: frontend-slave
       JENKINS_SECRET: ${FRONTEND_SLAVE_SECRET}
     volumes:
-      - /run/user/${USER_ID}/docker.sock:/var/run/docker.sock
       - ./.env:/home/jenkins/.env
-    userns_mode: "host"
-    user: root
-    group_add:
-      - "55297"
     depends_on:
       jenkins-master:
         condition: service_started
@@ -304,7 +297,7 @@ services:
       - INSTALL4J_ADD_VM_PARAMS=-Xms1200m -Xmx1200m -XX:MaxDirectMemorySize=2g
     ports:
       - "8081:8081"   # Nexus UI + Maven repositories (maven-public, maven-releases, maven-snapshots)
-      - "8082:8082"   # docker-hosted repository connector (docker login/push/pull)
+      - "8082:8082"   # docker-hosted repository connector (Podman login/push/pull)
     expose:
       - "8081"
       - "8082"

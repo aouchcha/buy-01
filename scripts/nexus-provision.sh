@@ -5,11 +5,11 @@ set -euo pipefail
 # - rotates the auto-generated admin password
 # - creates the docker-hosted repository (Maven repos ship by default in Nexus 3:
 #   maven-central proxy, maven-releases/maven-snapshots hosted, maven-public group)
-# - enables the Docker Bearer Token realm (required for `docker login`/push/pull)
+# - enables the Docker Bearer Token realm (required for `podman login`/push/pull)
 # - creates a least-privilege "ci-publisher" role/user for Jenkins and a
 #   read-only "developer" role
 #
-# Requires: docker compose (to read the auto-generated admin password from the
+# Requires: podman compose (to read the auto-generated admin password from the
 # running container), curl, jq.
 #
 # Usage:
@@ -19,7 +19,7 @@ set -euo pipefail
 NEXUS_URL="${NEXUS_URL:-http://localhost:8081}"
 NEXUS_ADMIN_PASSWORD="${NEXUS_ADMIN_PASSWORD:?Set NEXUS_ADMIN_PASSWORD to the new admin password}"
 NEXUS_CI_PASSWORD="${NEXUS_CI_PASSWORD:?Set NEXUS_CI_PASSWORD to the password for the Jenkins service account}"
-COMPOSE="docker compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml"
+COMPOSE="podman compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml"
 
 echo "Waiting for Nexus to be reachable at ${NEXUS_URL}..."
 for _ in $(seq 1 60); do

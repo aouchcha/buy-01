@@ -1,21 +1,3 @@
-# Stop all running containers
-docker stop $(docker ps -aq) 2>/dev/null
-
-
-# Remove all containers
-docker rm -f $(docker ps -aq) 2>/dev/null
-
-# Remove all images
-docker rmi -f $(docker images -aq) 2>/dev/null
-
-# Remove all volumes
-docker volume rm $(docker volume ls -q) 2>/dev/null
-
-# Remove all custom networks
-docker network rm $(docker network ls -q --filter type=custom) 2>/dev/null
-
-# Remove build cache
-docker builder prune -af
-
-# Final cleanup
-docker system prune -a --volumes -f
+# Destructive, unscoped cleanup of this user's Podman storage.
+podman rm --all --force 2>/dev/null || true
+podman system prune -a --volumes -f
