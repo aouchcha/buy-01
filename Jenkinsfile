@@ -232,9 +232,9 @@ pipeline {
                                 IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
                                 podman compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env build ${serviceName}
 
-                                echo "\$NEXUS_CI_PASSWORD" | podman login --tls-verify=false nexus:8082 -u "\$NEXUS_CI_USER" --password-stdin
-                                podman tag ${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH} nexus:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
-                                podman push --tls-verify=false nexus:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
+                                echo "\$NEXUS_CI_PASSWORD" | podman login --tls-verify=false localhost:8082 -u "\$NEXUS_CI_USER" --password-stdin
+                                podman tag ${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH} localhost:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
+                                podman push --tls-verify=false localhost:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
                             """
                         }
                     }
