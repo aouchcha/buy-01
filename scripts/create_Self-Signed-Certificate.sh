@@ -14,7 +14,7 @@ mkdir -p "${KEYSTORE_DIR}"
 
 echo "Generating Self-Signed Certificate (keystore.p12)..."
 
-docker run --rm \
+podman run --rm \
   -v "$(pwd)/${KEYSTORE_DIR}:/out" \
   eclipse-temurin:21-jdk-alpine \
   sh -c "

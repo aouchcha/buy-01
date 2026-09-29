@@ -68,7 +68,7 @@ marketplace-ui (Angular SPA, Nginx, HTTPS)
 | Object Storage | Cloudflare R2 (S3-compatible) for media files |
 | Frontend | Angular (standalone components, signals, Reactive Forms) |
 | Auth | JWT issued/validated by the Gateway, propagated to downstream services via `X-User-Id` / `X-User-Role` headers |
-| Containerization | Docker, Docker Compose |
+| Containerization | Podman, Compose |
 | CI/CD | Jenkins (declarative pipeline, distributed backend/frontend agents) |
 | Code Quality | SonarQube |
 | Web Server (frontend) | Nginx, self-signed TLS for local HTTPS |
@@ -100,7 +100,7 @@ buy-01
 
 ## Prerequisites
 
-- Docker & Docker Compose
+- Podman with a Compose provider that supports Compose profiles (`podman compose`)
 - Java 21+ and Maven (for local backend development outside containers)
 - Node.js + npm (for local Angular development)
 - A `.env` file at the project root (see below)
@@ -140,7 +140,7 @@ R2_BUCKET=
 R2_ENDPOINT=
 R2_PUBLIC_URL=
 
-# Local dev
+# Rootless Podman host UID, used for the Jenkins agent socket mount
 USER_ID=
 
 # Jenkins / SonarQube (CI infra)
@@ -169,6 +169,8 @@ NGROK_TOKEN=
 ```bash
 cp .env.example .env
 # then fill in DB credentials, JWT_SECRET, SSL_KEYSTORE_PASSWORD, R2 credentials, etc.
+# set USER_ID to the host account's numeric UID (id -u)
+# enable the rootless Podman socket with: systemctl --user enable --now podman.socket
 ```
 
 ### 2. Generate local TLS certificates (Gateway HTTPS)
@@ -183,13 +185,13 @@ chmod +x scripts/create_Self-Signed-Certificate.sh
 **Option A — local dev stack** (app services + MongoDB + Kafka bundled, simplest; does **not** include `search`/Elasticsearch):
 
 ```bash
-docker compose -f docker-compose.local.yml up -d --build
+podman compose -f docker-compose.local.yml up -d --build
 ```
 
 **Option B — full stack** (mirrors CI/prod: app services + MongoDB + Kafka + Elasticsearch + Jenkins + SonarQube):
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.infra.yml --profile infra up -d --build
+podman compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml up -d --build
 ```
 
 ### 4. Access the app
@@ -203,12 +205,12 @@ docker compose -f docker-compose.yml -f docker-compose.infra.yml --profile infra
 ### Stopping / cleaning up
 
 ```bash
-docker compose -f docker-compose.local.yml down
+podman compose -f docker-compose.local.yml down
 # or, for the full stack:
-docker compose -f docker-compose.yml -f docker-compose.infra.yml down
+podman compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml down
 ```
 
-> `scripts/clear.sh` also exists, but it is **not scoped to this project** — it stops/removes *all* containers, images, volumes and networks on the machine (`docker system prune -a --volumes -f`). Only run it on a machine where a full Docker reset is acceptable.
+> `scripts/clear.sh` also exists, but it is **not scoped to this project** — it stops and removes unused containers, images, volumes, networks, and build data from the current user's Podman storage. Only run it when that cleanup is intended.
 
 ---
 
@@ -282,8 +284,10 @@ The `Jenkinsfile` implements a declarative pipeline with **distributed agents** 
    - **Frontend Application** — if `marketplace-ui` changed: `npm ci`, `npm test --coverage`, `npm run build -- --configuration production`.
 4. **Static Code Analysis** *(parallel)* — SonarQube scan per changed backend service (`mvn sonar:sonar -Dsonar.projectKey=buy01-<service>`, e.g. `buy01-orders`, `buy01-search`) and `sonar-scanner` for the frontend, both wrapped in `withSonarQubeEnv('sonarqube-server')`.
 5. **Quality Gate** — blocks the pipeline (5-minute timeout, `abortPipeline: true`) until SonarQube reports pass/fail.
-6. **Build Docker Images** — `docker compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml build <service>` per changed service, tagged with the short commit SHA (`IMAGE_TAG=<7-char-sha>`).
-7. **Deploy To Main Environment** — on the `main` branch only: `docker compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml up -d --no-deps discovery gateway product user media search orders marketplace-ui`. Note this redeploys **all** application services on every push to `main`, not just the ones changed.
+6. **Build Container Images** — `podman compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml build <service>` per changed service, tagged with the short commit SHA (`IMAGE_TAG=<7-char-sha>`), then pushed to Nexus with Podman.
+7. **Deploy To Main Environment** — on the `main` branch only: `podman compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml up -d --no-deps discovery gateway product user media search orders marketplace-ui`. Note this redeploys **all** application services on every push to `main`, not just the ones changed.
+
+The backend Jenkins agent uses the host's rootless Podman service through `/run/user/${USER_ID}/podman/podman.sock`, mounted in the agent at `/var/run/podman/podman.sock`. Set `USER_ID` to the host user's numeric UID (`id -u`) and enable that user's Podman socket with `systemctl --user enable --now podman.socket`. The backend agent image includes Podman and `podman-compose` 1.6.0, which supports profiles.
 
 ### Triggers
 
@@ -298,10 +302,10 @@ The `Jenkinsfile` implements a declarative pipeline with **distributed agents** 
 
 ## Static Code Analysis (SonarQube)
 
-SonarQube runs via Docker Compose (`docker-compose.infra.yml`, `sonarqube` + `sonarqube-db` services):
+SonarQube runs via Podman Compose (`docker-compose.infra.yml`, `sonarqube` + `sonarqube-db` services):
 
 ```bash
-docker compose --profile infra -f docker-compose.infra.yml --env-file .env up -d sonarqube-db sonarqube
+podman compose --profile infra -f docker-compose.infra.yml --env-file .env up -d sonarqube-db sonarqube
 ```
 
 - Dashboard: `http://localhost:9001` (mapped from container port 9000).
@@ -314,7 +318,7 @@ docker compose --profile infra -f docker-compose.infra.yml --env-file .env up -d
 
 ## Deployment & Rollback
 
-- Deployment is driven by the **Deploy To Main Environment** stage, restricted to the `main` branch; it redeploys all application services (`docker compose up -d --no-deps <all services>`) regardless of which ones actually changed.
+- Deployment is driven by the **Deploy To Main Environment** stage, restricted to the `main` branch; it redeploys all application services (`podman compose up -d --no-deps <all services>`) regardless of which ones actually changed.
 - Each image is tagged by **commit SHA** (`IMAGE_TAG`), so a rollback is a matter of re-running deployment with a previous known-good `IMAGE_TAG` (or reverting the commit and letting the pipeline redeploy), since older tagged images remain available in the image registry/build cache.
 - Health checks (`/actuator/health` on each service, Mongo `healthcheck` in Compose) gate service startup ordering (`depends_on: condition: service_healthy`), reducing the chance of promoting a broken deployment.
 
@@ -337,8 +341,8 @@ Recipients are configured via the `NOTIFICATION_EMAIL_RECIPIENT` environment var
 |---|---|
 | `scripts/create_Self-Signed-Certificate.sh` | Generates the Gateway's self-signed TLS keystore (`keystore.p12`) via `keytool`, password from `SSL_KEYSTORE_PASSWORD` |
 | `scripts/detect-changed-services.sh` | Diffs two git refs and prints which app services (from `docker-compose.yml`) changed — used by the Jenkins pipeline for change-based builds |
-| `scripts/get_id.sh` | Exports the current host UID as `USER_ID`, for Docker volume permission alignment in local dev |
-| `scripts/clear.sh` | **Destructive, machine-wide** Docker reset — stops/removes *all* containers, images, volumes and networks, not just this project's. Use `docker compose down` instead unless you intend a full reset. |
+| `USER_ID` in `.env` | Set to the host account's numeric UID (`id -u`), used for the rootless Podman socket mount |
+| `scripts/clear.sh` | **Destructive, unscoped** cleanup of the current user's Podman storage. Use `podman compose down` instead unless you intend a full reset. |
 
 ---
 

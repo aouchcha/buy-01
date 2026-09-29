@@ -1,6 +1,10 @@
 pipeline {
     agent none
 
+    options {
+        skipDefaultCheckout(true)
+    }
+
     environment {
         NOTIFICATION_EMAIL_RECIPIENT = 'yahyakhaldy2@gmail.com, ouchchatea@gmail.com'
         COMPOSE_PROJECT_NAME = "buy-02"
@@ -13,7 +17,10 @@ pipeline {
             steps {
                 checkout scm
                 script {
-                    env.CURRENT_COMMIT_SHORT_HASH = env.GIT_COMMIT.take(7)
+                    env.CURRENT_COMMIT_SHORT_HASH = sh(
+                        script: 'git rev-parse --short=7 HEAD',
+                        returnStdout: true
+                    ).trim()
                 }
                 // Save the checked-out code so later stages running on a
                 // DIFFERENT agent (frontend-agent) can reuse it without
@@ -52,6 +59,7 @@ pipeline {
                 stage('Backend Services') {
                     agent { label 'backend' }
                     when {
+                        beforeAgent true
                         expression {
                             env.CHANGED_SERVICE_NAMES.contains('discovery') ||
                             env.CHANGED_SERVICE_NAMES.contains('gateway') ||
@@ -82,6 +90,7 @@ pipeline {
                 stage('Frontend Application') {
                     agent { label 'frontend' }
                     when {
+                        beforeAgent true
                         expression { env.CHANGED_SERVICE_NAMES.contains('marketplace-ui') }
                     }
                     steps {
@@ -103,6 +112,7 @@ pipeline {
                 stage('Backend SonarQube Analysis') {
                     agent { label 'backend' }
                     when {
+                        beforeAgent true
                         expression {
                             env.CHANGED_SERVICE_NAMES.contains('discovery') ||
                             env.CHANGED_SERVICE_NAMES.contains('gateway') ||
@@ -141,6 +151,7 @@ pipeline {
                 stage('Frontend SonarQube Analysis') {
                     agent { label 'frontend' }
                     when {
+                        beforeAgent true
                         expression { env.CHANGED_SERVICE_NAMES.contains('marketplace-ui') }
                     }
                     steps {
@@ -167,6 +178,7 @@ pipeline {
         stage('Publish Backend Artifacts to Nexus') {
             agent { label 'backend' }
             when {
+                beforeAgent true
                 expression {
                     env.CHANGED_SERVICE_NAMES?.trim() && (
                         env.CHANGED_SERVICE_NAMES.contains('discovery') ||
@@ -203,9 +215,12 @@ pipeline {
             }
         }
 
-        stage('Build Docker Images') {
+        stage('Build Container Images') {
             agent { label 'backend' }
-            when { expression { env.CHANGED_SERVICE_NAMES?.trim() } }
+            when {
+                beforeAgent true
+                expression { env.CHANGED_SERVICE_NAMES?.trim() }
+            }
             steps {
                 unstash 'source-code'
                 script {
@@ -215,11 +230,11 @@ pipeline {
                         allChangedServiceNames.each { serviceName ->
                             sh """
                                 IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                                docker compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env build ${serviceName}
+                                podman compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env build ${serviceName}
 
-                                echo "\$NEXUS_CI_PASSWORD" | docker login localhost:8082 -u "\$NEXUS_CI_USER" --password-stdin
-                                docker tag ${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH} localhost:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
-                                docker push localhost:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
+                                echo "\$NEXUS_CI_PASSWORD" | podman login --tls-verify=false nexus:8082 -u "\$NEXUS_CI_USER" --password-stdin
+                                podman tag ${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH} nexus:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
+                                podman push --tls-verify=false nexus:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
                             """
                         }
                     }
@@ -230,6 +245,7 @@ pipeline {
         stage('Deploy To Main Environment') {
             agent { label 'backend' }
             when {
+                beforeAgent true
                 allOf {
                     branch 'main'
                     // expression { env.CHANGED_SERVICE_NAMES?.trim() }
@@ -242,7 +258,7 @@ pipeline {
 
                 sh """
                     IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                    docker compose \
+                    podman compose \
                       --profile infra \
                       -f docker-compose.yml \
                       -f docker-compose.infra.yml \
@@ -252,11 +268,14 @@ pipeline {
             }
         }
 
-        stage('Cleanup Docker Images') {
+        stage('Cleanup Unused Container Images') {
             agent { label 'backend' }
-            when { branch 'main' }
+            when {
+                beforeAgent true
+                branch 'main'
+            }
             steps {
-                sh 'docker image prune -af --filter "until=72h" || true'
+                sh 'podman image prune -af --filter "until=72h" || true'
             }
         }
     }
