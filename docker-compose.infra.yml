@@ -214,6 +214,8 @@ services:
         max-file: "3"
     networks:
       - buy01-network
+    extra_hosts:
+      - "nexus:10.89.0.31"
 
   frontend-slave:
     build: ./Backend/jenkins/frontend-slave
