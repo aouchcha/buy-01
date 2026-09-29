@@ -17,7 +17,10 @@ pipeline {
             steps {
                 checkout scm
                 script {
-                    env.CURRENT_COMMIT_SHORT_HASH = env.GIT_COMMIT.take(7)
+                    env.CURRENT_COMMIT_SHORT_HASH = sh(
+                        script: 'git rev-parse --short=7 HEAD',
+                        returnStdout: true
+                    ).trim()
                 }
                 // Save the checked-out code so later stages running on a
                 // DIFFERENT agent (frontend-agent) can reuse it without
