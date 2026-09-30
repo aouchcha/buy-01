@@ -198,11 +198,10 @@ services:
       JENKINS_URL: http://jenkins-master:8080
       JENKINS_AGENT_NAME: backend-slave
       JENKINS_SECRET: ${BACKEND_SLAVE_SECRET}
+      DOCKER_HOST: unix:///var/run/docker.sock
     volumes:
       - /run/user/${USER_ID}/docker.sock:/var/run/docker.sock
       - ./.env:/home/jenkins/.env
-    # userns_mode: "host"
-    # user: root
     user: "64095:64095"
     userns_mode: "host"
     depends_on:
