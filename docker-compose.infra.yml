@@ -201,9 +201,10 @@ services:
     volumes:
       - /run/user/${USER_ID}/docker.sock:/var/run/docker.sock
       - ./.env:/home/jenkins/.env
-    user: "64095:64095"
+    # userns_mode: "host"
+    # user: root
     group_add:
-      - "64095"
+      - "55297"
     depends_on:
       jenkins-master:
         condition: service_started
@@ -228,9 +229,10 @@ services:
     volumes:
       - /run/user/${USER_ID}/docker.sock:/var/run/docker.sock
       - ./.env:/home/jenkins/.env
-    user: "64095:64095"
+    # userns_mode: "host"
+    # user: root
     group_add:
-      - "64095"
+      - "55297"
     depends_on:
       jenkins-master:
         condition: service_started
