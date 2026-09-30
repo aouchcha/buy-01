@@ -203,8 +203,10 @@ services:
       - ./.env:/home/jenkins/.env
     # userns_mode: "host"
     # user: root
-    group_add:
-      - "55297"
+    user: "64095:64095"
+    userns_mode: "host"
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
     depends_on:
       jenkins-master:
         condition: service_started
@@ -231,8 +233,10 @@ services:
       - ./.env:/home/jenkins/.env
     # userns_mode: "host"
     # user: root
-    group_add:
-      - "55297"
+    user: "64095:64095"
+    userns_mode: "host"
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
     depends_on:
       jenkins-master:
         condition: service_started
