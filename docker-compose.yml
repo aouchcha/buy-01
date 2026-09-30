@@ -70,7 +70,7 @@ services:
     environment:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
-      SPRING_MONGODB_URI: ${USER_DB_URI}
+      SPRING_DATA_MONGODB_URI: ${USER_DB_URI}
       JAVA_TOOL_OPTIONS: "-Xmx256m -Xms128m"
     logging:
       driver: json-file
@@ -105,7 +105,7 @@ services:
       R2_BUCKET: ${R2_BUCKET}
       R2_ENDPOINT: ${R2_ENDPOINT}
       R2_PUBLIC_URL: ${R2_PUBLIC_URL}
-      SPRING_MONGODB_URI: ${MEDIA_DB_URI}
+      SPRING_DATA_MONGODB_URI: ${MEDIA_DB_URI}
       JAVA_TOOL_OPTIONS: "-Xmx256m -Xms128m"
     logging:
       driver: json-file
@@ -136,7 +136,7 @@ services:
     env_file:
       - .env
     environment:
-      SPRING_MONGODB_URI: ${PRODUCT_DB_URI}
+      SPRING_DATA_MONGODB_URI: ${PRODUCT_DB_URI}
       JAVA_TOOL_OPTIONS: "-Xmx256m -Xms128m"
     logging:
       driver: json-file
@@ -166,7 +166,7 @@ services:
     env_file:
       - .env
     environment:
-      SPRING_MONGODB_URI: ${ORDERS_DB_URI}
+      SPRING_DATA_MONGODB_URI: ${ORDERS_DB_URI}
       JAVA_TOOL_OPTIONS: "-Xmx256m -Xms128m"
     logging:
       driver: json-file
