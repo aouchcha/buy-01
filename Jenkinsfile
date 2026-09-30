@@ -1,35 +1,3 @@
-// ---------------------------------------------------------------------------
-// Helpers (defined outside the pipeline block so every stage can reuse them)
-// ---------------------------------------------------------------------------
-
-// Names of the changed services, as a list. Empty list when nothing changed.
-def changedServices() {
-    def names = env.CHANGED_SERVICE_NAMES?.trim()
-    return names ? names.split(',').collect { it.trim() }.findAll { it } : []
-}
-
-// Only the Java/Maven services (everything except the Angular frontend).
-def changedBackendServices() {
-    def backendServices = ['discovery', 'gateway', 'media', 'product', 'user', 'orders']
-    return changedServices().findAll { backendServices.contains(it) }
-}
-
-def frontendChanged() {
-    return changedServices().contains('marketplace-ui')
-}
-
-// Runs a block with the Nexus CI credentials exported as environment variables.
-// settings.xml reads NEXUS_CI_USER / NEXUS_CI_PASSWORD / NEXUS_URL from the environment.
-def withNexusCredentials(Closure body) {
-    withCredentials([usernamePassword(
-        credentialsId: 'nexus-ci-credentials',
-        usernameVariable: 'NEXUS_CI_USER',
-        passwordVariable: 'NEXUS_CI_PASSWORD'
-    )]) {
-        body()
-    }
-}
-
 pipeline {
     agent none
 
@@ -39,14 +7,7 @@ pipeline {
 
     environment {
         NOTIFICATION_EMAIL_RECIPIENT = 'yahyakhaldy2@gmail.com, ouchchatea@gmail.com'
-        COMPOSE_PROJECT_NAME = "buy-02"
-
-        // Needed by settings.xml (mirror URL) and by every pom's distributionManagement,
-        // so it must be defined for ALL stages, not only the publish stage.
-        NEXUS_URL = 'http://nexus:8081'
-
-        // Base version of the services. The commit hash and -SNAPSHOT are added at publish time.
-        BASE_VERSION = '0.0.1'
+        COMPOSE_PROJECT_NAME = 'buy-02'
     }
 
     stages {
@@ -98,15 +59,28 @@ pipeline {
                     agent { label 'backend' }
                     when {
                         beforeAgent true
-                        expression { changedBackendServices().size() > 0 }
+                        expression {
+                            env.CHANGED_SERVICE_NAMES.contains('discovery') ||
+                            env.CHANGED_SERVICE_NAMES.contains('gateway') ||
+                            env.CHANGED_SERVICE_NAMES.contains('media') ||
+                            env.CHANGED_SERVICE_NAMES.contains('product') ||
+                            env.CHANGED_SERVICE_NAMES.contains('user') ||
+                            env.CHANGED_SERVICE_NAMES.contains('orders')
+                        }
+                    }
+                    environment {
+                        NEXUS_URL = 'http://nexus:8081'
                     }
                     steps {
                         unstash 'source-code'
                         script {
-                            // Same settings.xml as the publish stage, so every stage resolves
-                            // dependencies through Nexus and caches them under the same repo id.
-                            withNexusCredentials {
-                                changedBackendServices().each { serviceName ->
+                            def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
+                            def changedBackendServiceNames = allChangedServiceNames.findAll {
+                                it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders'
+                            }
+
+                            withCredentials([usernamePassword(credentialsId: 'nexus-ci-credentials', usernameVariable: 'NEXUS_CI_USER', passwordVariable: 'NEXUS_CI_PASSWORD')]) {
+                                changedBackendServiceNames.each { serviceName ->
                                     dir("Backend/${serviceName}") {
                                         sh 'mvn -s ../../settings.xml clean package'
                                         junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
@@ -121,7 +95,7 @@ pipeline {
                     agent { label 'frontend' }
                     when {
                         beforeAgent true
-                        expression { frontendChanged() }
+                        expression { env.CHANGED_SERVICE_NAMES.contains('marketplace-ui') }
                     }
                     steps {
                         unstash 'source-code'
@@ -136,32 +110,40 @@ pipeline {
         }
 
         stage('Static Code Analysis') {
-            when { expression { changedServices().size() > 0 } }
+            when { expression { env.CHANGED_SERVICE_NAMES?.trim() } }
 
             parallel {
                 stage('Backend SonarQube Analysis') {
                     agent { label 'backend' }
                     when {
                         beforeAgent true
-                        expression { changedBackendServices().size() > 0 }
+                        expression {
+                            env.CHANGED_SERVICE_NAMES.contains('discovery') ||
+                            env.CHANGED_SERVICE_NAMES.contains('gateway') ||
+                            env.CHANGED_SERVICE_NAMES.contains('media') ||
+                            env.CHANGED_SERVICE_NAMES.contains('product') ||
+                            env.CHANGED_SERVICE_NAMES.contains('user') ||
+                            env.CHANGED_SERVICE_NAMES.contains('orders')
+                        }
                     }
                     steps {
                         unstash 'source-code'
                         script {
+                            def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
+                            def changedBackendServiceNames = allChangedServiceNames.findAll {
+                                it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders'
+                            }
                             withSonarQubeEnv('sonarqube-server') {
-                                withNexusCredentials {
-                                    changedBackendServices().each { serviceName ->
-                                        dir("Backend/${serviceName}") {
-                                            withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
-                                                // \$SONAR_TOKEN is expanded by the shell (not Groovy),
-                                                // so the secret is never interpolated into the script text.
-                                                sh """
-                                                    echo "Running SonarQube analysis for service: ${serviceName}"
-                                                    mvn -s ../../settings.xml org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar \
-                                                        -Dsonar.projectKey=buy01-${serviceName} \
-                                                        -Dsonar.login=\$SONAR_TOKEN
-                                                """
-                                            }
+                                changedBackendServiceNames.each { serviceName ->
+                                    dir("Backend/${serviceName}") {
+                                        withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+                                            sh """
+
+                                                   echo "Running SonarQube analysis for service: ${serviceName}"
+                                                   mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar \
+                                                   -Dsonar.projectKey=buy01-${serviceName} \
+                                                   -Dsonar.login=${SONAR_TOKEN}
+                                            """
                                         }
                                     }
                                 }
@@ -174,7 +156,7 @@ pipeline {
                     agent { label 'frontend' }
                     when {
                         beforeAgent true
-                        expression { frontendChanged() }
+                        expression { env.CHANGED_SERVICE_NAMES.contains('marketplace-ui') }
                     }
                     steps {
                         unstash 'source-code'
@@ -189,7 +171,7 @@ pipeline {
         }
 
         stage('Quality Gate') {
-            when { expression { changedServices().size() > 0 } }
+            when { expression { env.CHANGED_SERVICE_NAMES?.trim() } }
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
@@ -201,21 +183,33 @@ pipeline {
             agent { label 'backend' }
             when {
                 beforeAgent true
-                expression { changedBackendServices().size() > 0 }
+                expression {
+                    env.CHANGED_SERVICE_NAMES?.trim() && (
+                        env.CHANGED_SERVICE_NAMES.contains('discovery') ||
+                        env.CHANGED_SERVICE_NAMES.contains('gateway') ||
+                        env.CHANGED_SERVICE_NAMES.contains('media') ||
+                        env.CHANGED_SERVICE_NAMES.contains('product') ||
+                        env.CHANGED_SERVICE_NAMES.contains('user') ||
+                        env.CHANGED_SERVICE_NAMES.contains('orders')
+                    )
+                }
+            }
+            environment {
+                NEXUS_URL = 'http://nexus:8081'
             }
             steps {
                 unstash 'source-code'
                 script {
-                    // The version MUST end in -SNAPSHOT, otherwise Maven treats it as a release
-                    // and deploys to <repository> (maven-releases) instead of <snapshotRepository>.
-                    def publishVersion = "${env.BASE_VERSION}-${env.CURRENT_COMMIT_SHORT_HASH}-SNAPSHOT"
-
-                    withNexusCredentials {
-                        changedBackendServices().each { serviceName ->
+                    def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
+                    def changedBackendServiceNames = allChangedServiceNames.findAll {
+                        it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders'
+                    }
+                    withCredentials([usernamePassword(credentialsId: 'nexus-ci-credentials', usernameVariable: 'NEXUS_CI_USER', passwordVariable: 'NEXUS_CI_PASSWORD')]) {
+                        changedBackendServiceNames.each { serviceName ->
                             dir("Backend/${serviceName}") {
                                 sh """
                                     mvn -s ../../settings.xml org.codehaus.mojo:versions-maven-plugin:2.16.2:set \
-                                        -DnewVersion=${publishVersion} -DgenerateBackupPoms=false
+                                        -DnewVersion=${env.CURRENT_COMMIT_SHORT_HASH} -DgenerateBackupPoms=false
                                     mvn -s ../../settings.xml -DskipTests deploy
                                 """
                             }
@@ -229,13 +223,15 @@ pipeline {
             agent { label 'backend' }
             when {
                 beforeAgent true
-                expression { changedServices().size() > 0 }
+                expression { env.CHANGED_SERVICE_NAMES?.trim() }
             }
             steps {
                 unstash 'source-code'
                 script {
-                    withNexusCredentials {
-                        changedServices().each { serviceName ->
+                    def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
+
+                    withCredentials([usernamePassword(credentialsId: 'nexus-ci-credentials', usernameVariable: 'NEXUS_CI_USER', passwordVariable: 'NEXUS_CI_PASSWORD')]) {
+                        allChangedServiceNames.each { serviceName ->
                             sh """
                                 IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
                                 docker compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env build ${serviceName}
@@ -256,27 +252,23 @@ pipeline {
                 beforeAgent true
                 allOf {
                     branch 'main'
-                    // Only deploy what was actually built. Unchanged services have no image
-                    // tagged with this commit hash, so they must not be started with it.
-                    expression { changedServices().size() > 0 }
+                // expression { env.CHANGED_SERVICE_NAMES?.trim() }
                 }
             }
+
             steps {
                 unstash 'source-code'
                 sh 'cp /home/jenkins/.env .env'
 
-                script {
-                    
-                     sh """
-                        IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                        docker compose \
-                        --profile infra \
-                        -f docker-compose.yml \
-                        -f docker-compose.infra.yml \
-                        --env-file /home/jenkins/.env \
-                        up -d --no-deps discovery gateway product user media orders marketplace-ui
-                    """
-                }
+                sh """
+                    IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
+                    docker compose \
+                      --profile infra \
+                      -f docker-compose.yml \
+                      -f docker-compose.infra.yml \
+                      --env-file /home/jenkins/.env \
+                      up -d --no-deps discovery gateway product user media orders marketplace-ui
+                """
             }
         }
 
@@ -294,16 +286,16 @@ pipeline {
 
     post {
         success {
-            mail(
-                to: "${env.NOTIFICATION_EMAIL_RECIPIENT}",
-                subject: "SUCCESS: ${env.JOB_NAME} build #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME}",
-                body: "Services affected: ${env.CHANGED_SERVICE_NAMES ?: 'none'}\n\nFull build log: ${env.BUILD_URL}"
-            )
+                mail(
+                    to: "${env.NOTIFICATION_EMAIL_RECIPIENT}",
+                    subject: "SUCCESS: ${env.JOB_NAME} build #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME}",
+                    body: "Services affected: ${env.CHANGED_SERVICE_NAMES ?: 'none'}\n\nFull build log: ${env.BUILD_URL}"
+                )
         }
 
         failure {
             mail(
-                to: "${env.NOTIFICATION_EMAIL_RECIPIENT}",
+                to: "${NOTIFICATION_EMAIL_RECIPIENT}",
                 subject: "FAILED: ${env.JOB_NAME} build #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME}",
                 body: "Check the console output for details: ${env.BUILD_URL}console"
             )
