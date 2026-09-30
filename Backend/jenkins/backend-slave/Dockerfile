@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
     mkdir -p /home/jenkins/.m2
 
 # Create the docker group if it doesn't exist and add jenkins to it
-RUN groupadd -g 999 docker || true && usermod -aG docker jenkins
+# RUN groupadd -g 999 docker || true && usermod -aG docker jenkins
 
 COPY --chown=jenkins:jenkins settings.xml /home/jenkins/.m2/settings.xml
  
