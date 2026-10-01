@@ -233,10 +233,17 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'nexus-ci-credentials', usernameVariable: 'NEXUS_CI_USER', passwordVariable: 'NEXUS_CI_PASSWORD')]) {
                         allChangedServiceNames.each { serviceName ->
                             sh """
+                                echo "=== Building ${serviceName} with tag ${env.CURRENT_COMMIT_SHORT_HASH} ==="
                                 IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
                                 docker compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env build ${serviceName}
 
+                                echo "=== Verifying built local images ==="
+                                docker images | grep ${serviceName}
+
+                                echo "=== Logging into Nexus ==="
                                 echo "\$NEXUS_CI_PASSWORD" | docker login nexus:8082 -u "\$NEXUS_CI_USER" --password-stdin
+
+                                echo "=== Tagging and Pushing ==="
                                 docker tag ${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH} nexus:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
                                 docker push nexus:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
                             """
