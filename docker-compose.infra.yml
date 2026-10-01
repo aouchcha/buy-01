@@ -195,23 +195,22 @@ services:
     env_file:
       - .env
     environment:
-      JENKINS_URL: http://jenkins-master:8080
-      JENKINS_AGENT_NAME: backend-slave
-      JENKINS_SECRET: ${BACKEND_SLAVE_SECRET}
-      DOCKER_HOST: unix:///var/run/docker.sock
+      - JENKINS_URL=http://jenkins-master:8080
+      - JENKINS_AGENT_NAME=backend-slave
+      - JENKINS_SECRET=${BACKEND_SLAVE_SECRET}
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    user: "0"  # <--- Add this line to run as root inside the container so it can access the socket
     volumes:
       - /run/user/${USER_ID}/docker.sock:/var/run/docker.sock
       - ./.env:/home/jenkins/.env
-    user: "64095:64095"
-    userns_mode: "host"
     depends_on:
       jenkins-master:
         condition: service_started
     logging:
       driver: json-file
       options:
-        max-size: "10m"
-        max-file: "3"
+          max-size: "10m"
+          max-file: "3"
     networks:
       - buy01-network
 
@@ -230,8 +229,6 @@ services:
       - ./.env:/home/jenkins/.env
     # userns_mode: "host"
     # user: root
-    user: "64095:64095"
-    userns_mode: "host"
     depends_on:
       jenkins-master:
         condition: service_started

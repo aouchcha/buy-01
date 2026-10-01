@@ -209,7 +209,7 @@ pipeline {
                             dir("Backend/${serviceName}") {
                                 sh """
                                     mvn -s ../../settings.xml org.codehaus.mojo:versions-maven-plugin:2.16.2:set \
-                                        -DnewVersion=${env.CURRENT_COMMIT_SHORT_HASH} -DgenerateBackupPoms=false
+                                        -DnewVersion=0.0.1-${env.CURRENT_COMMIT_SHORT_HASH}-SNAPSHOT -DgenerateBackupPoms=false
                                     mvn -s ../../settings.xml -DskipTests deploy
                                 """
                             }
