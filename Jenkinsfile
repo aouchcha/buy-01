@@ -200,16 +200,22 @@ pipeline {
             steps {
                 unstash 'source-code'
                 script {
+                    // If building on 'main', it's a release (no -SNAPSHOT). Otherwise, it's a snapshot.
+                    def artifactVersion = (env.BRANCH_NAME == 'main') ? "0.0.1-${env.CURRENT_COMMIT_SHORT_HASH}" : "0.0.1-${env.CURRENT_COMMIT_SHORT_HASH}-SNAPSHOT"
+                    
+                    echo "Deploying version: ${artifactVersion}"
+
                     def allChangedServiceNames = env.CHANGED_SERVICE_NAMES.split(',')
                     def changedBackendServiceNames = allChangedServiceNames.findAll {
                         it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders'
                     }
+                    
                     withCredentials([usernamePassword(credentialsId: 'nexus-ci-credentials', usernameVariable: 'NEXUS_CI_USER', passwordVariable: 'NEXUS_CI_PASSWORD')]) {
                         changedBackendServiceNames.each { serviceName ->
                             dir("Backend/${serviceName}") {
                                 sh """
                                     mvn -s ../../settings.xml org.codehaus.mojo:versions-maven-plugin:2.16.2:set \
-                                        -DnewVersion=0.0.1-${env.CURRENT_COMMIT_SHORT_HASH}-SNAPSHOT -DgenerateBackupPoms=false
+                                        -DnewVersion=${artifactVersion} -DgenerateBackupPoms=false
                                     mvn -s ../../settings.xml -DskipTests deploy
                                 """
                             }
