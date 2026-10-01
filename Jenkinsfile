@@ -236,9 +236,9 @@ pipeline {
                                 IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
                                 docker compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env build ${serviceName}
 
-                                echo "\$NEXUS_CI_PASSWORD" | docker login --tls-verify=false nexus:8082 -u "\$NEXUS_CI_USER" --password-stdin
+                                echo "\$NEXUS_CI_PASSWORD" | docker login nexus:8082 -u "\$NEXUS_CI_USER" --password-stdin
                                 docker tag ${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH} nexus:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
-                                docker push --tls-verify=false nexus:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
+                                docker push nexus:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
                             """
                         }
                     }
