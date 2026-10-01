@@ -7,10 +7,9 @@ pipeline {
 
     environment {
         NOTIFICATION_EMAIL_RECIPIENT = 'yahyakhaldy2@gmail.com, ouchchatea@gmail.com'
-        COMPOSE_PROJECT_NAME = "buy-02"
+        COMPOSE_PROJECT_NAME = 'buy-02'
     }
 
-    
     stages {
         stage('Checkout Source Code') {
             agent { label 'backend' }
@@ -69,6 +68,9 @@ pipeline {
                             env.CHANGED_SERVICE_NAMES.contains('orders')
                         }
                     }
+                    environment {
+                        NEXUS_URL = 'http://nexus:8081'
+                    }
                     steps {
                         unstash 'source-code'
                         script {
@@ -77,10 +79,12 @@ pipeline {
                                 it == 'discovery' || it == 'gateway' || it == 'media' || it == 'product' || it == 'user' || it == 'orders'
                             }
 
-                            changedBackendServiceNames.each { serviceName ->
-                                dir("Backend/${serviceName}") {
-                                    sh 'mvn clean package'
-                                    junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
+                            withCredentials([usernamePassword(credentialsId: 'nexus-ci-credentials', usernameVariable: 'NEXUS_CI_USER', passwordVariable: 'NEXUS_CI_PASSWORD')]) {
+                                changedBackendServiceNames.each { serviceName ->
+                                    dir("Backend/${serviceName}") {
+                                        sh 'mvn -s ../../settings.xml clean package -U'
+                                        junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
+                                    }
                                 }
                             }
                         }
@@ -134,7 +138,7 @@ pipeline {
                                     dir("Backend/${serviceName}") {
                                         withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
                                             sh """
-                            
+
                                                    echo "Running SonarQube analysis for service: ${serviceName}"
                                                    mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar \
                                                    -Dsonar.projectKey=buy01-${serviceName} \
@@ -205,7 +209,7 @@ pipeline {
                             dir("Backend/${serviceName}") {
                                 sh """
                                     mvn -s ../../settings.xml org.codehaus.mojo:versions-maven-plugin:2.16.2:set \
-                                        -DnewVersion=${env.CURRENT_COMMIT_SHORT_HASH} -DgenerateBackupPoms=false
+                                        -DnewVersion=0.0.1-${env.CURRENT_COMMIT_SHORT_HASH}-SNAPSHOT -DgenerateBackupPoms=false
                                     mvn -s ../../settings.xml -DskipTests deploy
                                 """
                             }
@@ -229,12 +233,16 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'nexus-ci-credentials', usernameVariable: 'NEXUS_CI_USER', passwordVariable: 'NEXUS_CI_PASSWORD')]) {
                         allChangedServiceNames.each { serviceName ->
                             sh """
+                                echo "=== Building ${serviceName} ==="
                                 IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                                podman compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env build ${serviceName}
+                                docker compose --profile infra -f docker-compose.yml -f docker-compose.infra.yml --env-file /home/jenkins/.env build ${serviceName}
 
-                                echo "\$NEXUS_CI_PASSWORD" | podman login --tls-verify=false nexus:8082 -u "\$NEXUS_CI_USER" --password-stdin
-                                podman tag ${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH} nexus:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
-                                podman push --tls-verify=false nexus:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
+                                echo "=== Logging into Nexus ==="
+                                echo "\$NEXUS_CI_PASSWORD" | docker login localhost:8082 -u "\$NEXUS_CI_USER" --password-stdin
+
+                                echo "=== Tagging and Pushing ==="
+                                docker tag ${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH} localhost:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
+                                docker push localhost:8082/${serviceName}:${env.CURRENT_COMMIT_SHORT_HASH}
                             """
                         }
                     }
@@ -248,7 +256,7 @@ pipeline {
                 beforeAgent true
                 allOf {
                     branch 'main'
-                    // expression { env.CHANGED_SERVICE_NAMES?.trim() }
+                // expression { env.CHANGED_SERVICE_NAMES?.trim() }
                 }
             }
 
@@ -258,7 +266,7 @@ pipeline {
 
                 sh """
                     IMAGE_TAG=${env.CURRENT_COMMIT_SHORT_HASH} \
-                    podman compose \
+                    docker compose \
                       --profile infra \
                       -f docker-compose.yml \
                       -f docker-compose.infra.yml \
@@ -275,7 +283,7 @@ pipeline {
                 branch 'main'
             }
             steps {
-                sh 'podman image prune -af --filter "until=72h" || true'
+                sh 'docker image prune -af --filter "until=72h" || true'
             }
         }
     }

@@ -2,16 +2,18 @@ FROM jenkins/inbound-agent:latest-jdk21
  
 USER root
 RUN apt-get update && apt-get install -y \
-    maven ca-certificates curl podman python3-yaml python3-dotenv && \
-    curl -fsSL https://raw.githubusercontent.com/containers/podman-compose/v1.6.0/podman_compose.py \
-      -o /usr/local/bin/podman-compose && \
-    chmod 0755 /usr/local/bin/podman-compose && \
+    maven ca-certificates curl gnupg lsb-release && \
+    install -m 0755 -d /etc/apt/keyrings && \
+    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" \
+    > /etc/apt/sources.list.d/docker.list && \
+    apt-get update && apt-get install -y docker-ce-cli docker-compose-plugin && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir -p /home/jenkins/.m2
 
-ENV CONTAINER_HOST=unix:///var/run/podman/podman.sock \
-    PODMAN_COMPOSE_PROVIDER=podman-compose
- 
+# Create the docker group if it doesn't exist and add jenkins to it
+# RUN groupadd -g 999 docker || true && usermod -aG docker jenkins
+
 COPY --chown=jenkins:jenkins settings.xml /home/jenkins/.m2/settings.xml
  
 RUN chown -R jenkins:jenkins /home/jenkins
