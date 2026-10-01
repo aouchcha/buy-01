@@ -82,7 +82,7 @@ pipeline {
                             withCredentials([usernamePassword(credentialsId: 'nexus-ci-credentials', usernameVariable: 'NEXUS_CI_USER', passwordVariable: 'NEXUS_CI_PASSWORD')]) {
                                 changedBackendServiceNames.each { serviceName ->
                                     dir("Backend/${serviceName}") {
-                                        sh 'mvn -s ../../settings.xml clean package'
+                                        sh 'mvn -s ../../settings.xml clean package -U'
                                         junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
                                     }
                                 }
